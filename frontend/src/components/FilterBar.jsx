@@ -165,6 +165,24 @@ export default function FilterBar({
           />
         </div>
 
+        {/* Container Size (20 FT / 40 FT) */}
+        <div>
+          <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+            <SlidersHorizontal className="w-3 h-3 text-cyan-600" />
+            Size (20/40 FT)
+          </label>
+          <select
+            value={filters.size || 'all'}
+            onChange={(e) => handleChange('size', e.target.value)}
+            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
+          >
+            <option value="all">All Sizes</option>
+            <option value="20">20 FT (1 TEU)</option>
+            <option value="40">40 FT (2 TEU)</option>
+            <option value="45">45 FT (HC)</option>
+          </select>
+        </div>
+
         {/* Bill of Lading (BL) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">

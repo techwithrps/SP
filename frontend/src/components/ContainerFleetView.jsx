@@ -25,6 +25,8 @@ export default function ContainerFleetView() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sizeFilter, setSizeFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 25;
 
@@ -54,6 +56,8 @@ export default function ContainerFleetView() {
   const filteredContainers = useMemo(() => {
     return containers.filter(c => {
       if (statusFilter !== 'all' && c.STATUS !== statusFilter) return false;
+      if (sizeFilter !== 'all' && String(c.CONT_SIZE).replace(/[^0-9]/g, '') !== sizeFilter) return false;
+      if (typeFilter !== 'all' && c.CONT_TYPE && !c.CONT_TYPE.toLowerCase().includes(typeFilter.toLowerCase())) return false;
       if (search) {
         const s = search.toLowerCase();
         const match = 
@@ -66,7 +70,7 @@ export default function ContainerFleetView() {
       }
       return true;
     });
-  }, [containers, search, statusFilter]);
+  }, [containers, search, statusFilter, sizeFilter, typeFilter]);
 
   const totalPages = Math.ceil(filteredContainers.length / pageSize) || 1;
   const paginatedContainers = useMemo(() => {
@@ -167,31 +171,112 @@ export default function ContainerFleetView() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft space-y-4">
         
-        {/* Search */}
-        <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search Container No (e.g. SUDU, ILCU), Truck, Client..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
-          />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Search */}
+          <div className="relative w-full md:w-96">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search Container No (e.g. SUDU, ILCU), Truck, Client..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+            <button
+              onClick={handleExport}
+              disabled={filteredContainers.length === 0}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#ff6a00] hover:bg-[#e65c00] text-white font-bold text-xs shadow-md transition-all disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              Export Fleet Excel
+            </button>
+
+            <button
+              onClick={fetchContainers}
+              disabled={loading}
+              className="p-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 transition-colors shadow-sm"
+              title="Refresh Fleet"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#2b1f55]' : ''}`} />
+            </button>
+          </div>
         </div>
 
-        {/* Status Filters & Actions */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+        {/* 20 FT / 40 FT / Size & Type Filters Row */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
           
+          {/* Container Size Quick Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Size:</span>
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+              {[
+                { key: 'all', label: 'All Sizes' },
+                { key: '20', label: '20 FT (1 TEU)' },
+                { key: '40', label: '40 FT (2 TEU)' },
+                { key: '45', label: '45 FT HC' },
+              ].map(s => (
+                <button
+                  key={s.key}
+                  onClick={() => {
+                    setSizeFilter(s.key);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                    sizeFilter === s.key
+                      ? 'bg-[#2b1f55] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-[#2b1f55]'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Container Type Filter */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Type:</span>
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+              {[
+                { key: 'all', label: 'All Types' },
+                { key: 'REEFER', label: 'Reefer (-18°C)' },
+                { key: 'DRY', label: 'Dry Cargo' },
+                { key: 'OPEN', label: 'Open Top' },
+                { key: 'FLAT', label: 'Flat Rack' },
+              ].map(t => (
+                <button
+                  key={t.key}
+                  onClick={() => {
+                    setTypeFilter(t.key);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                    typeFilter === t.key
+                      ? 'bg-[#ff6a00] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-[#ff6a00]'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Status Filter */}
           <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
             {[
-              { key: 'all', label: 'All Units' },
-              { key: 'Stored in Cold Chamber', label: 'In Cold Chamber (48)' },
-              { key: 'Dispatched / Gate Out', label: 'Dispatched (339)' },
+              { key: 'all', label: 'All Status' },
+              { key: 'Stored in Cold Chamber', label: 'In Chamber' },
+              { key: 'Dispatched / Gate Out', label: 'Dispatched' },
             ].map(tab => (
               <button
                 key={tab.key}
@@ -201,32 +286,14 @@ export default function ContainerFleetView() {
                 }}
                 className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
                   statusFilter === tab.key
-                    ? 'bg-[#2b1f55] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-[#2b1f55]'
+                    ? 'bg-emerald-700 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-emerald-700'
                 }`}
               >
                 {tab.label}
               </button>
             ))}
           </div>
-
-          <button
-            onClick={handleExport}
-            disabled={filteredContainers.length === 0}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#ff6a00] hover:bg-[#e65c00] text-white font-bold text-xs shadow-md transition-all disabled:opacity-50"
-          >
-            <Download className="w-4 h-4" />
-            Export Excel
-          </button>
-
-          <button
-            onClick={fetchContainers}
-            disabled={loading}
-            className="p-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 transition-colors shadow-sm"
-            title="Refresh Fleet"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#2b1f55]' : ''}`} />
-          </button>
 
         </div>
 
