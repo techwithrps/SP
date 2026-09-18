@@ -1,0 +1,319 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Truck, 
+  ArrowDownRight, 
+  ArrowUpRight, 
+  Package, 
+  Container, 
+  RefreshCw, 
+  FileCheck, 
+  Thermometer, 
+  Layers
+} from 'lucide-react';
+
+export default function OperationsView() {
+  const [opsData, setOpsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeSubTab, setActiveSubTab] = useState('gateIn');
+
+  const fetchOperations = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/operations');
+      const json = await res.json();
+      if (json.success) {
+        setOpsData(json.data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch operational data:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOperations();
+  }, []);
+
+  const stats = opsData?.stats || {};
+
+  return (
+    <div className="space-y-6">
+      
+      {/* Operations Quick Counters */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500">Cargo Gate-Ins</span>
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
+              <ArrowDownRight className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-black font-display text-slate-900 mt-2">
+            {stats.totalGateIn?.toLocaleString('en-IN') || '655'}
+          </div>
+          <div className="text-[11px] text-emerald-700 font-semibold mt-1">Vehicles Inward</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500">Vehicle Outward</span>
+            <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-200">
+              <ArrowUpRight className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-black font-display text-slate-900 mt-2">
+            {stats.totalGateOut?.toLocaleString('en-IN') || '806'}
+          </div>
+          <div className="text-[11px] text-blue-700 font-semibold mt-1">Dispatched Fleet</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500">Dispatch Notes</span>
+            <div className="p-2 rounded-xl bg-orange-50 text-[#ff6a00] border border-orange-200">
+              <FileCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-black font-display text-slate-900 mt-2">
+            {stats.totalDispatches?.toLocaleString('en-IN') || '427'}
+          </div>
+          <div className="text-[11px] text-orange-700 font-semibold mt-1">Cold Chain Orders</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500">Picklists</span>
+            <div className="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-200">
+              <Layers className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-black font-display text-slate-900 mt-2">
+            {stats.totalPicklists?.toLocaleString('en-IN') || '395'}
+          </div>
+          <div className="text-[11px] text-purple-700 font-semibold mt-1">543k+ Picked Units</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500">ASN Notices</span>
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200">
+              <Package className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-black font-display text-slate-900 mt-2">
+            {stats.totalASNs?.toLocaleString('en-IN') || '322'}
+          </div>
+          <div className="text-[11px] text-indigo-700 font-semibold mt-1">Advanced Shipping</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500">Cross Stuffing</span>
+            <div className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-200">
+              <Container className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-black font-display text-slate-900 mt-2">
+            {stats.totalCrossStuffing?.toLocaleString('en-IN') || '56'}
+          </div>
+          <div className="text-[11px] text-amber-700 font-semibold mt-1">Transfers Executed</div>
+        </div>
+
+      </div>
+
+      {/* Sub-tab switcher */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300">
+          {[
+            { key: 'gateIn', label: 'Cargo Gate-In (655)', icon: ArrowDownRight },
+            { key: 'dispatch', label: 'Dispatches & Temps (427)', icon: Thermometer },
+            { key: 'gateOut', label: 'Vehicle Outward (806)', icon: ArrowUpRight },
+            { key: 'cross', label: 'Cross Stuffing (56)', icon: Container },
+            { key: 'asn', label: 'ASN Inward (322)', icon: Package },
+          ].map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveSubTab(tab.key)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeSubTab === tab.key
+                    ? 'bg-[#2b1f55] text-white shadow-sm'
+                    : 'text-slate-700 hover:text-[#2b1f55] hover:bg-white'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={fetchOperations}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 transition-all shadow-sm"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#2b1f55]' : ''}`} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Operational Table Content */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-soft overflow-hidden">
+        
+        {activeSubTab === 'gateIn' && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100 text-slate-700 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+                <tr>
+                  <th className="p-3.5">Ref No</th>
+                  <th className="p-3.5">Truck No</th>
+                  <th className="p-3.5">Driver</th>
+                  <th className="p-3.5">Transporter</th>
+                  <th className="p-3.5">Gate In Date/Time</th>
+                  <th className="p-3.5">Container No</th>
+                  <th className="p-3.5">Seal No</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {(opsData?.gateIns || []).map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.REFERENCE_NO}</td>
+                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO}</td>
+                    <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER || 'Assigned'}</td>
+                    <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ Fleet'}</td>
+                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE}</td>
+                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO || '-'}</td>
+                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeSubTab === 'dispatch' && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100 text-slate-700 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+                <tr>
+                  <th className="p-3.5">Dispatch Ref</th>
+                  <th className="p-3.5">Truck No</th>
+                  <th className="p-3.5">Container No</th>
+                  <th className="p-3.5">Client Invoice No</th>
+                  <th className="p-3.5">Dispatch Temp</th>
+                  <th className="p-3.5">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {(opsData?.dispatches || []).map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.DISPATCH_REF_NO}</td>
+                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO}</td>
+                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO || '-'}</td>
+                    <td className="p-3.5 text-slate-800 font-mono font-semibold">{row.CLIENT_INVOICE_NO || '-'}</td>
+                    <td className="p-3.5">
+                      <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-mono font-bold text-xs">
+                        {row.DISPATCH_TEMPERATURE ? `${row.DISPATCH_TEMPERATURE}°C` : '-18°C'}
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-slate-500 font-mono">{row.DISPATCH_DATE}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeSubTab === 'gateOut' && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100 text-slate-700 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+                <tr>
+                  <th className="p-3.5">Vehicle ID</th>
+                  <th className="p-3.5">Truck No</th>
+                  <th className="p-3.5">Driver Name</th>
+                  <th className="p-3.5">Transporter</th>
+                  <th className="p-3.5">Container No</th>
+                  <th className="p-3.5">Seal No</th>
+                  <th className="p-3.5">Gate Out Date/Time</th>
+                  <th className="p-3.5">Remarks</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {(opsData?.gateOuts || []).map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-3.5 font-mono text-slate-500">{row.VEHICLE_ID}</td>
+                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO}</td>
+                    <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER_NAME || '-'}</td>
+                    <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ'}</td>
+                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO || '-'}</td>
+                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO || '-'}</td>
+                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_OUT_DATE}</td>
+                    <td className="p-3.5 text-slate-700 truncate max-w-[150px]">{row.REMARKS || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeSubTab === 'cross' && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100 text-slate-700 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+                <tr>
+                  <th className="p-3.5">CS Ref No</th>
+                  <th className="p-3.5">Truck No</th>
+                  <th className="p-3.5">Container No</th>
+                  <th className="p-3.5">Seal No</th>
+                  <th className="p-3.5">Gate In Date/Time</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {(opsData?.crossStuffing || []).map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.CS_REF_NO}</td>
+                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO}</td>
+                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO || '-'}</td>
+                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO || '-'}</td>
+                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeSubTab === 'asn' && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100 text-slate-700 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+                <tr>
+                  <th className="p-3.5">ASN No</th>
+                  <th className="p-3.5">ASN Date</th>
+                  <th className="p-3.5">Truck No</th>
+                  <th className="p-3.5">Supplier / Account Holder</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {(opsData?.asns || []).map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.ASN_NO}</td>
+                    <td className="p-3.5 text-slate-500 font-mono">{row.ASN_DATE}</td>
+                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                    <td className="p-3.5 text-slate-900 font-semibold">{row.SUPPLIER_NAME}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
