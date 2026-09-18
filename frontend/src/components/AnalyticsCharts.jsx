@@ -92,7 +92,7 @@ export default function AnalyticsCharts() {
   const exportAnalyticsExcel = () => {
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: Year-wise Kamayi
+    // Sheet 1: Year-wise Revenue
     const wsYears = XLSX.utils.json_to_sheet(yearBreakdown.map(r => ({
       'Year': r.year,
       'Month': r.monthName,
@@ -110,8 +110,8 @@ export default function AnalyticsCharts() {
       'Location': r.location,
       'Invoices': r.invoiceCount,
       'Base Revenue (INR)': r.baseRevenue,
-      'GST (INR)': r.taxAmount,
-      'Gross Kamayi (INR)': r.grossRevenue
+      'GST Output (INR)': r.taxAmount,
+      'Gross Revenue (INR)': r.grossRevenue
     })));
     XLSX.utils.book_append_sheet(wb, wsTerm, 'Terminal_Wise_Revenue');
 
@@ -125,9 +125,9 @@ export default function AnalyticsCharts() {
       'Invoices': r.invoiceCount,
       'Base Revenue (INR)': r.baseRevenue,
       'GST Output (INR)': r.gstAmount,
-      'Total Kamayi (INR)': r.totalKamayi
+      'Total Revenue (INR)': r.totalKamayi
     })));
-    XLSX.utils.book_append_sheet(wb, wsCont, 'Container_Kamayi');
+    XLSX.utils.book_append_sheet(wb, wsCont, 'Container_Revenue');
 
     // Sheet 4: Customer Ledger
     const wsCust = XLSX.utils.json_to_sheet(customerLedger.map((r, i) => ({
@@ -164,7 +164,7 @@ export default function AnalyticsCharts() {
   return (
     <div className="space-y-6">
       
-      {/* 1. Executive Kamayi & Profit Intelligence Header */}
+      {/* 1. Executive Revenue & Profitability Intelligence Header */}
       <div className="bg-gradient-to-r from-[#2b1f55] via-[#3a2c6d] to-[#201542] rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(circle_at_center,rgba(255,106,0,0.15)_0,transparent_70%)] pointer-events-none" />
         
@@ -172,13 +172,13 @@ export default function AnalyticsCharts() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-amber-300 text-xs font-bold mb-3 border border-white/15">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>SPJ Group Executive Revenue & Kamayi Intelligence</span>
+              <span>SPJ Group Executive Revenue & Financial Intelligence</span>
             </div>
             <h2 className="text-2xl lg:text-3xl font-black font-display tracking-tight text-white">
               Financial Overview & Profitability Matrix
             </h2>
             <p className="text-purple-200 text-xs sm:text-sm mt-1 max-w-2xl font-medium">
-              360° Real-time visibility of Invoices, Container Kamayi, Terminal Yields, Cold Chamber Storage, and Audited General Ledger Bookings.
+              360° Real-time visibility of Invoices, Container Revenue, Terminal Yields, Cold Chamber Storage, and Audited General Ledger Bookings.
             </p>
           </div>
 
@@ -202,10 +202,10 @@ export default function AnalyticsCharts() {
           </div>
         </div>
 
-        {/* 5 Core Owner Highlights */}
+        {/* 5 Core Highlights */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-6 pt-6 border-t border-white/15">
           <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
-            <div className="text-[11px] text-purple-200 font-bold uppercase tracking-wider">Grand Kamayi (System)</div>
+            <div className="text-[11px] text-purple-200 font-bold uppercase tracking-wider">Grand Total Volume</div>
             <div className="text-xl font-black font-display text-white mt-1">
               {formatCurrency(totals.grandSystemRevenue || 1903910365.87)}
             </div>
@@ -221,7 +221,7 @@ export default function AnalyticsCharts() {
           </div>
 
           <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
-            <div className="text-[11px] text-purple-200 font-bold uppercase tracking-wider">Ledger Debits</div>
+            <div className="text-[11px] text-purple-200 font-bold uppercase tracking-wider">Ledger Bookings</div>
             <div className="text-xl font-black font-display text-emerald-300 mt-1">
               {formatCurrency(totals.financeLedgerTotal || 224974686.01)}
             </div>
@@ -229,11 +229,11 @@ export default function AnalyticsCharts() {
           </div>
 
           <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
-            <div className="text-[11px] text-purple-200 font-bold uppercase tracking-wider">Import Terminal</div>
+            <div className="text-[11px] text-purple-200 font-bold uppercase tracking-wider">Import Operations</div>
             <div className="text-xl font-black font-display text-cyan-300 mt-1">
               {formatCurrency(totals.importOpsTotal || 1647976845.40)}
             </div>
-            <div className="text-[10px] text-cyan-200 font-semibold mt-0.5">2,227 Inward Items</div>
+            <div className="text-[10px] text-cyan-200 font-semibold mt-0.5">2,227 Inward Line Items</div>
           </div>
 
           <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10 col-span-2 sm:col-span-1">
@@ -247,13 +247,13 @@ export default function AnalyticsCharts() {
 
       </div>
 
-      {/* 2. Navigation Tabs for Owner Analytics */}
+      {/* 2. Navigation Tabs for Executive Analytics */}
       <div className="flex flex-wrap items-center gap-2 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300">
         {[
-          { key: 'executive', label: 'Owner Executive Overview', icon: Sparkles },
-          { key: 'yearWise', label: 'Year-wise & Financial Trends', icon: Calendar },
-          { key: 'terminalWise', label: 'Terminal & Location Kamayi', icon: Building2 },
-          { key: 'containerKamayi', label: 'Container Fleet Kamayi (387)', icon: Container },
+          { key: 'executive', label: 'Executive Overview', icon: Sparkles },
+          { key: 'yearWise', label: 'Yearly & Fiscal Trends', icon: Calendar },
+          { key: 'terminalWise', label: 'Terminal & Facility Revenue', icon: Building2 },
+          { key: 'containerKamayi', label: 'Container Fleet Revenue (387)', icon: Container },
           { key: 'customerLedger', label: 'Customer Revenue Matrix', icon: Users },
           { key: 'serviceTariff', label: 'Service & Tariff Breakdown', icon: Wrench },
           { key: 'generalLedger', label: 'Audited Finance Ledger', icon: FileText },
@@ -277,7 +277,7 @@ export default function AnalyticsCharts() {
       </div>
 
       {/* ========================================================================= */}
-      {/* TAB 1: OWNER EXECUTIVE OVERVIEW */}
+      {/* TAB 1: EXECUTIVE OVERVIEW */}
       {/* ========================================================================= */}
       {activeTab === 'executive' && (
         <div className="space-y-6">
@@ -297,7 +297,7 @@ export default function AnalyticsCharts() {
                   </p>
                 </div>
                 <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
-                  +18.4% MoM Peak
+                  +18.4% MoM Growth
                 </span>
               </div>
 
@@ -330,7 +330,7 @@ export default function AnalyticsCharts() {
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-soft flex flex-col justify-between">
               <div>
                 <h3 className="font-display font-extrabold text-base text-[#2b1f55]">
-                  Top Key Account Kamayi Share
+                  Top Key Account Revenue Share
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mb-3">
                   Revenue contribution by major logistics & cold chain partners
@@ -408,7 +408,7 @@ export default function AnalyticsCharts() {
                   <div className="text-[10px] text-blue-700 font-semibold">774 TEU Handled</div>
                 </div>
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
-                  <div className="text-[11px] font-bold text-slate-500">Cold Temp</div>
+                  <div className="text-[11px] font-bold text-slate-500">Controlled Temp</div>
                   <div className="text-lg font-black font-mono text-cyan-900 mt-0.5">-18°C</div>
                   <div className="text-[10px] text-cyan-700 font-semibold">PTI Certified</div>
                 </div>
@@ -423,7 +423,7 @@ export default function AnalyticsCharts() {
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-display font-black text-sm text-[#2b1f55]">Top Kamayi Accounts (YTD)</h4>
+                    <h4 className="font-display font-black text-sm text-[#2b1f55]">Top Revenue Generating Accounts</h4>
                     <p className="text-xs text-slate-500 font-medium">Highest volume corporate clients</p>
                   </div>
                 </div>
@@ -471,7 +471,7 @@ export default function AnalyticsCharts() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
                 <h3 className="font-display font-extrabold text-base text-[#2b1f55]">
-                  Year-wise & Financial Year Kamayi Breakdown
+                  Year-wise & Financial Year Revenue Breakdown
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
                   Audited fiscal earnings, monthly turnover, and GST remittance per financial cycle
@@ -505,7 +505,7 @@ export default function AnalyticsCharts() {
                     <th className="p-3.5 text-center">Invoices Billed</th>
                     <th className="p-3.5 text-right">Base Revenue (₹)</th>
                     <th className="p-3.5 text-right">GST Output 18% (₹)</th>
-                    <th className="p-3.5 text-right">Gross Total Kamayi (₹)</th>
+                    <th className="p-3.5 text-right">Gross Total Revenue (₹)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -541,7 +541,7 @@ export default function AnalyticsCharts() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 3: TERMINAL & LOCATION-WISE KAMAYI */}
+      {/* TAB 3: TERMINAL & LOCATION-WISE REVENUE */}
       {/* ========================================================================= */}
       {activeTab === 'terminalWise' && (
         <div className="space-y-6">
@@ -563,7 +563,7 @@ export default function AnalyticsCharts() {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-[11px] font-bold text-slate-500 uppercase">Gross Terminal Kamayi</div>
+                    <div className="text-[11px] font-bold text-slate-500 uppercase">Gross Terminal Turnover</div>
                     <div className="text-xl font-black font-mono text-[#ff6a00] mt-0.5">
                       {formatCurrency(term.grossRevenue)}
                     </div>
@@ -592,7 +592,7 @@ export default function AnalyticsCharts() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 4: CONTAINER FLEET KAMAYI (387 UNITS) */}
+      {/* TAB 4: CONTAINER FLEET REVENUE (387 UNITS) */}
       {/* ========================================================================= */}
       {activeTab === 'containerKamayi' && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-soft overflow-hidden flex flex-col">
@@ -601,7 +601,7 @@ export default function AnalyticsCharts() {
             <div>
               <h4 className="font-display font-extrabold text-sm text-[#2b1f55] flex items-center gap-2">
                 <Container className="w-4 h-4 text-[#ff6a00]" />
-                Container Fleet Profitability & Individual Unit Kamayi Leaderboard
+                Container Fleet Profitability & Individual Unit Revenue Leaderboard
               </h4>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
                 Revenue generated per container unit across reefer plug-in, handling, and cold storage
@@ -624,7 +624,7 @@ export default function AnalyticsCharts() {
                   <th className="p-3.5 text-center">Trips / Invoices</th>
                   <th className="p-3.5 text-right">Base Revenue (₹)</th>
                   <th className="p-3.5 text-right">GST Output (₹)</th>
-                  <th className="p-3.5 text-right">Total Container Kamayi (₹)</th>
+                  <th className="p-3.5 text-right">Total Unit Revenue (₹)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -761,7 +761,7 @@ export default function AnalyticsCharts() {
                   <th className="p-3.5 text-center">Billed Items</th>
                   <th className="p-3.5 text-right">Average Unit Rate (₹)</th>
                   <th className="p-3.5 text-right">Base Billed Amount (₹)</th>
-                  <th className="p-3.5 text-right">Gross Total Kamayi (₹)</th>
+                  <th className="p-3.5 text-right">Gross Total Revenue (₹)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">

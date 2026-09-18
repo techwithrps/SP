@@ -122,12 +122,12 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Top KPI Cards & SPJ Stat Highlights Bar */}
-        <KPICards kpis={kpis} loading={loading} />
-
         {/* Tab 1: CIR Revenue & Invoices */}
         {activeTab === 'cir' && (
           <div className="space-y-6">
+            {/* Top KPI Cards & SPJ Stat Highlights Bar */}
+            <KPICards kpis={kpis} loading={loading} />
+
             <FilterBar
               filters={filters}
               setFilters={setFilters}
