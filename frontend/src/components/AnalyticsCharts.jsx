@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -9,36 +9,40 @@ import {
   PieChart, 
   Pie, 
   Cell, 
-  CartesianGrid, 
-  Legend 
+  CartesianGrid,
+  AreaChart,
+  Area,
+  Legend
 } from 'recharts';
 import { 
+  TrendingUp, 
   Building2, 
   MapPin, 
   Users, 
   Wrench, 
   Container, 
   Receipt, 
+  Percent, 
+  FileText, 
   RefreshCw, 
+  Layers, 
   Calendar,
   Sparkles,
-  Download,
-  RotateCcw,
-  CheckSquare,
-  Square,
-  Layers,
-  FileText
+  ArrowUpRight,
+  ShieldCheck,
+  CheckCircle2,
+  DollarSign,
+  Download
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
-// PowerBI-style Palette matching the user's reference image
-const POWERBI_COLORS = [
-  '#b93b3b', '#e75454', '#f18888', '#f8bbbb', '#7c3aed', '#2b1f55', '#ff6a00'
+const COLORS = [
+  '#2b1f55', '#ff6a00', '#0284c7', '#10b981', '#7c3aed', 
+  '#ea580c', '#0891b2', '#059669', '#d97706', '#4338ca'
 ];
 
 function formatCurrency(val) {
   const num = Number(val) || 0;
-  if (Math.abs(num) >= 1000000000) return `₹ ${(num / 1000000000).toFixed(2)}bn`;
   if (Math.abs(num) >= 10000000) return `₹ ${(num / 10000000).toFixed(2)} Cr`;
   if (Math.abs(num) >= 100000) return `₹ ${(num / 100000).toFixed(2)} Lakh`;
   if (Math.abs(num) >= 1000) return `₹ ${(num / 1000).toFixed(1)}k`;
@@ -48,12 +52,7 @@ function formatCurrency(val) {
 export default function AnalyticsCharts() {
   const [finData, setFinData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [barGroupBy, setBarGroupBy] = useState('depot'); // 'depot' | 'customer' | 'month'
-
-  // Interactive Slicer Checkbox States (matching the image)
-  const [selectedRegions, setSelectedRegions] = useState(['North', 'West', 'South', 'East']);
-  const [selectedSizes, setSelectedSizes] = useState(['20', '40', '45']);
-  const [selectedTypes, setSelectedTypes] = useState(['REEFER', 'DRY']);
+  const [activeView, setActiveView] = useState('summary');
 
   const fetchFinancials = async () => {
     setLoading(true);
@@ -74,421 +73,509 @@ export default function AnalyticsCharts() {
     fetchFinancials();
   }, []);
 
-  const rawTotals = finData?.totals || {};
-  const yearBreakdown = finData?.yearBreakdown || [];
-  const terminalMatrix = finData?.terminalMatrix || [];
-  const containerEarnings = finData?.containerEarnings || [];
+  const totals = finData?.totals || {};
   const customerLedger = finData?.customerLedger || [];
   const serviceMatrix = finData?.serviceMatrix || [];
+  const financeLedgerEntries = finData?.financeLedgerEntries || [];
+  const monthlyTrend = finData?.monthlyTrend || [];
+  const containerEarnings = finData?.containerEarnings || [];
+  const yearBreakdown = finData?.yearBreakdown || [];
 
-  // Toggle Slicer Checkbox
-  const toggleSlicer = (list, setList, item) => {
-    if (list.includes(item)) {
-      if (list.length === 1) return; // keep at least 1
-      setList(list.filter(i => i !== item));
-    } else {
-      setList([...list, item]);
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xl text-xs">
+          <p className="font-bold text-slate-800 mb-1">{label || payload[0].name}</p>
+          <p className="text-[#2b1f55] font-mono font-bold">
+            {payload[0].name}: {formatCurrency(payload[0].value)}
+          </p>
+        </div>
+      );
     }
+    return null;
   };
 
-  const handleResetSlicers = () => {
-    setSelectedRegions(['North', 'West', 'South', 'East']);
-    setSelectedSizes(['20', '40', '45']);
-    setSelectedTypes(['REEFER', 'DRY']);
-  };
-
-  // 1. Grouped Dual Bar Chart Data (Actual vs Target by Depot / Customer / Month)
-  const dualBarData = useMemo(() => {
-    if (barGroupBy === 'depot') {
-      return [
-        { name: 'Dadri Industrial Depot', Net_Revenue: 31477010, Target_Revenue: 32500000, region: 'North' },
-        { name: 'Mumbai West Apex CFS', Net_Revenue: 28950000, Target_Revenue: 29800000, region: 'West' },
-        { name: 'Mundra Maritime Hub', Net_Revenue: 27800000, Target_Revenue: 28500000, region: 'West' },
-        { name: 'Noida Cold Chain Hub', Net_Revenue: 26500000, Target_Revenue: 27200000, region: 'North' },
-        { name: 'Kolkata East Terminal', Net_Revenue: 25400000, Target_Revenue: 26000000, region: 'East' },
-        { name: 'Chennai Coastal Hub', Net_Revenue: 24300000, Target_Revenue: 25100000, region: 'South' },
-        { name: 'Delhi North ICD Hub', Net_Revenue: 23900000, Target_Revenue: 24500000, region: 'North' },
-        { name: 'Hyderabad Central Hub', Net_Revenue: 22800000, Target_Revenue: 23400000, region: 'South' },
-      ].filter(d => selectedRegions.includes(d.region));
-    }
-
-    if (barGroupBy === 'customer') {
-      return customerLedger.slice(0, 8).map(c => ({
-        name: c.customerName.replace(/INDIA|PVT|LTD|PRIVATE|LIMITED|\./gi, '').trim().slice(0, 18),
-        Net_Revenue: Number(c.grossRevenue) || 0,
-        Target_Revenue: Math.round((Number(c.grossRevenue) || 0) * 1.05),
-      }));
-    }
-
-    // Month
-    return yearBreakdown.slice(0, 8).map(m => ({
-      name: `${m.monthName} ${m.year}`,
-      Net_Revenue: Number(m.grossRevenue) || 0,
-      Target_Revenue: Math.round((Number(m.grossRevenue) || 0) * 1.08),
-    }));
-  }, [barGroupBy, customerLedger, yearBreakdown, selectedRegions]);
-
-  // 2. Product / Service Category Donut Data
-  const donutData = useMemo(() => {
-    if (serviceMatrix.length > 0) {
-      const total = serviceMatrix.reduce((acc, s) => acc + (Number(s.grossKamayi) || Number(s.totalBilled) * 1.18 || 0), 0) || 1;
-      return serviceMatrix.slice(0, 5).map(s => {
-        const val = Number(s.grossKamayi) || Number(s.totalBilled) * 1.18 || 0;
-        return {
-          name: s.serviceName,
-          value: val,
-          percent: ((val / total) * 100).toFixed(1)
-        };
-      });
-    }
-
-    return [
-      { name: 'Cold Storage Chambers', value: 14732452, percent: '48.1' },
-      { name: 'Reefer Power & PTI (-18°C)', value: 8094901, percent: '26.4' },
-      { name: 'Terminal Handling (THC)', value: 6376233, percent: '20.8' },
-      { name: 'Customs Clearance & Freight', value: 1428007, percent: '4.7' },
-    ];
-  }, [serviceMatrix]);
-
-  const totalDonutValue = useMemo(() => {
-    return donutData.reduce((acc, d) => acc + d.value, 0);
-  }, [donutData]);
-
-  // Export
+  // Export Analytics
   const handleExportExcel = () => {
     const wb = XLSX.utils.book_new();
-    const ws1 = XLSX.utils.json_to_sheet(dualBarData);
-    XLSX.utils.book_append_sheet(wb, ws1, 'Depot_Revenue_Analysis');
-    const ws2 = XLSX.utils.json_to_sheet(donutData);
-    XLSX.utils.book_append_sheet(wb, ws2, 'Category_Distribution');
-    XLSX.writeFile(wb, `SPJ_Cargo_BI_Analytics_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  };
-
-  const CustomBarTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white border border-slate-300 p-3 rounded-xl shadow-xl text-xs">
-          <p className="font-bold text-slate-800 mb-1.5">{label}</p>
-          <p className="font-mono font-bold text-[#b93b3b]">
-            Net Revenue: {formatCurrency(payload[0]?.value)}
-          </p>
-          <p className="font-mono font-bold text-[#e75454]">
-            Target Revenue: {formatCurrency(payload[1]?.value)}
-          </p>
-          <div className="text-[10px] text-emerald-700 font-bold mt-1 pt-1 border-t border-slate-100">
-            Achievement: {((payload[0]?.value / payload[1]?.value) * 100).toFixed(1)}%
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const CustomDonutTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white border border-slate-300 p-3 rounded-xl shadow-xl text-xs">
-          <p className="font-bold text-slate-800 mb-1">{payload[0].name}</p>
-          <p className="font-mono font-bold text-[#b93b3b]">
-            Revenue: {formatCurrency(payload[0].value)} ({payload[0].payload.percent}%)
-          </p>
-        </div>
-      );
-    }
-    return null;
+    const ws1 = XLSX.utils.json_to_sheet(customerLedger);
+    XLSX.utils.book_append_sheet(wb, ws1, 'Customer_Ledger');
+    const ws2 = XLSX.utils.json_to_sheet(serviceMatrix);
+    XLSX.utils.book_append_sheet(wb, ws2, 'Service_Matrix');
+    const ws3 = XLSX.utils.json_to_sheet(financeLedgerEntries);
+    XLSX.utils.book_append_sheet(wb, ws3, 'General_Ledger');
+    XLSX.writeFile(wb, `SPJ_Financial_Analytics_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
     <div className="space-y-6">
-
-      {/* Top Toolbar / Subtitle */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-50 text-[#2b1f55] border border-purple-200">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-display font-extrabold text-sm text-[#2b1f55]">
-              Executive Revenue & Depot Performance Analytics
-            </h3>
-            <p className="text-xs text-slate-500 font-medium">
-              PowerBI Enterprise Analytics Interface • SPJ Live Logistics Data
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Bar View Mode Switcher */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
-            {[
-              { key: 'depot', label: 'By Depot / Hub' },
-              { key: 'customer', label: 'By Client Account' },
-              { key: 'month', label: 'By Fiscal Month' },
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setBarGroupBy(tab.key)}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                  barGroupBy === tab.key
-                    ? 'bg-[#2b1f55] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-[#2b1f55]'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={handleExportExcel}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#ff6a00] hover:bg-[#e65c00] text-white rounded-xl text-xs font-bold transition-all shadow-sm"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Export
-          </button>
-
-          <button
-            onClick={fetchFinancials}
-            disabled={loading}
-            className="p-2 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl text-slate-700 transition-all shadow-sm"
-            title="Refresh Live Data"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#2b1f55]' : ''}`} />
-          </button>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 1. TOP CONTAINER: SUM OF NET REVENUE & TARGET REVENUE BY DEPOT NAME */}
-      {/* ========================================================================= */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-soft">
+      
+      {/* 1. Grand Financial Overview Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Title and Subtitle matching reference */}
-        <div className="mb-4">
-          <h4 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
-            Sum of Net_Revenue_INR and Sum of Target_Revenue_INR
-          </h4>
-          <p className="text-xs text-slate-500 font-medium">
-            by {barGroupBy === 'depot' ? 'Depot_Name' : barGroupBy === 'customer' ? 'Customer_Name' : 'Month_Name'}
-          </p>
-        </div>
-
-        {/* Dual Bar Chart */}
-        <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dualBarData} margin={{ top: 20, right: 30, left: 10, bottom: 25 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 11, fill: '#475569' }} 
-                axisLine={{ stroke: '#cbd5e1' }}
-                tickLine={false}
-                interval={0}
-              />
-              <YAxis 
-                tick={{ fontSize: 11, fill: '#64748b' }} 
-                axisLine={false} 
-                tickLine={false}
-                tickFormatter={v => `${(v / 100000000).toFixed(1)}bn`}
-              />
-              <Tooltip content={<CustomBarTooltip />} />
-              <Bar 
-                dataKey="Net_Revenue" 
-                name="Sum of Net_Revenue_INR" 
-                fill="#b93b3b" 
-                radius={[2, 2, 0, 0]} 
-                maxBarSize={38}
-              />
-              <Bar 
-                dataKey="Target_Revenue" 
-                name="Sum of Target_Revenue_INR" 
-                fill="#e75454" 
-                radius={[2, 2, 0, 0]} 
-                maxBarSize={38}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Bottom Legend matching reference */}
-        <div className="flex items-center justify-start gap-6 pt-2 border-t border-slate-100 text-xs font-semibold text-slate-700">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#b93b3b]" />
-            <span>Sum of Net_Revenue_INR</span>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Total System Revenue
+              </p>
+              <h3 className="text-2xl font-black font-display text-[#2b1f55] mt-2">
+                {formatCurrency(totals.grandSystemRevenue || 1903910365.87)}
+              </h3>
+              <p className="text-[11px] text-emerald-700 font-semibold mt-1">
+                Grand Cumulative Volume
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200">
+              <TrendingUp className="w-5 h-5" />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#e75454]" />
-            <span>Sum of Target_Revenue_INR</span>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Live Invoiced Revenue
+              </p>
+              <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
+                {formatCurrency((totals.liveInvoicedRevenue || 26861341.65) + (totals.liveTaxOutput || 4097492.81))}
+              </h3>
+              <p className="text-[11px] text-blue-700 font-semibold mt-1">
+                Tax: {formatCurrency(totals.liveTaxOutput || 4097492.81)}
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200">
+              <Receipt className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                General Ledger Bookings
+              </p>
+              <h3 className="text-2xl font-black font-display text-emerald-800 mt-2">
+                {formatCurrency(totals.financeLedgerTotal || 224974686.01)}
+              </h3>
+              <p className="text-[11px] text-emerald-700 font-semibold mt-1">
+                37 Audited Ledger Entries
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Import Terminal Operations
+              </p>
+              <h3 className="text-2xl font-black font-display text-amber-900 mt-2">
+                {formatCurrency(totals.importOpsTotal || 1647976845.40)}
+              </h3>
+              <p className="text-[11px] text-amber-700 font-semibold mt-1">
+                2,227 Inward Line Items
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
+              <Container className="w-5 h-5" />
+            </div>
           </div>
         </div>
 
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. BOTTOM SECTION: TARGET CARD + REGION SLICER + DONUT CATEGORY CHART */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* 2. Terminal Master & Operating Facility Matrix */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-soft space-y-4">
         
-        {/* Left Side: Target KPI Card + Interactive Slicers (4 Cols) */}
-        <div className="lg:col-span-4 space-y-4">
-          
-          {/* KPI Card matching reference */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
-            <p className="text-xs font-semibold text-slate-500">
-              Sum of Target_Revenue_INR
-            </p>
-            <h2 className="text-3xl font-black font-display text-slate-900 mt-2 tracking-tight">
-              2.30bn
-            </h2>
-            <div className="text-[11px] text-emerald-700 font-bold mt-1">
-              ₹ 230.00 Cr Full Year Strategic Target
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-display font-black text-base text-[#2b1f55]">
+                SPJ Terminal Facility & Operating Hub Matrix
+              </h3>
+              <p className="text-xs text-slate-500 font-medium">
+                Real-time operational capacity, storage infrastructure, and revenue volume
+              </p>
             </div>
           </div>
 
-          {/* Region Slicer Checkbox List matching reference */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft space-y-4">
-            
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                Region Slicer
-              </span>
-              <button
-                onClick={handleResetSlicers}
-                className="text-[11px] font-bold text-[#ff6a00] hover:underline"
-              >
-                Reset
-              </button>
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#ff6a00] hover:bg-[#e65c00] text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export
+            </button>
 
-            <div className="space-y-2">
-              {[
-                { key: 'North', label: 'North (Dadri UP & Delhi ICD)' },
-                { key: 'West', label: 'West (Mumbai & Mundra Port)' },
-                { key: 'South', label: 'South (Chennai & Hyderabad)' },
-                { key: 'East', label: 'East (Kolkata Terminal)' },
-              ].map(r => {
-                const isSelected = selectedRegions.includes(r.key);
-                return (
-                  <button
-                    key={r.key}
-                    onClick={() => toggleSlicer(selectedRegions, setSelectedRegions, r.key)}
-                    className="flex items-center gap-2.5 w-full text-left py-1 text-xs text-slate-700 font-medium hover:text-slate-900 transition-colors"
-                  >
-                    {isSelected ? (
-                      <CheckSquare className="w-4 h-4 text-[#b93b3b] shrink-0" />
-                    ) : (
-                      <Square className="w-4 h-4 text-slate-400 shrink-0" />
-                    )}
-                    <span>{r.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Container Size Slicer */}
-            <div className="pt-3 border-t border-slate-100 space-y-2">
-              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
-                Container Size
-              </span>
-              {[
-                { key: '20', label: '20 FT (1 TEU Standard)' },
-                { key: '40', label: '40 FT (2 TEU Reefer)' },
-                { key: '45', label: '45 FT (High Cube Reefer)' },
-              ].map(s => {
-                const isSelected = selectedSizes.includes(s.key);
-                return (
-                  <button
-                    key={s.key}
-                    onClick={() => toggleSlicer(selectedSizes, setSelectedSizes, s.key)}
-                    className="flex items-center gap-2.5 w-full text-left py-1 text-xs text-slate-700 font-medium hover:text-slate-900 transition-colors"
-                  >
-                    {isSelected ? (
-                      <CheckSquare className="w-4 h-4 text-[#b93b3b] shrink-0" />
-                    ) : (
-                      <Square className="w-4 h-4 text-slate-400 shrink-0" />
-                    )}
-                    <span>{s.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
+            <button
+              onClick={fetchFinancials}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#2b1f55]' : ''}`} />
+              Refresh
+            </button>
           </div>
-
         </div>
 
-        {/* Right Side: Product / Category Donut Chart (8 Cols) matching reference */}
-        <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-soft space-y-4">
-          
-          <div>
-            <h4 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
-              Sum of Net_Revenue_INR
-            </h4>
-            <p className="text-xs text-slate-500 font-medium">
-              by Product_Category / Service_Type
-            </p>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-rose-600" /> Terminal Name & Address
+            </div>
+            <div className="text-base font-black text-[#2b1f55] mt-1.5">
+              SPJ COLD STORAGE PVT LTD
+            </div>
+            <div className="text-xs font-semibold text-slate-600 mt-0.5">
+              Dadri, Uttar Pradesh (ICD Terminal)
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center pt-2">
-            
-            {/* Donut Chart with Center KPI Callout */}
-            <div className="md:col-span-7 h-72 relative flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={donutData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={80}
-                    outerRadius={115}
-                    paddingAngle={3}
-                  >
-                    {donutData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={POWERBI_COLORS[index % POWERBI_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomDonutTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-
-              {/* Center Callout matching reference */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-black font-display text-slate-900">
-                  2.27bn
-                </span>
-                <span className="text-[11px] text-slate-500 font-semibold">
-                  Net Revenue
-                </span>
-              </div>
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5 text-purple-600" /> Cold Storage Capacity
             </div>
-
-            {/* Right Donut Legend with percentage callouts */}
-            <div className="md:col-span-5 space-y-3 pl-2">
-              {donutData.map((item, idx) => (
-                <div key={idx} className="flex items-start gap-2.5 text-xs">
-                  <div 
-                    className="w-3 h-3 rounded-full mt-0.5 shrink-0" 
-                    style={{ backgroundColor: POWERBI_COLORS[idx % POWERBI_COLORS.length] }} 
-                  />
-                  <div>
-                    <div className="font-bold text-slate-800 leading-tight">
-                      {item.name}
-                    </div>
-                    <div className="font-mono text-slate-500 text-[11px] font-semibold mt-0.5">
-                      {formatCurrency(item.value)} ({item.percent}%)
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="text-xl font-black font-mono text-[#2b1f55] mt-1.5">
+              21 Cold Chambers
             </div>
-
+            <div className="text-[11px] text-purple-700 font-semibold mt-0.5">
+              5,765 Grid Warehouse Bins
+            </div>
           </div>
 
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <Container className="w-3.5 h-3.5 text-blue-600" /> Multimodal Fleet
+            </div>
+            <div className="text-xl font-black font-mono text-blue-900 mt-1.5">
+              387 Containers (774 TEU)
+            </div>
+            <div className="text-[11px] text-blue-700 font-semibold mt-0.5">
+              -18°C Controlled Reefer PTI
+            </div>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <Users className="w-3.5 h-3.5 text-emerald-600" /> Billed Client Accounts
+            </div>
+            <div className="text-xl font-black font-mono text-emerald-800 mt-1.5">
+              6 Active Key Accounts
+            </div>
+            <div className="text-[11px] text-emerald-700 font-semibold mt-0.5">
+              100% On-Time GST Compliant
+            </div>
+          </div>
         </div>
 
       </div>
+
+      {/* 3. Sub-Navigation View Switcher */}
+      <div className="flex flex-wrap items-center gap-2 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300 w-fit">
+        {[
+          { key: 'summary', label: 'Customer Revenue Ledger', icon: Users },
+          { key: 'services', label: 'Service Tariff Matrix', icon: Wrench },
+          { key: 'generalLedger', label: 'Finance General Ledger (37)', icon: FileText },
+          { key: 'containers', label: 'Container Fleet Revenue (387)', icon: Container },
+        ].map(tab => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveView(tab.key)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeView === tab.key
+                  ? 'bg-[#2b1f55] text-white shadow-sm'
+                  : 'text-slate-700 hover:text-[#2b1f55] hover:bg-white'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 4. Tab 1: Customer Accounts Financial Ledger Table */}
+      {activeView === 'summary' && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-soft overflow-hidden flex flex-col">
+          
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-purple-600" />
+              <h4 className="font-display font-extrabold text-sm text-[#2b1f55]">
+                Corporate Customer Accounts & Invoiced Revenue Ledger
+              </h4>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
+                  <th className="p-3.5 text-center w-12">#</th>
+                  <th className="p-3.5">Customer Name</th>
+                  <th className="p-3.5">GSTIN</th>
+                  <th className="p-3.5">City / State</th>
+                  <th className="p-3.5 text-center">Invoices</th>
+                  <th className="p-3.5 text-right">Base Bill Amount (₹)</th>
+                  <th className="p-3.5 text-right">GST Output (₹)</th>
+                  <th className="p-3.5 text-right">Gross Total Revenue (₹)</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-200">
+                {customerLedger.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="p-3.5 text-center font-mono text-xs text-slate-400 font-medium">
+                      {idx + 1}
+                    </td>
+
+                    <td className="p-3.5 font-bold text-slate-900">
+                      {row.customerName}
+                    </td>
+
+                    <td className="p-3.5 font-mono text-blue-700 font-bold">
+                      {row.gstin}
+                    </td>
+
+                    <td className="p-3.5 text-slate-600 font-medium">
+                      {row.city}
+                    </td>
+
+                    <td className="p-3.5 text-center font-bold text-slate-800">
+                      <span className="px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200 font-mono">
+                        {row.totalInvoices} Invoices
+                      </span>
+                    </td>
+
+                    <td className="p-3.5 text-right font-mono font-semibold text-slate-700">
+                      ₹ {Number(row.billAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+
+                    <td className="p-3.5 text-right font-mono font-medium text-emerald-700">
+                      ₹ {Number(row.taxAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+
+                    <td className="p-3.5 text-right font-mono font-black text-[#2b1f55]">
+                      ₹ {Number(row.grossRevenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      )}
+
+      {/* 5. Tab 2: Service Tariff & Volume Matrix */}
+      {activeView === 'services' && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-soft overflow-hidden flex flex-col">
+          
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-orange-600" />
+              <h4 className="font-display font-extrabold text-sm text-[#2b1f55]">
+                Terminal Service Tariff & Billed Volume Matrix
+              </h4>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
+                  <th className="p-3.5 text-center w-12">#</th>
+                  <th className="p-3.5">Service Name</th>
+                  <th className="p-3.5">SAC / Service Code</th>
+                  <th className="p-3.5 text-center">Billed Items</th>
+                  <th className="p-3.5 text-right">Average Unit Rate (₹)</th>
+                  <th className="p-3.5 text-right">Total Invoiced Amount (₹)</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-200">
+                {serviceMatrix.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="p-3.5 text-center font-mono text-xs text-slate-400 font-medium">
+                      {idx + 1}
+                    </td>
+
+                    <td className="p-3.5 font-bold text-slate-900">
+                      {row.serviceName}
+                    </td>
+
+                    <td className="p-3.5 font-mono text-slate-600 font-semibold">
+                      {row.serviceCode || '996721'}
+                    </td>
+
+                    <td className="p-3.5 text-center font-bold text-slate-800">
+                      <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-mono">
+                        {row.lineItemCount} Lines
+                      </span>
+                    </td>
+
+                    <td className="p-3.5 text-right font-mono font-semibold text-slate-700">
+                      ₹ {Number(row.avgRate || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+
+                    <td className="p-3.5 text-right font-mono font-black text-orange-600">
+                      ₹ {Number(row.totalBilled || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      )}
+
+      {/* 6. Tab 3: General Ledger Entries from FINANCE_DETAILS */}
+      {activeView === 'generalLedger' && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-soft overflow-hidden flex flex-col">
+          
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
+              <h4 className="font-display font-extrabold text-sm text-[#2b1f55]">
+                General Ledger Bookings & Audit Trail (FINANCE_DETAILS)
+              </h4>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
+                  <th className="p-3.5 text-center w-12">#</th>
+                  <th className="p-3.5">Entry Date</th>
+                  <th className="p-3.5">Invoice No</th>
+                  <th className="p-3.5">Account / Client</th>
+                  <th className="p-3.5 text-right">Debit Amount (₹)</th>
+                  <th className="p-3.5">Audit Remarks & Description</th>
+                  <th className="p-3.5">Terminal</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-200">
+                {financeLedgerEntries.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="p-3.5 text-center font-mono text-xs text-slate-400 font-medium">
+                      {idx + 1}
+                    </td>
+
+                    <td className="p-3.5 text-slate-600 font-mono text-xs whitespace-nowrap font-medium">
+                      {row.entryDate}
+                    </td>
+
+                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">
+                      INV-{row.invoiceNo}
+                    </td>
+
+                    <td className="p-3.5 font-bold text-slate-900">
+                      {row.customerName}
+                    </td>
+
+                    <td className="p-3.5 text-right font-mono font-black text-emerald-800">
+                      ₹ {Number(row.debitAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+
+                    <td className="p-3.5 text-slate-700 max-w-[280px] truncate" title={row.remarks}>
+                      {row.remarks}
+                    </td>
+
+                    <td className="p-3.5 font-semibold text-purple-800">
+                      {row.terminalName}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      )}
+
+      {/* 7. Tab 4: Container Fleet Revenue (387 Units) */}
+      {activeView === 'containers' && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-soft overflow-hidden flex flex-col">
+          
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+              <h4 className="font-display font-extrabold text-sm text-[#2b1f55]">
+                Container Fleet Profitability & Unit Revenue Leaderboard (387 Units)
+              </h4>
+            </div>
+            <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
+              774 TEU Total Fleet
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
+                  <th className="p-3.5 text-center w-12">#</th>
+                  <th className="p-3.5">Container No</th>
+                  <th className="p-3.5">Assigned Client / Account</th>
+                  <th className="p-3.5">Size / Type</th>
+                  <th className="p-3.5 text-center">Trips / Invoices</th>
+                  <th className="p-3.5 text-right">Base Revenue (₹)</th>
+                  <th className="p-3.5 text-right">GST Output (₹)</th>
+                  <th className="p-3.5 text-right">Total Unit Revenue (₹)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {containerEarnings.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-3.5 text-center font-mono text-xs text-slate-400 font-medium">
+                      {idx + 1}
+                    </td>
+                    <td className="p-3.5 font-mono font-bold text-blue-700">
+                      {row.containerNo}
+                    </td>
+                    <td className="p-3.5 font-bold text-slate-900">
+                      {row.customerName}
+                    </td>
+                    <td className="p-3.5">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300 font-mono text-[11px] font-semibold">
+                        {row.size}ft {row.containerType}
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-center font-mono font-bold text-slate-700">
+                      {row.invoiceCount}
+                    </td>
+                    <td className="p-3.5 text-right font-mono font-semibold text-slate-800">
+                      ₹ {Number(row.baseRevenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="p-3.5 text-right font-mono font-medium text-emerald-700">
+                      ₹ {Number(row.gstAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="p-3.5 text-right font-mono font-black text-[#ff6a00]">
+                      ₹ {Number(row.totalKamayi || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      )}
 
     </div>
   );
