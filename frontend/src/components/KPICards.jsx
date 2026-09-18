@@ -38,14 +38,14 @@ export default function KPICards({ kpis = {}, loading = false }) {
 
   const cards = [
     {
-      title: 'Total Gross Revenue',
-      subtitle: 'Bill Amount + GST',
+      title: 'Gross Sale',
+      subtitle: kpis.totalCreditAmount ? `Invoice Amt - Credit (₹ ${formatCurrency(kpis.totalCreditAmount)})` : 'Invoice Amt - Credit Amt',
       value: formatCurrency(totalGrossAmount),
       raw: `₹ ${Number(totalGrossAmount).toLocaleString('en-IN')}`,
       icon: IndianRupee,
       iconBg: 'bg-orange-50 text-orange-600 border border-orange-200',
       valueColor: 'text-[#2b1f55]',
-      badge: 'Invoiced',
+      badge: 'Gross Sale',
       badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200'
     },
     {

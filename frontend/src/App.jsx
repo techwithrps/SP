@@ -4,12 +4,14 @@ import KPICards from './components/KPICards';
 import FilterBar from './components/FilterBar';
 import CIRTable from './components/CIRTable';
 import ContainerFleetView from './components/ContainerFleetView';
+import FleetView from './components/FleetView';
 import AnalyticsCharts from './components/AnalyticsCharts';
 import OperationsView from './components/OperationsView';
 import InvoiceDetailModal from './components/InvoiceDetailModal';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('cir');
+  // Default Initial Page: Branch Wise Analytics
+  const [activeTab, setActiveTab] = useState('analytics');
   const [loading, setLoading] = useState(true);
   const [masters, setMasters] = useState({});
   const [records, setRecords] = useState([]);
@@ -122,8 +124,15 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Tab 1: CIR Revenue & Invoices */}
-        {activeTab === 'cir' && (
+        {/* Tab 1: Branch Wise Analytics (Initial Default Page) */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            <AnalyticsCharts kpis={kpis} loading={loading} />
+          </div>
+        )}
+
+        {/* Tab 2: Total Sales */}
+        {activeTab === 'sales' && (
           <div className="space-y-6">
             {/* Top KPI Cards & SPJ Stat Highlights Bar */}
             <KPICards kpis={kpis} loading={loading} />
@@ -146,21 +155,21 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 2: Containers & Fleet Tracking (387 Units) */}
+        {/* Tab 3: Container / Volumes */}
         {activeTab === 'containers' && (
           <div className="space-y-6">
             <ContainerFleetView />
           </div>
         )}
 
-        {/* Tab 3: Financial & Terminal Analytics */}
-        {activeTab === 'analytics' && (
+        {/* Tab 4: Fleet */}
+        {activeTab === 'fleet' && (
           <div className="space-y-6">
-            <AnalyticsCharts kpis={kpis} loading={loading} />
+            <FleetView />
           </div>
         )}
 
-        {/* Tab 4: Yard & Gate Operations */}
+        {/* Tab 5: Yard Operations */}
         {activeTab === 'operations' && (
           <div className="space-y-6">
             <OperationsView />
@@ -173,9 +182,8 @@ export default function App() {
       <footer className="border-t border-slate-200 py-6 bg-white text-center text-xs text-slate-500 mt-12">
         <div className="max-w-[1700px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <img src="/elogisol-logo.png" alt="Team eLogisol" className="h-6 w-auto object-contain" />
             <img src="/logo.png" alt="SPJ Logo" className="h-6 w-auto object-contain" />
-            <span>© {new Date().getFullYear()} <strong>TEAM ELOGISOL PVT. LTD.</strong> & <strong>SPJ Cargo</strong> — All Rights Reserved.</span>
+            <span>© {new Date().getFullYear()} <strong>eLogisol Technologies</strong> & <strong>SPJ Cargo</strong> — All Rights Reserved.</span>
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold text-slate-600">
             <span>E-6, Third Floor, Kalkaji, New Delhi-110019</span>
