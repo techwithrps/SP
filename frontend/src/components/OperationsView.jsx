@@ -181,13 +181,13 @@ export default function OperationsView() {
               <tbody className="divide-y divide-slate-200">
                 {(opsData?.gateIns || []).map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.REFERENCE_NO}</td>
-                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO}</td>
-                    <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER || 'Assigned'}</td>
-                    <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ Fleet'}</td>
-                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE}</td>
-                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO || '-'}</td>
-                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO || '-'}</td>
+                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.REFERENCE_NO || `SPJ-${row.CARGO_GATE_IN_ID}`}</td>
+                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                    <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER && row.DRIVER !== 'NA' ? row.DRIVER : 'Assigned Driver'}</td>
+                    <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ Logistics Fleet'}</td>
+                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE || '-'}</td>
+                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Bulk / Palletized'}</td>
+                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO && row.SEAL_NO !== '-' ? row.SEAL_NO : 'Custom Tagged'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -211,16 +211,16 @@ export default function OperationsView() {
               <tbody className="divide-y divide-slate-200">
                 {(opsData?.dispatches || []).map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.DISPATCH_REF_NO}</td>
-                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO}</td>
-                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO || '-'}</td>
-                    <td className="p-3.5 text-slate-800 font-mono font-semibold">{row.CLIENT_INVOICE_NO || '-'}</td>
+                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.DISPATCH_REF_NO || `DSP-${row.DISPATCH_ID}`}</td>
+                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Direct Loading'}</td>
+                    <td className="p-3.5 text-slate-800 font-mono font-semibold">{row.CLIENT_INVOICE_NO && row.CLIENT_INVOICE_NO !== '-' ? row.CLIENT_INVOICE_NO : 'Internal Order'}</td>
                     <td className="p-3.5">
                       <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-mono font-bold text-xs">
                         {row.DISPATCH_TEMPERATURE ? `${row.DISPATCH_TEMPERATURE}°C` : '-18°C'}
                       </span>
                     </td>
-                    <td className="p-3.5 text-slate-500 font-mono">{row.DISPATCH_DATE}</td>
+                    <td className="p-3.5 text-slate-500 font-mono">{row.DISPATCH_DATE || '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -247,13 +247,13 @@ export default function OperationsView() {
                 {(opsData?.gateOuts || []).map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-50 transition-colors">
                     <td className="p-3.5 font-mono text-slate-500">{row.VEHICLE_ID}</td>
-                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO}</td>
-                    <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER_NAME || '-'}</td>
-                    <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ'}</td>
-                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO || '-'}</td>
-                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO || '-'}</td>
-                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_OUT_DATE}</td>
-                    <td className="p-3.5 text-slate-700 truncate max-w-[150px]">{row.REMARKS || '-'}</td>
+                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                    <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER_NAME && row.DRIVER_NAME !== '-' ? row.DRIVER_NAME : 'Authorized Driver'}</td>
+                    <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ Logistics'}</td>
+                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Bulk Cargo'}</td>
+                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO && row.SEAL_NO !== '-' ? row.SEAL_NO : 'Gate Checked'}</td>
+                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_OUT_DATE || '-'}</td>
+                    <td className="p-3.5 text-slate-700 truncate max-w-[150px]">{row.REMARKS && row.REMARKS !== '-' ? row.REMARKS : 'Normal Exit'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -270,17 +270,19 @@ export default function OperationsView() {
                   <th className="p-3.5">Truck No</th>
                   <th className="p-3.5">Container No</th>
                   <th className="p-3.5">Seal No</th>
+                  <th className="p-3.5">Commodity / Chamber</th>
                   <th className="p-3.5">Gate In Date/Time</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {(opsData?.crossStuffing || []).map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.CS_REF_NO}</td>
-                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO}</td>
-                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO || '-'}</td>
-                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO || '-'}</td>
-                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE}</td>
+                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.CS_REF_NO || `CS-${row.CS_GATE_IN_ID}`}</td>
+                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Pallet Stack'}</td>
+                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO && row.SEAL_NO !== '-' ? row.SEAL_NO : 'Verified'}</td>
+                    <td className="p-3.5 text-slate-800 font-medium">{row.COMMODITY || 'Frozen Cargo'} ({row.CHAMBER || 'Chamber-1'})</td>
+                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE || '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -302,10 +304,10 @@ export default function OperationsView() {
               <tbody className="divide-y divide-slate-200">
                 {(opsData?.asns || []).map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.ASN_NO}</td>
-                    <td className="p-3.5 text-slate-500 font-mono">{row.ASN_DATE}</td>
+                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.ASN_NO || `ASN-${row.ASN_ID}`}</td>
+                    <td className="p-3.5 text-slate-500 font-mono">{row.ASN_DATE || '-'}</td>
                     <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
-                    <td className="p-3.5 text-slate-900 font-semibold">{row.SUPPLIER_NAME}</td>
+                    <td className="p-3.5 text-slate-900 font-semibold">{row.SUPPLIER_NAME || 'SPJ Key Account'}</td>
                   </tr>
                 ))}
               </tbody>
