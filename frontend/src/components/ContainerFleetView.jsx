@@ -58,27 +58,90 @@ export default function ContainerFleetView({
   }, []);
 
   const containers = data?.containers || [];
-  const stats = data?.stats || {};
+  const baseStats = data?.stats || {};
 
-  // Filtered containers
+  // Filtered containers supporting selectedTerminal, selectedFY, size, type, status, and search
   const filteredContainers = useMemo(() => {
     return containers.filter(c => {
-      if (statusFilter !== 'all' && c.STATUS !== statusFilter) return false;
-      if (sizeFilter !== 'all' && String(c.CONT_SIZE).replace(/[^0-9]/g, '') !== sizeFilter) return false;
-      if (typeFilter !== 'all' && c.CONT_TYPE && !c.CONT_TYPE.toLowerCase().includes(typeFilter.toLowerCase())) return false;
-      if (search) {
+      const cStatus = (c.status || c.STATUS || '').toLowerCase();
+      const cSize = String(c.contSize || c.CONT_SIZE || '').replace(/[^0-9]/g, '');
+      const cType = (c.contType || c.CONT_TYPE || '').toLowerCase();
+      const cTermId = String(c.terminalId || c.TERMINAL_ID || '');
+      const cTermName = (c.terminalName || c.TERMINAL_NAME || '').toLowerCase();
+      const cDate = c.joDate || c.icdInDate || c.GATE_IN_DATE || '';
+
+      // 1. Terminal Filter
+      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+        const termMatch = cTermId === String(selectedTerminal) || cTermName.includes(String(selectedTerminal).toLowerCase());
+        if (!termMatch) return false;
+      }
+
+      // 2. Financial Year Filter
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
+        let recFY = 'FY 2026-27';
+        if (cDate.includes('2026') || cDate.includes('/26')) recFY = 'FY 2026-27';
+        else if (cDate.includes('2025') || cDate.includes('/25')) recFY = 'FY 2025-26';
+        else if (cDate.includes('2024') || cDate.includes('/24')) recFY = 'FY 2024-25';
+        else if (cDate.includes('2023') || cDate.includes('/23')) recFY = 'FY 2023-24';
+        else recFY = 'FY 2022-23 & Earlier';
+        if (recFY !== selectedFY) return false;
+      }
+
+      // 3. Status Filter (In Chamber vs Dispatched vs All)
+      if (statusFilter !== 'all') {
+        if (statusFilter === 'Stored in Cold Chamber') {
+          if (!cStatus.includes('chamber') && !cStatus.includes('cold') && !cStatus.includes('yard') && !cStatus.includes('active') && !cStatus.includes('registered')) return false;
+        } else if (statusFilter === 'Dispatched / Gate Out') {
+          if (!cStatus.includes('dispatched') && !cStatus.includes('outward') && !cStatus.includes('gate out')) return false;
+        } else if (!cStatus.includes(statusFilter.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // 4. Size Filter (40 FT vs 20 FT)
+      if (sizeFilter !== 'all' && cSize !== sizeFilter) return false;
+
+      // 5. Type Filter (Reefer, Dry, Open, Flat)
+      if (typeFilter !== 'all') {
+        if (typeFilter === 'REEFER') {
+          if (!cType.includes('rf') && !cType.includes('reefer')) return false;
+        } else if (typeFilter === 'DRY') {
+          if (cType.includes('rf') || cType.includes('reefer')) return false;
+        } else if (!cType.includes(typeFilter.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // 6. Global Search Keyword
+      if (search && search.trim() !== '') {
         const s = search.toLowerCase();
-        const match = 
-          (c.CONT_NO && c.CONT_NO.toLowerCase().includes(s)) ||
-          (c.TRUCK_NO && c.TRUCK_NO.toLowerCase().includes(s)) ||
-          (c.CUSTOMER_NAME && c.CUSTOMER_NAME.toLowerCase().includes(s)) ||
-          (c.SEAL_NO && c.SEAL_NO.toLowerCase().includes(s)) ||
-          (c.INVOICE_NO && c.INVOICE_NO.toLowerCase().includes(s));
+        const contNo = (c.contNo || c.CONT_NO || '').toLowerCase();
+        const truckNo = (c.truckNo || c.TRUCK_NO || '').toLowerCase();
+        const customerName = (c.customerName || c.CUSTOMER_NAME || '').toLowerCase();
+        const sealNo = (c.sealNo || c.SEAL_NO || '').toLowerCase();
+        const joNo = (c.joNo || c.INVOICE_NO || '').toLowerCase();
+        const bookingNo = (c.bookingNo || c.BOOKING_NO || '').toLowerCase();
+        const term = (c.terminalName || c.TERMINAL_NAME || '').toLowerCase();
+        const match = contNo.includes(s) || truckNo.includes(s) || customerName.includes(s) || sealNo.includes(s) || joNo.includes(s) || bookingNo.includes(s) || term.includes(s);
         if (!match) return false;
       }
+
       return true;
     });
-  }, [containers, search, statusFilter, sizeFilter, typeFilter]);
+  }, [containers, search, statusFilter, sizeFilter, typeFilter, selectedTerminal, selectedFY]);
+
+  // Compute dynamic KPI metrics
+  const isFilteredState = (selectedTerminal && selectedTerminal !== 'ALL') || (selectedFY && selectedFY !== 'ALL') || sizeFilter !== 'all' || typeFilter !== 'all' || statusFilter !== 'all' || !!search;
+  
+  const units40Count = useMemo(() => {
+    return filteredContainers.filter(c => String(c.contSize || c.CONT_SIZE || '').includes('40')).length;
+  }, [filteredContainers]);
+
+  const units20Count = useMemo(() => {
+    return filteredContainers.filter(c => String(c.contSize || c.CONT_SIZE || '').includes('20')).length;
+  }, [filteredContainers]);
+
+  const totalCalculatedTeus = (units40Count * 2) + units20Count;
 
   const totalPages = Math.ceil(filteredContainers.length / pageSize) || 1;
   const paginatedContainers = useMemo(() => {
@@ -104,13 +167,17 @@ export default function ContainerFleetView({
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Total DB Containers Handled
+                Total Containers Handled
               </p>
               <h3 className="text-2xl font-black font-display text-[#2b1f55] mt-2">
-                {stats.totalDBContainers ? `${stats.totalDBContainers.toLocaleString('en-IN')} Units` : '89,245 Units'}
+                {isFilteredState 
+                  ? `${filteredContainers.length.toLocaleString('en-IN')} Units` 
+                  : (baseStats.totalDBContainers ? `${baseStats.totalDBContainers.toLocaleString('en-IN')} Units` : '89,245 Units')}
               </h3>
               <p className="text-[11px] text-purple-700 font-semibold mt-1">
-                {stats.totalDBTeus ? `${stats.totalDBTeus.toLocaleString('en-IN')} TEU Equivalent` : '1,71,976 TEU'}
+                {isFilteredState 
+                  ? `${totalCalculatedTeus.toLocaleString('en-IN')} TEU Equivalent` 
+                  : (baseStats.totalDBTeus ? `${baseStats.totalDBTeus.toLocaleString('en-IN')} TEU Equivalent` : '1,71,976 TEU')}
               </p>
             </div>
             <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200">
@@ -126,7 +193,9 @@ export default function ContainerFleetView({
                 Total Fleet Job Orders (FLEET_CONT_JO)
               </p>
               <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
-                {stats.totalDBJobs ? `${stats.totalDBJobs.toLocaleString('en-IN')} Jobs` : '88,361 Jobs'}
+                {isFilteredState 
+                  ? `${filteredContainers.length.toLocaleString('en-IN')} Jobs` 
+                  : (baseStats.totalDBJobs ? `${baseStats.totalDBJobs.toLocaleString('en-IN')} Jobs` : '88,361 Jobs')}
               </h3>
               <p className="text-[11px] text-blue-700 font-semibold mt-1 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-blue-600" /> Multi-Modal Dispatch Mapped
@@ -142,13 +211,15 @@ export default function ContainerFleetView({
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                40 FT High-Cube Units
+                40 FT High-Cube Units (2 TEU)
               </p>
               <h3 className="text-2xl font-black font-display text-emerald-800 mt-2">
-                {stats.units40ft ? `${stats.units40ft.toLocaleString('en-IN')} Units` : '82,734 Units'}
+                {isFilteredState 
+                  ? `${units40Count.toLocaleString('en-IN')} Units` 
+                  : (baseStats.units40ft ? `${baseStats.units40ft.toLocaleString('en-IN')} Units` : '82,734 Units')}
               </h3>
               <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> 92.7% Primary Heavy Fleet
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Primary Heavy Fleet
               </p>
             </div>
             <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200">
@@ -161,13 +232,15 @@ export default function ContainerFleetView({
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                20 FT Standard Units
+                20 FT Standard Units (1 TEU)
               </p>
               <h3 className="text-2xl font-black font-display text-orange-600 mt-2 truncate">
-                {stats.units20ft ? `${stats.units20ft.toLocaleString('en-IN')} Units` : '6,508 Units'}
+                {isFilteredState 
+                  ? `${units20Count.toLocaleString('en-IN')} Units` 
+                  : (baseStats.units20ft ? `${baseStats.units20ft.toLocaleString('en-IN')} Units` : '6,508 Units')}
               </h3>
               <p className="text-[11px] text-slate-500 font-medium mt-1">
-                Mapped Across 29 Terminals
+                Active Across Terminals
               </p>
             </div>
             <div className="p-3 rounded-2xl bg-orange-50 text-orange-600 border border-orange-200">
@@ -198,7 +271,7 @@ export default function ContainerFleetView({
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search Container No, Truck, Client..."
+                placeholder="Search Container No, Truck, Customer, Seal, Terminal..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -231,18 +304,17 @@ export default function ContainerFleetView({
           </div>
         </div>
 
-        {/* 20 FT / 40 FT / Size & Type Filters Row */}
+        {/* 40 FT / 20 FT / Size & Type Filters Row (45 FT REMOVED, 40 FT FIRST) */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
           
-          {/* Container Size Quick Pills */}
+          {/* Container Size Quick Pills (Reordered: 40 FT First, 20 FT Next, 45 FT Removed) */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Size:</span>
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
               {[
                 { key: 'all', label: 'All Sizes' },
-                { key: '20', label: '20 FT (1 TEU)' },
                 { key: '40', label: '40 FT (2 TEU)' },
-                { key: '45', label: '45 FT HC' },
+                { key: '20', label: '20 FT (1 TEU)' },
               ].map(s => (
                 <button
                   key={s.key}

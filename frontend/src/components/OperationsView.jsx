@@ -28,7 +28,11 @@ export default function OperationsView({
   const fetchOperations = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/operations');
+      const queryParams = new URLSearchParams();
+      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') queryParams.append('terminalId', selectedTerminal);
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') queryParams.append('financialYear', selectedFY);
+
+      const res = await fetch(`/api/operations?${queryParams.toString()}`);
       const json = await res.json();
       if (json.success) {
         setOpsData(json.data);
@@ -42,9 +46,39 @@ export default function OperationsView({
 
   useEffect(() => {
     fetchOperations();
-  }, []);
+  }, [selectedTerminal, selectedFY]);
 
   const stats = opsData?.stats || {};
+  const isFiltered = (selectedTerminal && selectedTerminal !== 'ALL') || (selectedFY && selectedFY !== 'ALL');
+
+  const filterRecord = (row) => {
+    if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+      const tId = String(row.TERMINAL_ID || '');
+      const tName = (row.TERMINAL_NAME || '').toLowerCase();
+      const match = tId === String(selectedTerminal) || tName.includes(String(selectedTerminal).toLowerCase());
+      if (!match) return false;
+    }
+    if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
+      const d = row.GATE_IN_DATE || row.GATE_OUT_DATE || row.DISPATCH_DATE || row.PICKLIST_DATE || row.ASN_DATE || '';
+      if (selectedFY === 'FY 2026-27') {
+        if (!d.includes('2026') && !d.includes('/26')) return false;
+      } else if (selectedFY === 'FY 2025-26') {
+        if (!d.includes('2025') && !d.includes('/25')) return false;
+      } else if (selectedFY === 'FY 2024-25') {
+        if (!d.includes('2024') && !d.includes('/24')) return false;
+      } else if (selectedFY === 'FY 2023-24') {
+        if (!d.includes('2023') && !d.includes('/23')) return false;
+      }
+    }
+    return true;
+  };
+
+  const gateInsList = (opsData?.gateIns || []).filter(filterRecord);
+  const gateOutsList = (opsData?.gateOuts || []).filter(filterRecord);
+  const dispatchesList = (opsData?.dispatches || []).filter(filterRecord);
+  const picklistsList = (opsData?.picklists || []).filter(filterRecord);
+  const asnsList = (opsData?.asns || []).filter(filterRecord);
+  const crossStuffingList = (opsData?.crossStuffing || []).filter(filterRecord);
 
   return (
     <div className="space-y-6">
@@ -60,7 +94,7 @@ export default function OperationsView({
             </div>
           </div>
           <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {stats.totalGateIn?.toLocaleString('en-IN') || '655'}
+            {isFiltered ? gateInsList.length.toLocaleString('en-IN') : (stats.totalGateIn?.toLocaleString('en-IN') || '655')}
           </div>
           <div className="text-[11px] text-emerald-700 font-semibold mt-1">Vehicles Inward</div>
         </div>
@@ -73,7 +107,7 @@ export default function OperationsView({
             </div>
           </div>
           <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {stats.totalGateOut?.toLocaleString('en-IN') || '806'}
+            {isFiltered ? gateOutsList.length.toLocaleString('en-IN') : (stats.totalGateOut?.toLocaleString('en-IN') || '806')}
           </div>
           <div className="text-[11px] text-blue-700 font-semibold mt-1">Dispatched Fleet</div>
         </div>
@@ -86,7 +120,7 @@ export default function OperationsView({
             </div>
           </div>
           <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {stats.totalDispatches?.toLocaleString('en-IN') || '427'}
+            {isFiltered ? dispatchesList.length.toLocaleString('en-IN') : (stats.totalDispatches?.toLocaleString('en-IN') || '427')}
           </div>
           <div className="text-[11px] text-orange-700 font-semibold mt-1">Cold Chain Orders</div>
         </div>
@@ -99,9 +133,9 @@ export default function OperationsView({
             </div>
           </div>
           <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {stats.totalPicklists?.toLocaleString('en-IN') || '395'}
+            {isFiltered ? picklistsList.length.toLocaleString('en-IN') : (stats.totalPicklists?.toLocaleString('en-IN') || '395')}
           </div>
-          <div className="text-[11px] text-purple-700 font-semibold mt-1">543k+ Picked Units</div>
+          <div className="text-[11px] text-purple-700 font-semibold mt-1">Picked Items Tracked</div>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
@@ -112,7 +146,7 @@ export default function OperationsView({
             </div>
           </div>
           <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {stats.totalASNs?.toLocaleString('en-IN') || '322'}
+            {isFiltered ? asnsList.length.toLocaleString('en-IN') : (stats.totalASNs?.toLocaleString('en-IN') || '322')}
           </div>
           <div className="text-[11px] text-indigo-700 font-semibold mt-1">Advanced Shipping</div>
         </div>
@@ -125,7 +159,7 @@ export default function OperationsView({
             </div>
           </div>
           <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {stats.totalCrossStuffing?.toLocaleString('en-IN') || '56'}
+            {isFiltered ? crossStuffingList.length.toLocaleString('en-IN') : (stats.totalCrossStuffing?.toLocaleString('en-IN') || '56')}
           </div>
           <div className="text-[11px] text-amber-700 font-semibold mt-1">Transfers Executed</div>
         </div>
@@ -148,11 +182,11 @@ export default function OperationsView({
 
           <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300">
             {[
-              { key: 'gateIn', label: 'Cargo Gate-In (655)', icon: ArrowDownRight },
-              { key: 'dispatch', label: 'Dispatches & Temps (427)', icon: Thermometer },
-              { key: 'gateOut', label: 'Vehicle Outward (806)', icon: ArrowUpRight },
-              { key: 'cross', label: 'Cross Stuffing (56)', icon: Container },
-              { key: 'asn', label: 'ASN Inward (322)', icon: Package },
+              { key: 'gateIn', label: `Cargo Gate-In (${isFiltered ? gateInsList.length : (stats.totalGateIn || 655)})`, icon: ArrowDownRight },
+              { key: 'dispatch', label: `Dispatches & Temps (${isFiltered ? dispatchesList.length : (stats.totalDispatches || 427)})`, icon: Thermometer },
+              { key: 'gateOut', label: `Vehicle Outward (${isFiltered ? gateOutsList.length : (stats.totalGateOut || 806)})`, icon: ArrowUpRight },
+              { key: 'cross', label: `Cross Stuffing (${isFiltered ? crossStuffingList.length : (stats.totalCrossStuffing || 56)})`, icon: Container },
+              { key: 'asn', label: `ASN Inward (${isFiltered ? asnsList.length : (stats.totalASNs || 322)})`, icon: Package },
             ].map(tab => {
               const Icon = tab.icon;
               return (
@@ -201,17 +235,25 @@ export default function OperationsView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {(opsData?.gateIns || []).map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.REFERENCE_NO || `SPJ-${row.CARGO_GATE_IN_ID}`}</td>
-                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
-                    <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER && row.DRIVER !== 'NA' ? row.DRIVER : 'Assigned Driver'}</td>
-                    <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ Logistics Fleet'}</td>
-                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE || '-'}</td>
-                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Bulk / Palletized'}</td>
-                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO && row.SEAL_NO !== '-' ? row.SEAL_NO : 'Custom Tagged'}</td>
+                {gateInsList.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-slate-400 font-semibold">
+                      No Cargo Gate-In entries found for the selected Terminal & Financial Year.
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  gateInsList.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.REFERENCE_NO || `SPJ-${row.CARGO_GATE_IN_ID}`}</td>
+                      <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                      <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER && row.DRIVER !== 'NA' ? row.DRIVER : 'Assigned Driver'}</td>
+                      <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ Logistics Fleet'}</td>
+                      <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE || '-'}</td>
+                      <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Bulk / Palletized'}</td>
+                      <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO && row.SEAL_NO !== '-' ? row.SEAL_NO : 'Custom Tagged'}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -231,20 +273,28 @@ export default function OperationsView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {(opsData?.dispatches || []).map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.DISPATCH_REF_NO || `DSP-${row.DISPATCH_ID}`}</td>
-                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
-                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Direct Loading'}</td>
-                    <td className="p-3.5 text-slate-800 font-mono font-semibold">{row.CLIENT_INVOICE_NO && row.CLIENT_INVOICE_NO !== '-' ? row.CLIENT_INVOICE_NO : 'Internal Order'}</td>
-                    <td className="p-3.5">
-                      <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-mono font-bold text-xs">
-                        {row.DISPATCH_TEMPERATURE ? `${row.DISPATCH_TEMPERATURE}°C` : '-18°C'}
-                      </span>
+                {dispatchesList.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-slate-400 font-semibold">
+                      No Dispatch entries found for the selected Terminal & Financial Year.
                     </td>
-                    <td className="p-3.5 text-slate-500 font-mono">{row.DISPATCH_DATE || '-'}</td>
                   </tr>
-                ))}
+                ) : (
+                  dispatchesList.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.DISPATCH_REF_NO || `DSP-${row.DISPATCH_ID}`}</td>
+                      <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                      <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Direct Loading'}</td>
+                      <td className="p-3.5 text-slate-800 font-mono font-semibold">{row.CLIENT_INVOICE_NO && row.CLIENT_INVOICE_NO !== '-' ? row.CLIENT_INVOICE_NO : 'Internal Order'}</td>
+                      <td className="p-3.5">
+                        <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-mono font-bold text-xs">
+                          {row.DISPATCH_TEMPERATURE ? `${row.DISPATCH_TEMPERATURE}°C` : '-18°C'}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-slate-500 font-mono">{row.DISPATCH_DATE || '-'}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -266,18 +316,26 @@ export default function OperationsView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {(opsData?.gateOuts || []).map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-mono text-slate-500">{row.VEHICLE_ID}</td>
-                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
-                    <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER_NAME && row.DRIVER_NAME !== '-' ? row.DRIVER_NAME : 'Authorized Driver'}</td>
-                    <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ Logistics'}</td>
-                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Bulk Cargo'}</td>
-                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO && row.SEAL_NO !== '-' ? row.SEAL_NO : 'Gate Checked'}</td>
-                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_OUT_DATE || '-'}</td>
-                    <td className="p-3.5 text-slate-700 truncate max-w-[150px]">{row.REMARKS && row.REMARKS !== '-' ? row.REMARKS : 'Normal Exit'}</td>
+                {gateOutsList.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-8 text-center text-slate-400 font-semibold">
+                      No Outward entries found for the selected Terminal & Financial Year.
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  gateOutsList.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-3.5 font-mono text-slate-500">{row.VEHICLE_ID}</td>
+                      <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                      <td className="p-3.5 text-slate-900 font-medium">{row.DRIVER_NAME && row.DRIVER_NAME !== '-' ? row.DRIVER_NAME : 'Authorized Driver'}</td>
+                      <td className="p-3.5 text-slate-700">{row.TRANSPORTER_NAME || 'SPJ Logistics'}</td>
+                      <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Bulk Cargo'}</td>
+                      <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO && row.SEAL_NO !== '-' ? row.SEAL_NO : 'Gate Checked'}</td>
+                      <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_OUT_DATE || '-'}</td>
+                      <td className="p-3.5 text-slate-700 truncate max-w-[150px]">{row.REMARKS && row.REMARKS !== '-' ? row.REMARKS : 'Normal Exit'}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -297,16 +355,24 @@ export default function OperationsView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {(opsData?.crossStuffing || []).map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.CS_REF_NO || `CS-${row.CS_GATE_IN_ID}`}</td>
-                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
-                    <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Pallet Stack'}</td>
-                    <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO && row.SEAL_NO !== '-' ? row.SEAL_NO : 'Verified'}</td>
-                    <td className="p-3.5 text-slate-800 font-medium">{row.COMMODITY || 'Frozen Cargo'} ({row.CHAMBER || 'Chamber-1'})</td>
-                    <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE || '-'}</td>
+                {crossStuffingList.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-slate-400 font-semibold">
+                      No Cross-Stuffing transfers found for the selected Terminal & Financial Year.
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  crossStuffingList.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.CS_REF_NO || `CS-${row.CS_GATE_IN_ID}`}</td>
+                      <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                      <td className="p-3.5 font-mono text-blue-700 font-bold">{row.CONT_NO && row.CONT_NO !== '-' ? row.CONT_NO : 'Pallet Stack'}</td>
+                      <td className="p-3.5 font-mono text-slate-600">{row.SEAL_NO && row.SEAL_NO !== '-' ? row.SEAL_NO : 'Verified'}</td>
+                      <td className="p-3.5 text-slate-800 font-medium">{row.COMMODITY || 'Frozen Cargo'} ({row.CHAMBER || 'Chamber-1'})</td>
+                      <td className="p-3.5 text-slate-500 font-mono text-xs">{row.GATE_IN_DATE || '-'}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -324,14 +390,22 @@ export default function OperationsView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {(opsData?.asns || []).map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.ASN_NO || `ASN-${row.ASN_ID}`}</td>
-                    <td className="p-3.5 text-slate-500 font-mono">{row.ASN_DATE || '-'}</td>
-                    <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
-                    <td className="p-3.5 text-slate-900 font-semibold">{row.SUPPLIER_NAME || 'SPJ Key Account'}</td>
+                {asnsList.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-8 text-center text-slate-400 font-semibold">
+                      No Advance Shipping Notices (ASN) found for the selected Terminal & Financial Year.
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  asnsList.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-3.5 font-bold text-[#2b1f55] font-mono">{row.ASN_NO || `ASN-${row.ASN_ID}`}</td>
+                      <td className="p-3.5 text-slate-500 font-mono">{row.ASN_DATE || '-'}</td>
+                      <td className="p-3.5 font-mono text-orange-600 font-bold">{row.TRUCK_NO || '-'}</td>
+                      <td className="p-3.5 text-slate-900 font-semibold">{row.SUPPLIER_NAME || 'SPJ Key Account'}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

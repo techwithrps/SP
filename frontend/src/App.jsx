@@ -202,6 +202,7 @@ export default function App() {
                 ...masters,
                 terminals: allTerminals.length > 0 ? allTerminals : (masters.terminals || [])
               }}
+              records={records}
               selectedTerminal={selectedTerminal}
               setSelectedTerminal={handleSetSelectedTerminal}
               selectedFY={selectedFY}

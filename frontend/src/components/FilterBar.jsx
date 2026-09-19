@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Search, 
   RotateCcw, 
@@ -12,10 +12,20 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 
+// Format currency into Indian Lacs / Crores
+const formatRevenueBadge = (amount) => {
+  if (!amount || amount <= 0) return '';
+  if (amount >= 10000000) return ` (₹ ${(amount / 10000000).toFixed(2)} Cr)`;
+  if (amount >= 100000) return ` (₹ ${(amount / 100000).toFixed(2)} L)`;
+  if (amount >= 1000) return ` (₹ ${(amount / 1000).toFixed(1)} K)`;
+  return ` (₹ ${Math.round(amount).toLocaleString('en-IN')})`;
+};
+
 export default function FilterBar({
   filters,
   setFilters,
   masters = {},
+  records = [],
   selectedTerminal = 'ALL',
   setSelectedTerminal,
   selectedFY = 'ALL',
@@ -49,13 +59,138 @@ export default function FilterBar({
 
   const handleTerminalChange = (val) => {
     handleChange('terminalId', val === 'ALL' ? 'all' : val);
+    // Reset subordinate filters when terminal changes
+    handleChange('customerId', 'all');
+    handleChange('serviceId', 'all');
     if (setSelectedTerminal) setSelectedTerminal(val);
   };
 
   const handleFYChange = (val) => {
     handleChange('financialYear', val);
+    handleChange('customerId', 'all');
+    handleChange('serviceId', 'all');
     if (setSelectedFY) setSelectedFY(val);
   };
+
+  // Helper to extract fiscal year from record
+  const getRecordFY = (item) => {
+    const invDate = item.INVOICE_DATE || '';
+    const invRef = item.INVOICE_REF_NO || item.PARTY_INV_NO || '';
+    if (invRef.includes('26-27') || invDate.includes('/2026') || invDate.includes('-2026') || invDate.includes('/2027')) return 'FY 2026-27';
+    if (invRef.includes('25-26') || invDate.includes('/2025') || invDate.includes('-2025')) return 'FY 2025-26';
+    if (invRef.includes('24-25') || invDate.includes('/2024') || invDate.includes('-2024')) return 'FY 2024-25';
+    if (invRef.includes('23-24') || invDate.includes('/2023') || invDate.includes('-2023')) return 'FY 2023-24';
+    return 'FY 2022-23 & Earlier';
+  };
+
+  // 1. Cascading Customers: Dynamic customer list active for selected Terminal & FY with Revenue Amount
+  const availableCustomers = useMemo(() => {
+    if (!records || records.length === 0) {
+      return customers.map(c => ({ id: c.id, name: c.name, revenue: 0, count: 0 }));
+    }
+
+    const custMap = {};
+    records.forEach(r => {
+      // Check Terminal
+      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+        const tMatch = (r.TERMINAL_ID && String(r.TERMINAL_ID) === String(selectedTerminal)) ||
+                       (r.TERMINAL_NAME && r.TERMINAL_NAME.toLowerCase().includes(String(selectedTerminal).toLowerCase()));
+        if (!tMatch) return;
+      }
+
+      // Check FY
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
+        const recFY = getRecordFY(r);
+        if (recFY !== selectedFY) return;
+      }
+
+      const cId = r.CUSTOMER_ID || r.CUSTOMER_NAME;
+      const cName = r.CUSTOMER_NAME || 'SPJ Account Party';
+      const rev = Number(r.AMOUNT) || Number(r.BILL_AMOUNT) || 0;
+
+      if (!custMap[cId]) {
+        custMap[cId] = {
+          id: cId,
+          name: cName,
+          revenue: 0,
+          count: 0
+        };
+      }
+      custMap[cId].revenue += rev;
+      custMap[cId].count++;
+    });
+
+    const activeList = Object.values(custMap).sort((a, b) => b.revenue - a.revenue);
+
+    if (activeList.length > 0) return activeList;
+    return customers.map(c => ({ id: c.id, name: c.name, revenue: 0, count: 0 }));
+  }, [records, customers, selectedTerminal, selectedFY]);
+
+  // 2. Cascading Services: Filtered to services under the selected Terminal, FY, and Customer
+  const availableServices = useMemo(() => {
+    if (!records || records.length === 0) {
+      return services.map(s => ({ id: s.id, name: s.name, count: 0 }));
+    }
+
+    const sMap = {};
+    records.forEach(r => {
+      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+        const tMatch = (r.TERMINAL_ID && String(r.TERMINAL_ID) === String(selectedTerminal)) ||
+                       (r.TERMINAL_NAME && r.TERMINAL_NAME.toLowerCase().includes(String(selectedTerminal).toLowerCase()));
+        if (!tMatch) return;
+      }
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
+        if (getRecordFY(r) !== selectedFY) return;
+      }
+      if (filters.customerId && filters.customerId !== 'all' && filters.customerId !== 'ALL') {
+        const cMatch = (r.CUSTOMER_ID && String(r.CUSTOMER_ID) === String(filters.customerId)) ||
+                       (r.CUSTOMER_NAME && r.CUSTOMER_NAME.toLowerCase().includes(String(filters.customerId).toLowerCase()));
+        if (!cMatch) return;
+      }
+
+      const sId = r.SERVICE_ID || r.SERVICE_NAME;
+      const sName = r.SERVICE_NAME || 'Transportation & Handling';
+      const amt = Number(r.AMOUNT) || Number(r.BILL_AMOUNT) || 0;
+
+      if (!sMap[sId]) {
+        sMap[sId] = { id: sId, name: sName, count: 0, revenue: 0 };
+      }
+      sMap[sId].count++;
+      sMap[sId].revenue += amt;
+    });
+
+    const list = Object.values(sMap).sort((a, b) => b.revenue - a.revenue);
+    if (list.length > 0) return list;
+    return services.map(s => ({ id: s.id, name: s.name, count: 0 }));
+  }, [records, services, selectedTerminal, selectedFY, filters.customerId]);
+
+  // 3. Cascading Trip Types: Filtered to trip types under current selection
+  const availableTripTypes = useMemo(() => {
+    if (!records || records.length === 0) return tripTypes;
+
+    const trips = new Set();
+    records.forEach(r => {
+      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+        const tMatch = (r.TERMINAL_ID && String(r.TERMINAL_ID) === String(selectedTerminal)) ||
+                       (r.TERMINAL_NAME && r.TERMINAL_NAME.toLowerCase().includes(String(selectedTerminal).toLowerCase()));
+        if (!tMatch) return;
+      }
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
+        if (getRecordFY(r) !== selectedFY) return;
+      }
+      if (filters.customerId && filters.customerId !== 'all' && filters.customerId !== 'ALL') {
+        const cMatch = (r.CUSTOMER_ID && String(r.CUSTOMER_ID) === String(filters.customerId)) ||
+                       (r.CUSTOMER_NAME && r.CUSTOMER_NAME.toLowerCase().includes(String(filters.customerId).toLowerCase()));
+        if (!cMatch) return;
+      }
+      if (r.TRIP_TYPE) trips.add(r.TRIP_TYPE);
+    });
+
+    if (trips.size > 0) {
+      return Array.from(trips).map(t => ({ code: t, name: t }));
+    }
+    return tripTypes;
+  }, [records, tripTypes, selectedTerminal, selectedFY, filters.customerId]);
 
   return (
     <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft space-y-4">
@@ -108,7 +243,7 @@ export default function FilterBar({
         </div>
       </div>
 
-      {/* Grid of Parameter Filters (Branch & FY SABSE AAGEY) */}
+      {/* Grid of Parameter Filters (Cascading: Terminal -> FY -> Customer -> Service -> Trip -> Container -> Size -> BL) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 pt-3 border-t border-slate-100">
         
         {/* 1. Branch / Terminal Selection (SABSE AAGEY - Column 1) */}
@@ -168,7 +303,7 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* 3. Customer / Bill-to */}
+        {/* 3. Customer / Bill-to (Cascaded with 🟢 Active Indicator and Sales Revenue Amount) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Users className="w-3 h-3 text-blue-600" />
@@ -177,18 +312,18 @@ export default function FilterBar({
           <select
             value={filters.customerId || 'all'}
             onChange={(e) => handleChange('customerId', e.target.value)}
-            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
+            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer truncate"
           >
-            <option value="all">All Customers ({customers.length})</option>
-            {customers.map((c) => (
+            <option value="all">All Customers ({availableCustomers.length})</option>
+            {availableCustomers.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {c.revenue > 0 ? `🟢 ${c.name}${formatRevenueBadge(c.revenue)}` : c.name}
               </option>
             ))}
           </select>
         </div>
 
-        {/* 4. Service Type */}
+        {/* 4. Service Type (Cascaded based on Terminal & Customer) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Wrench className="w-3 h-3 text-orange-600" />
@@ -197,18 +332,18 @@ export default function FilterBar({
           <select
             value={filters.serviceId || 'all'}
             onChange={(e) => handleChange('serviceId', e.target.value)}
-            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
+            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer truncate"
           >
-            <option value="all">All Services ({services.length})</option>
-            {services.map((s) => (
+            <option value="all">All Services ({availableServices.length})</option>
+            {availableServices.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name}
+                {s.name}{s.count ? ` (${s.count} Invoices)` : ''}
               </option>
             ))}
           </select>
         </div>
 
-        {/* 5. Trip Type */}
+        {/* 5. Trip Type (Cascaded based on earlier selections) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Navigation className="w-3 h-3 text-emerald-600" />
@@ -220,7 +355,7 @@ export default function FilterBar({
             className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
           >
             <option value="all">All Trip Types</option>
-            {tripTypes.map((t) => (
+            {availableTripTypes.map((t) => (
               <option key={t.code} value={t.code}>
                 {t.name}
               </option>
@@ -243,7 +378,7 @@ export default function FilterBar({
           />
         </div>
 
-        {/* 7. Container Size (20 FT / 40 FT) */}
+        {/* 7. Container Size (40 FT First, 20 FT Next, 45 FT Removed) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <SlidersHorizontal className="w-3 h-3 text-cyan-600" />
@@ -255,9 +390,8 @@ export default function FilterBar({
             className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
           >
             <option value="all">All Sizes</option>
-            <option value="20">20 FT (1 TEU)</option>
             <option value="40">40 FT (2 TEU)</option>
-            <option value="45">45 FT (HC)</option>
+            <option value="20">20 FT (1 TEU)</option>
           </select>
         </div>
 
@@ -280,3 +414,4 @@ export default function FilterBar({
     </div>
   );
 }
+
