@@ -150,7 +150,7 @@ export default function LoginPage({ onLoginSuccess }) {
               Admin Portal
             </h1>
             <p className="text-xs font-medium text-slate-500">
-              SPJ Cargo & Cold Chain Operations Intelligence ERP
+              SPJ Cargo Operations & Revenue Intelligence ERP
             </p>
           </div>
 
@@ -289,7 +289,7 @@ export default function LoginPage({ onLoginSuccess }) {
           </div>
 
           <div className="text-[11px] text-slate-400 font-medium">
-            © {new Date().getFullYear()} SPJ Group • Cold Chain & Yard Operations Dashboard
+            © {new Date().getFullYear()} SPJ Group • Cargo & Yard Operations Dashboard
           </div>
         </div>
       </footer>
