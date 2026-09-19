@@ -6,9 +6,6 @@ import {
   XAxis, 
   YAxis, 
   Tooltip, 
-  PieChart, 
-  Pie, 
-  Cell, 
   CartesianGrid,
   AreaChart,
   Area,
@@ -17,9 +14,7 @@ import {
 import { 
   TrendingUp, 
   Building2, 
-  MapPin, 
   Users, 
-  Wrench, 
   Container, 
   Receipt, 
   Percent, 
@@ -27,33 +22,23 @@ import {
   RefreshCw, 
   Layers, 
   Calendar,
-  Sparkles,
-  ArrowUpRight,
   ShieldCheck,
   CheckCircle2,
   DollarSign,
-  Download,
   BarChart3,
-  Globe2,
-  Filter,
   Truck,
   RotateCcw,
   Search,
-  ChevronRight,
   AlertTriangle,
   Award,
   CircleDollarSign,
   Activity,
-  SlidersHorizontal,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-
-const CHART_COLORS = [
-  '#2b1f55', '#ff6a00', '#0284c7', '#10b981', '#7c3aed', 
-  '#ea580c', '#0891b2', '#059669', '#d97706', '#4338ca',
-  '#ec4899', '#8b5cf6', '#14b8a6', '#f59e0b', '#6366f1'
-];
 
 function formatCurrency(val) {
   const num = Number(val) || 0;
@@ -68,17 +53,27 @@ function formatNumber(val) {
   return num.toLocaleString('en-IN');
 }
 
-export default function AnalyticsCharts() {
+export default function AnalyticsCharts({
+  selectedTerminal: parentTerminal,
+  setSelectedTerminal: parentSetTerminal,
+  selectedFY: parentFY,
+  setSelectedFY: parentSetFY,
+}) {
   const [finData, setFinData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('branches');
   
-  // Interactive Filters
-  const [selectedTerminal, setSelectedTerminal] = useState('ALL');
-  const [selectedFY, setSelectedFY] = useState('ALL');
+  // Local or Shared Filters
+  const [localTerminal, setLocalTerminal] = useState('ALL');
+  const [localFY, setLocalFY] = useState('ALL');
   const [searchTerminal, setSearchTerminal] = useState('');
   const [sortBy, setSortBy] = useState('netRevenue');
   const [sortOrder, setSortOrder] = useState('desc');
+
+  const selectedTerminal = parentTerminal !== undefined ? parentTerminal : localTerminal;
+  const setSelectedTerminal = parentSetTerminal || setLocalTerminal;
+  const selectedFY = parentFY !== undefined ? parentFY : localFY;
+  const setSelectedFY = parentSetFY || setLocalFY;
 
   const fetchFinancials = async () => {
     setLoading(true);
@@ -106,7 +101,6 @@ export default function AnalyticsCharts() {
   ], [branchDetailed]);
   const fySummaries = useMemo(() => branchDetailed.fySummaries || {}, [branchDetailed]);
   const terminalFyMatrix = useMemo(() => branchDetailed.terminalFyMatrix || [], [branchDetailed]);
-  const creditMatrix = useMemo(() => branchDetailed.creditMatrix || [], [branchDetailed]);
   const topCustomers = useMemo(() => branchDetailed.topCustomers || [], [branchDetailed]);
   const topServices = useMemo(() => branchDetailed.topServices || [], [branchDetailed]);
   const dbTotals = finData?.totals || {};
@@ -204,7 +198,7 @@ export default function AnalyticsCharts() {
     };
   }, [selectedTerminal, selectedFY, terminals, fySummaries, terminalFyMatrix, dbTotals]);
 
-  // Filtered and Sorted Terminal Matrix for Table
+  // Filtered and Sorted Terminal Matrix for Table & Charts
   const displayTerminals = useMemo(() => {
     return terminals
       .filter(t => {
@@ -238,22 +232,34 @@ export default function AnalyticsCharts() {
         }
         return {
           ...t,
-          displayJobs: t.totalJobs,
-          displayContainers: t.totalContainers,
-          displayTeus: t.teus,
-          display40ft: t.units40ft,
-          display20ft: t.units20ft
+          displayJobs: t.totalJobs || 0,
+          displayContainers: t.totalContainers || 0,
+          displayTeus: t.teus || 0,
+          display40ft: t.units40ft || 0,
+          display20ft: t.units20ft || 0
         };
       })
       .sort((a, b) => {
-        let valA = a[sortBy] || 0;
-        let valB = b[sortBy] || 0;
         if (sortBy === 'terminalName') {
-          return sortOrder === 'asc' ? a.terminalName.localeCompare(b.terminalName) : b.terminalName.localeCompare(a.terminalName);
+          return sortOrder === 'asc' 
+            ? a.terminalName.localeCompare(b.terminalName) 
+            : b.terminalName.localeCompare(a.terminalName);
         }
+        const valA = Number(a[sortBy]) || 0;
+        const valB = Number(b[sortBy]) || 0;
         return sortOrder === 'asc' ? valA - valB : valB - valA;
       });
   }, [terminals, searchTerminal, selectedFY, terminalFyMatrix, sortBy, sortOrder]);
+
+  // Handle column header click for sorting
+  const handleSortHeader = (field) => {
+    if (sortBy === field) {
+      setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
 
   // Year over Year Chart Data
   const yoyChartData = useMemo(() => {
@@ -298,20 +304,20 @@ export default function AnalyticsCharts() {
     });
   }, [selectedTerminal, fySummaries, terminalFyMatrix]);
 
-  // Top 8 Terminals Volume & Revenue for Bar Chart
+  // Top 8 Terminals Volume & Revenue for Bar Chart (Directly derived from displayTerminals so it updates on FY change!)
   const topTerminalsChart = useMemo(() => {
-    return terminals
-      .filter(t => t.totalContainers > 0)
+    return displayTerminals
+      .filter(t => (t.displayContainers > 0 || t.netRevenue > 0))
       .sort((a, b) => b.netRevenue - a.netRevenue)
       .slice(0, 8)
       .map(t => ({
         name: t.terminalName.length > 14 ? t.terminalName.substring(0, 12) + '..' : t.terminalName,
         fullName: t.terminalName,
         revenue: t.netRevenue,
-        containers: t.totalContainers,
-        teus: t.teus
+        containers: t.displayContainers,
+        teus: t.displayTeus
       }));
-  }, [terminals]);
+  }, [displayTerminals]);
 
   const handleExportExcel = () => {
     const wb = XLSX.utils.book_new();
@@ -360,131 +366,20 @@ export default function AnalyticsCharts() {
     return null;
   };
 
+  const SortIcon = ({ field }) => {
+    if (sortBy !== field) {
+      return <ArrowUpDown className="w-3 h-3 text-slate-400 inline ml-1 opacity-50 group-hover:opacity-100" />;
+    }
+    return sortOrder === 'asc' 
+      ? <ArrowUp className="w-3 h-3 text-[#ff6a00] inline ml-1" />
+      : <ArrowDown className="w-3 h-3 text-[#ff6a00] inline ml-1" />;
+  };
+
   return (
     <div className="space-y-6">
       
       {/* ========================================================================= */}
-      {/* 1. TOP INTERACTIVE FILTER & COMMAND BAR */}
-      {/* ========================================================================= */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-          
-          {/* Left: Terminal & Financial Year Dropdowns */}
-          <div className="flex flex-wrap items-center gap-3">
-            
-            {/* Terminal Dropdown */}
-            <div className="flex flex-col min-w-[240px]">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-[#2b1f55]" /> Branch / Terminal Selection
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedTerminal}
-                  onChange={(e) => setSelectedTerminal(e.target.value)}
-                  className="w-full pl-3.5 pr-8 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all cursor-pointer shadow-sm"
-                >
-                  <option value="ALL">🏢 All Terminals & Regional Hubs ({terminals.length} Total)</option>
-                  <optgroup label="── Active Operational Hubs ──">
-                    {terminals
-                      .filter(t => t.totalContainers > 0)
-                      .sort((a, b) => b.netRevenue - a.netRevenue)
-                      .map(t => (
-                        <option key={t.terminalId} value={t.terminalId}>
-                          {t.terminalName} ({formatNumber(t.totalContainers)} Cont | {formatCurrency(t.netRevenue)})
-                        </option>
-                      ))}
-                  </optgroup>
-                  <optgroup label="── Other Regional Terminals ──">
-                    {terminals
-                      .filter(t => t.totalContainers === 0)
-                      .map(t => (
-                        <option key={t.terminalId} value={t.terminalId}>
-                          {t.terminalName} (Port / Transit Station)
-                        </option>
-                      ))}
-                  </optgroup>
-                </select>
-              </div>
-            </div>
-
-            {/* Financial Year Dropdown */}
-            <div className="flex flex-col min-w-[200px]">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" /> Financial Year Filter
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedFY}
-                  onChange={(e) => setSelectedFY(e.target.value)}
-                  className="w-full pl-3.5 pr-8 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-sm"
-                >
-                  <option value="ALL">📅 All Financial Years (Cumulative)</option>
-                  <option value="FY 2026-27">FY 2026-27 (Current Fiscal)</option>
-                  <option value="FY 2025-26">FY 2025-26 (Past Year)</option>
-                  <option value="FY 2024-25">FY 2024-25 (Past Year 2)</option>
-                  <option value="FY 2023-24">FY 2023-24 (Past Year 3)</option>
-                  <option value="FY 2022-23 & Earlier">FY 2022-23 & Earlier (Historical)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Filter Active Badges */}
-            {(selectedTerminal !== 'ALL' || selectedFY !== 'ALL') && (
-              <div className="flex items-center gap-2 pt-5">
-                <button
-                  onClick={resetFilters}
-                  className="inline-flex items-center gap-1 px-3 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold transition-all shadow-sm"
-                  title="Reset to All Terminals and All FYs"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" /> Reset Filters
-                </button>
-              </div>
-            )}
-
-          </div>
-
-          {/* Right: Quick Action Controls */}
-          <div className="flex items-center gap-2.5 pt-4 lg:pt-0">
-            <button
-              onClick={fetchFinancials}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#2b1f55]' : ''}`} />
-              Sync DB
-            </button>
-            <button
-              onClick={handleExportExcel}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-[#2b1f55] to-[#4338ca] text-white hover:opacity-95 rounded-xl text-xs font-bold shadow-md shadow-purple-900/20 transition-all"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-              Export Excel (.xlsx)
-            </button>
-          </div>
-
-        </div>
-
-        {/* Dynamic Context Header */}
-        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-          <div className="flex items-center gap-2 font-medium">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Displaying Analytics for:</span>
-            <span className="font-bold text-[#2b1f55] bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
-              {selectedTerminal === 'ALL' ? 'All 39 Terminals & Ports' : terminals.find(t => t.terminalId === Number(selectedTerminal))?.terminalName || `Terminal ${selectedTerminal}`}
-            </span>
-            <span>&bull;</span>
-            <span className="font-bold text-[#ff6a00] bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100">
-              {selectedFY === 'ALL' ? 'All Financial Years (Cumulative)' : selectedFY}
-            </span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-mono">
-            Source: Oracle Cloud Live (<span className="text-emerald-600 font-bold">SPJLIVE</span>)
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 2. TOP 8 DYNAMIC KPI CARDS (Rich, Accurate, Formula Breakdown) */}
+      {/* 1. TOP 8 DYNAMIC KPI CARDS (Rich, Accurate, Formula Breakdown) */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
@@ -497,7 +392,7 @@ export default function AnalyticsCharts() {
             <TrendingUp className="w-3.5 h-3.5" /> Gross Sale (Net Revenue)
           </p>
           <h3 className="text-2xl lg:text-3xl font-black font-display text-white mt-2">
-            {formatCurrency(dynamicMetrics.grossSale)}
+            {loading ? <span className="inline-block w-32 h-8 bg-white/20 animate-pulse rounded"></span> : formatCurrency(dynamicMetrics.grossSale)}
           </h3>
           <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px]">
             <span className="text-slate-300">Invoice Gross - Credit Amt</span>
@@ -515,7 +410,7 @@ export default function AnalyticsCharts() {
                 Net Bill Amount (Base)
               </p>
               <h3 className="text-2xl font-black font-display text-slate-800 mt-2">
-                {formatCurrency(dynamicMetrics.billAmount)}
+                {loading ? <span className="inline-block w-28 h-7 bg-slate-100 animate-pulse rounded"></span> : formatCurrency(dynamicMetrics.billAmount)}
               </h3>
               <p className="text-[11px] text-blue-700 font-semibold mt-1 flex items-center gap-1">
                 <Receipt className="w-3 h-3" /> Invoiced Base Value
@@ -541,7 +436,7 @@ export default function AnalyticsCharts() {
                 Tax Collected (GST 18%)
               </p>
               <h3 className="text-2xl font-black font-display text-emerald-700 mt-2">
-                {formatCurrency(dynamicMetrics.taxAmount)}
+                {loading ? <span className="inline-block w-28 h-7 bg-slate-100 animate-pulse rounded"></span> : formatCurrency(dynamicMetrics.taxAmount)}
               </h3>
               <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3" /> Output GST Ledger
@@ -567,10 +462,10 @@ export default function AnalyticsCharts() {
                 Invoices & Credit Notes
               </p>
               <h3 className="text-2xl font-black font-display text-purple-900 mt-2">
-                {formatNumber(dynamicMetrics.invoiceCount)} <span className="text-sm font-semibold text-slate-400">Invoices</span>
+                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.invoiceCount)}`} <span className="text-sm font-semibold text-slate-400">Invoices</span>
               </h3>
               <p className="text-[11px] text-rose-600 font-semibold mt-1 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" /> {formatNumber(dynamicMetrics.creditCount)} Credit Notes ({formatCurrency(dynamicMetrics.creditAmount)})
+                <AlertTriangle className="w-3 h-3" /> {formatNumber(dynamicMetrics.creditCount)} Credits ({formatCurrency(dynamicMetrics.creditAmount)})
               </p>
             </div>
             <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200">
@@ -593,7 +488,7 @@ export default function AnalyticsCharts() {
                 Container Volume (Total Units)
               </p>
               <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
-                {formatNumber(dynamicMetrics.totalContainers)} <span className="text-sm font-semibold text-slate-400">Units</span>
+                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.totalContainers)}`} <span className="text-sm font-semibold text-slate-400">Units</span>
               </h3>
               <p className="text-[11px] text-blue-700 font-semibold mt-1">
                 40ft: <span className="font-bold">{formatNumber(dynamicMetrics.units40ft)}</span> | 20ft: <span className="font-bold">{formatNumber(dynamicMetrics.units20ft)}</span>
@@ -619,7 +514,7 @@ export default function AnalyticsCharts() {
                 Total TEU Capacity
               </p>
               <h3 className="text-2xl font-black font-display text-amber-900 mt-2">
-                {formatNumber(dynamicMetrics.teus)} <span className="text-sm font-semibold text-slate-400">TEUs</span>
+                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.teus)}`} <span className="text-sm font-semibold text-slate-400">TEUs</span>
               </h3>
               <p className="text-[11px] text-amber-700 font-semibold mt-1">
                 Standard Twenty-Foot Equivalent Units
@@ -645,7 +540,7 @@ export default function AnalyticsCharts() {
                 Fleet Job Orders (JO)
               </p>
               <h3 className="text-2xl font-black font-display text-cyan-900 mt-2">
-                {formatNumber(dynamicMetrics.totalJobs)} <span className="text-sm font-semibold text-slate-400">Orders</span>
+                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.totalJobs)}`} <span className="text-sm font-semibold text-slate-400">Orders</span>
               </h3>
               <p className="text-[11px] text-cyan-700 font-semibold mt-1">
                 FLEET_CONT_JO Dispatched
@@ -671,7 +566,7 @@ export default function AnalyticsCharts() {
                 Active Own Heavy Fleet
               </p>
               <h3 className="text-2xl font-black font-display text-orange-900 mt-2">
-                {formatNumber(dynamicMetrics.ownFleet)} <span className="text-sm font-semibold text-slate-400">Trucks</span>
+                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.ownFleet)}`} <span className="text-sm font-semibold text-slate-400">Trucks</span>
               </h3>
               <p className="text-[11px] text-orange-700 font-semibold mt-1">
                 Multi-Axle Commercial Fleet
@@ -692,7 +587,7 @@ export default function AnalyticsCharts() {
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. SUB-VIEW NAVIGATION (Branches Matrix, YoY Trends, Owner Decision BI) */}
+      {/* 2. SUB-VIEW NAVIGATION (Branches Matrix, YoY Trends, Owner Decision BI) */}
       {/* ========================================================================= */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-soft">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -722,11 +617,15 @@ export default function AnalyticsCharts() {
           })}
         </div>
 
-        {/* View specific context count */}
-        <div className="text-xs text-slate-500 font-medium px-2">
-          {activeTab === 'branches' && `${displayTerminals.length} Terminals Listed`}
-          {activeTab === 'yoy' && '4 Fiscal Years Audited'}
-          {activeTab === 'decision_bi' && 'High Impact Executive Insights'}
+        {/* View specific context count & Export */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportExcel}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#2b1f55] to-[#4338ca] text-white hover:opacity-95 rounded-xl text-xs font-bold shadow-sm transition-all"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            Export Matrix (.xlsx)
+          </button>
         </div>
       </div>
 
@@ -736,13 +635,13 @@ export default function AnalyticsCharts() {
       {activeTab === 'branches' && (
         <div className="space-y-6">
           
-          {/* Top Visual Chart: Branch Revenue & TEU Comparison */}
+          {/* Top Visual Chart: Branch Revenue & TEU Comparison (Reacts to FY changes!) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Top Terminals by Net Revenue */}
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
               <h4 className="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#2b1f55]" /> Top Revenue Generating Terminals
+                <BarChart3 className="w-4 h-4 text-[#2b1f55]" /> Top Revenue Generating Terminals ({selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})
               </h4>
               <p className="text-xs text-slate-500 mb-4">
                 Branch contribution to overall net sales revenue
@@ -763,7 +662,7 @@ export default function AnalyticsCharts() {
             {/* Top Terminals by Container TEU Volume */}
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
               <h4 className="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
-                <Container className="w-4 h-4 text-[#ff6a00]" /> Top Terminals by TEU Volume
+                <Container className="w-4 h-4 text-[#ff6a00]" /> Top Terminals by TEU Volume ({selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})
               </h4>
               <p className="text-xs text-slate-500 mb-4">
                 Container physical throughput (40ft = 2 TEUs, 20ft = 1 TEU)
@@ -796,7 +695,7 @@ export default function AnalyticsCharts() {
                     value={searchTerminal}
                     onChange={(e) => setSearchTerminal(e.target.value)}
                     placeholder="Search terminal by name, code, or ID..."
-                    className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all"
                   />
                 </div>
               </div>
@@ -808,16 +707,18 @@ export default function AnalyticsCharts() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
                 >
-                  <option value="netRevenue">Net Revenue (High to Low)</option>
+                  <option value="netRevenue">Net Revenue (Gross Sale)</option>
                   <option value="displayTeus">TEU Volume</option>
                   <option value="displayContainers">Total Containers</option>
                   <option value="displayJobs">Job Orders</option>
                   <option value="invoiceCount">Invoices Count</option>
+                  <option value="billAmount">Net Bill (Base)</option>
+                  <option value="taxAmount">Tax (GST)</option>
                   <option value="terminalName">Terminal Name (A-Z)</option>
                 </select>
                 <button
                   onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
+                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border border-slate-200"
                   title="Toggle Ascending/Descending"
                 >
                   {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
@@ -830,85 +731,133 @@ export default function AnalyticsCharts() {
             <div className="overflow-x-auto rounded-2xl border border-slate-200">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200">
-                    <th className="py-3 px-3.5">Terminal / Branch</th>
+                  <tr className="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200 select-none">
+                    <th 
+                      onClick={() => handleSortHeader('terminalName')}
+                      className="py-3 px-3.5 cursor-pointer hover:bg-slate-200/80 transition-colors group"
+                    >
+                      Terminal / Branch <SortIcon field="terminalName" />
+                    </th>
                     <th className="py-3 px-3 text-center">Code</th>
-                    <th className="py-3 px-3 text-right">Job Orders</th>
-                    <th className="py-3 px-3 text-right">Containers (40ft / 20ft)</th>
-                    <th className="py-3 px-3 text-right">TEUs</th>
-                    <th className="py-3 px-3 text-right">Invoices</th>
-                    <th className="py-3 px-3 text-right">Net Bill (Base)</th>
-                    <th className="py-3 px-3 text-right">Tax (GST)</th>
-                    <th className="py-3 px-3.5 text-right font-black text-[#2b1f55]">Net Revenue (Gross Sale)</th>
+                    <th 
+                      onClick={() => handleSortHeader('displayJobs')}
+                      className="py-3 px-3 text-right cursor-pointer hover:bg-slate-200/80 transition-colors group"
+                    >
+                      Job Orders <SortIcon field="displayJobs" />
+                    </th>
+                    <th 
+                      onClick={() => handleSortHeader('displayContainers')}
+                      className="py-3 px-3 text-right cursor-pointer hover:bg-slate-200/80 transition-colors group"
+                    >
+                      Containers (40ft / 20ft) <SortIcon field="displayContainers" />
+                    </th>
+                    <th 
+                      onClick={() => handleSortHeader('displayTeus')}
+                      className="py-3 px-3 text-right cursor-pointer hover:bg-slate-200/80 transition-colors group"
+                    >
+                      TEUs <SortIcon field="displayTeus" />
+                    </th>
+                    <th 
+                      onClick={() => handleSortHeader('invoiceCount')}
+                      className="py-3 px-3 text-right cursor-pointer hover:bg-slate-200/80 transition-colors group"
+                    >
+                      Invoices <SortIcon field="invoiceCount" />
+                    </th>
+                    <th 
+                      onClick={() => handleSortHeader('billAmount')}
+                      className="py-3 px-3 text-right cursor-pointer hover:bg-slate-200/80 transition-colors group"
+                    >
+                      Net Bill (Base) <SortIcon field="billAmount" />
+                    </th>
+                    <th 
+                      onClick={() => handleSortHeader('taxAmount')}
+                      className="py-3 px-3 text-right cursor-pointer hover:bg-slate-200/80 transition-colors group"
+                    >
+                      Tax (GST) <SortIcon field="taxAmount" />
+                    </th>
+                    <th 
+                      onClick={() => handleSortHeader('netRevenue')}
+                      className="py-3 px-3.5 text-right font-black text-[#2b1f55] cursor-pointer hover:bg-slate-200/80 transition-colors group"
+                    >
+                      Net Revenue (Gross Sale) <SortIcon field="netRevenue" />
+                    </th>
                     <th className="py-3 px-3 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {displayTerminals.map((t, idx) => {
-                    const isSelected = selectedTerminal === String(t.terminalId);
-                    return (
-                      <tr 
-                        key={t.terminalId}
-                        className={`transition-colors ${
-                          isSelected ? 'bg-purple-50/80 font-semibold' : (idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/40 hover:bg-slate-50')
-                        }`}
-                      >
-                        <td className="py-3 px-3.5 font-bold text-slate-800 flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${t.displayContainers > 0 ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                          <span>{t.terminalName}</span>
-                          {t.displayContainers > 10000 && (
-                            <span className="text-[9px] px-1.5 py-0.5 bg-purple-100 text-[#2b1f55] rounded-md font-bold uppercase tracking-wider">
-                              Major Hub
+                  {displayTerminals.length === 0 ? (
+                    <tr>
+                      <td colSpan="10" className="py-8 text-center text-slate-400 font-medium">
+                        No terminal records match the current filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    displayTerminals.map((t, idx) => {
+                      const isSelected = selectedTerminal === String(t.terminalId);
+                      return (
+                        <tr 
+                          key={t.terminalId}
+                          className={`transition-colors ${
+                            isSelected ? 'bg-purple-100/90 font-semibold ring-1 ring-purple-300' : (idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/40 hover:bg-slate-50')
+                          }`}
+                        >
+                          <td className="py-3 px-3.5 font-bold text-slate-800 flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${t.displayContainers > 0 ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                            <span className="truncate max-w-[200px]" title={t.terminalName}>{t.terminalName}</span>
+                            {t.displayContainers > 10000 && (
+                              <span className="text-[9px] px-1.5 py-0.5 bg-purple-100 text-[#2b1f55] rounded-md font-bold uppercase tracking-wider shrink-0">
+                                Major Hub
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-center font-mono text-slate-500">
+                            {t.terminalCode || `T-${t.terminalId}`}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono font-bold text-slate-700">
+                            {formatNumber(t.displayJobs)}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono text-slate-700">
+                            <span className="font-bold text-slate-900">{formatNumber(t.displayContainers)}</span>
+                            <span className="text-[10px] text-slate-400 ml-1">
+                              ({formatNumber(t.display40ft)} / {formatNumber(t.display20ft)})
                             </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-3 text-center font-mono text-slate-500">
-                          {t.terminalCode || `T-${t.terminalId}`}
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-slate-700">
-                          {formatNumber(t.displayJobs)}
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono text-slate-700">
-                          <span className="font-bold text-slate-900">{formatNumber(t.displayContainers)}</span>
-                          <span className="text-[10px] text-slate-400 ml-1">
-                            ({formatNumber(t.display40ft)} / {formatNumber(t.display20ft)})
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-amber-700">
-                          {formatNumber(t.displayTeus)}
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono text-slate-600">
-                          {formatNumber(t.invoiceCount)}
-                          {t.creditCount > 0 && (
-                            <span className="text-[10px] text-rose-500 block font-normal">
-                              {t.creditCount} CR ({formatCurrency(t.creditAmount)})
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono text-slate-600">
-                          {formatCurrency(t.billAmount)}
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono text-emerald-700">
-                          {formatCurrency(t.taxAmount)}
-                        </td>
-                        <td className="py-3 px-3.5 text-right font-mono font-black text-[#2b1f55]">
-                          {formatCurrency(t.netRevenue)}
-                        </td>
-                        <td className="py-3 px-3 text-center">
-                          <button
-                            onClick={() => setSelectedTerminal(isSelected ? 'ALL' : String(t.terminalId))}
-                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                              isSelected 
-                                ? 'bg-purple-700 text-white' 
-                                : 'bg-slate-100 text-slate-700 hover:bg-[#2b1f55] hover:text-white'
-                            }`}
-                          >
-                            {isSelected ? 'Filtered ✓' : 'Filter'}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono font-bold text-amber-700">
+                            {formatNumber(t.displayTeus)}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono text-slate-600">
+                            {formatNumber(t.invoiceCount)}
+                            {t.creditCount > 0 && (
+                              <span className="text-[10px] text-rose-500 block font-normal">
+                                {t.creditCount} CR ({formatCurrency(t.creditAmount)})
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono text-slate-600">
+                            {formatCurrency(t.billAmount)}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono text-emerald-700">
+                            {formatCurrency(t.taxAmount)}
+                          </td>
+                          <td className="py-3 px-3.5 text-right font-mono font-black text-[#2b1f55]">
+                            {formatCurrency(t.netRevenue)}
+                          </td>
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              onClick={() => setSelectedTerminal(isSelected ? 'ALL' : String(t.terminalId))}
+                              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all shadow-sm ${
+                                isSelected 
+                                  ? 'bg-purple-700 text-white ring-2 ring-purple-400' 
+                                  : 'bg-slate-100 text-slate-700 hover:bg-[#2b1f55] hover:text-white'
+                              }`}
+                            >
+                              {isSelected ? 'Filtered ✓' : 'Filter'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>

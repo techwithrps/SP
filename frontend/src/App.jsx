@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/Navbar';
+import GlobalFilterBar from './components/GlobalFilterBar';
 import KPICards from './components/KPICards';
 import FilterBar from './components/FilterBar';
 import CIRTable from './components/CIRTable';
@@ -19,7 +20,20 @@ export default function App() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Filters matching SP_CIR_NEW parameters
+  // Global State for Terminal and Financial Year across all tabs
+  const [selectedTerminal, setSelectedTerminal] = useState('ALL');
+  const [selectedFY, setSelectedFY] = useState('ALL');
+  const [allTerminals, setAllTerminals] = useState([]);
+  const [financialYears, setFinancialYears] = useState([
+    'All Financial Years', 
+    'FY 2026-27', 
+    'FY 2025-26', 
+    'FY 2024-25', 
+    'FY 2023-24', 
+    'FY 2022-23 & Earlier'
+  ]);
+
+  // Filters matching SP_CIR_NEW parameters for Total Sales tab
   const [filters, setFilters] = useState({
     companyId: 'all',
     terminalId: 'all',
@@ -31,16 +45,33 @@ export default function App() {
     search: '',
   });
 
-  // Fetch Masters (Dropdowns)
-  const fetchMasters = async () => {
+  // Sync selectedTerminal with CIR filters.terminalId
+  const handleSetSelectedTerminal = (terminalId) => {
+    setSelectedTerminal(terminalId);
+    setFilters(prev => ({
+      ...prev,
+      terminalId: terminalId === 'ALL' ? 'all' : terminalId
+    }));
+  };
+
+  // Fetch Masters & Analytics Meta for Global Filter Bar
+  const fetchInitialData = async () => {
     try {
-      const res = await fetch('/api/masters');
-      const json = await res.json();
-      if (json.success) {
-        setMasters(json.data || {});
+      // 1. Masters
+      const mRes = await fetch('/api/masters').then(r => r.json()).catch(() => ({}));
+      if (mRes.success) {
+        setMasters(mRes.data || {});
+      }
+
+      // 2. Financial Analytics Terminals & FYs
+      const fRes = await fetch('/api/financial-analytics').then(r => r.json()).catch(() => ({}));
+      if (fRes.success && fRes.data?.branchDetailed) {
+        const bd = fRes.data.branchDetailed;
+        if (bd.terminals) setAllTerminals(bd.terminals);
+        if (bd.financialYears) setFinancialYears(bd.financialYears);
       }
     } catch (e) {
-      console.error('Failed to load masters:', e);
+      console.error('Failed to load initial metadata:', e);
     }
   };
 
@@ -73,7 +104,7 @@ export default function App() {
   }, [filters]);
 
   useEffect(() => {
-    fetchMasters();
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
@@ -84,6 +115,8 @@ export default function App() {
   }, [fetchCIRData]);
 
   const handleResetFilters = () => {
+    setSelectedTerminal('ALL');
+    setSelectedFY('ALL');
     setFilters({
       companyId: 'all',
       terminalId: 'all',
@@ -116,7 +149,10 @@ export default function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onRefresh={fetchCIRData}
+        onRefresh={() => {
+          fetchCIRData();
+          fetchInitialData();
+        }}
         loading={loading}
         lastUpdated={lastUpdated}
       />
@@ -124,10 +160,31 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
+        {/* Persistent Global Filter Bar across ALL pages/tabs */}
+        <GlobalFilterBar
+          selectedTerminal={selectedTerminal}
+          setSelectedTerminal={handleSetSelectedTerminal}
+          selectedFY={selectedFY}
+          setSelectedFY={setSelectedFY}
+          terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+          financialYears={financialYears}
+          onRefresh={() => {
+            fetchCIRData();
+            fetchInitialData();
+          }}
+          loading={loading}
+          activeTab={activeTab}
+        />
+
         {/* Tab 1: Branch Wise Analytics (Initial Default Page) */}
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            <AnalyticsCharts kpis={kpis} loading={loading} />
+            <AnalyticsCharts
+              selectedTerminal={selectedTerminal}
+              setSelectedTerminal={handleSetSelectedTerminal}
+              selectedFY={selectedFY}
+              setSelectedFY={setSelectedFY}
+            />
           </div>
         )}
 
@@ -158,21 +215,30 @@ export default function App() {
         {/* Tab 3: Container / Volumes */}
         {activeTab === 'containers' && (
           <div className="space-y-6">
-            <ContainerFleetView />
+            <ContainerFleetView
+              selectedTerminal={selectedTerminal}
+              selectedFY={selectedFY}
+            />
           </div>
         )}
 
         {/* Tab 4: Fleet */}
         {activeTab === 'fleet' && (
           <div className="space-y-6">
-            <FleetView />
+            <FleetView
+              selectedTerminal={selectedTerminal}
+              selectedFY={selectedFY}
+            />
           </div>
         )}
 
         {/* Tab 5: Yard Operations */}
         {activeTab === 'operations' && (
           <div className="space-y-6">
-            <OperationsView />
+            <OperationsView
+              selectedTerminal={selectedTerminal}
+              selectedFY={selectedFY}
+            />
           </div>
         )}
 
@@ -183,12 +249,11 @@ export default function App() {
         <div className="max-w-[1700px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="SPJ Logo" className="h-6 w-auto object-contain" />
-            <span>© {new Date().getFullYear()} <strong>eLogisol Technologies</strong> & <strong>SPJ Cargo</strong> — All Rights Reserved.</span>
+            <span>© {new Date().getFullYear()} <strong>SPJ Cargo & Logistics</strong> — All Rights Reserved.</span>
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold text-slate-600">
             <span>E-6, Third Floor, Kalkaji, New Delhi-110019</span>
-            <span>Support: support@elogisol.in</span>
-            <span className="text-emerald-700 font-bold">● Active Operational Portal</span>
+            <span className="text-emerald-700 font-bold">● Active Operational Live Portal</span>
           </div>
         </div>
       </footer>
