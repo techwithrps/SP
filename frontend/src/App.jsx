@@ -11,6 +11,7 @@ import AnalyticsCharts from './components/AnalyticsCharts';
 import OperationsView from './components/OperationsView';
 import InvoiceDetailModal from './components/InvoiceDetailModal';
 import LoginPage from './components/LoginPage';
+import AnimatedCounter from './components/AnimatedCounter';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -256,7 +257,9 @@ export default function App() {
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
               <Globe2 className="w-5 h-5 text-blue-300" />
               <div>
-                <div className="font-extrabold text-base font-display">120</div>
+                <div className="font-extrabold text-base font-display">
+                  <AnimatedCounter value={120} />
+                </div>
                 <div className="text-[10px] text-purple-200">Countries Served</div>
               </div>
             </div>
@@ -264,7 +267,9 @@ export default function App() {
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
               <Ship className="w-5 h-5 text-cyan-300" />
               <div>
-                <div className="font-extrabold text-base font-display">2,300</div>
+                <div className="font-extrabold text-base font-display">
+                  <AnimatedCounter value={2300} />
+                </div>
                 <div className="text-[10px] text-purple-200">Ports Served</div>
               </div>
             </div>
@@ -272,7 +277,9 @@ export default function App() {
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
               <Truck className="w-5 h-5 text-emerald-300" />
               <div>
-                <div className="font-extrabold text-base font-display">3,200</div>
+                <div className="font-extrabold text-base font-display">
+                  <AnimatedCounter value={3200} />
+                </div>
                 <div className="text-[10px] text-purple-200">Road Served</div>
               </div>
             </div>
@@ -280,7 +287,9 @@ export default function App() {
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
               <Users className="w-5 h-5 text-amber-300" />
               <div>
-                <div className="font-extrabold text-base font-display">5,000+</div>
+                <div className="font-extrabold text-base font-display">
+                  <AnimatedCounter value={5000} suffix="+" />
+                </div>
                 <div className="text-[10px] text-purple-200">Happy Clients</div>
               </div>
             </div>

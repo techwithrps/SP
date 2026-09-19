@@ -12,7 +12,7 @@ function easeOutExpo(x) {
  */
 export default function AnimatedCounter({ 
   value, 
-  duration = 800, 
+  duration = 1200, 
   prefix = '', 
   suffix = '', 
   decimals = 0,
@@ -30,22 +30,19 @@ export default function AnimatedCounter({
   };
 
   const targetNum = parseNumeric(value);
-  const [displayNum, setDisplayNum] = useState(targetNum);
-  const prevNumRef = useRef(targetNum);
-  const startTimeRef = useRef(null);
+  const [displayNum, setDisplayNum] = useState(0);
+  const prevNumRef = useRef(0);
   const animationFrameRef = useRef(null);
 
   useEffect(() => {
     const startVal = prevNumRef.current;
     const endVal = targetNum;
-    
-    if (startVal === endVal) {
-      setDisplayNum(endVal);
+
+    if (startVal === endVal && displayNum === endVal) {
       return;
     }
 
     const startTimestamp = performance.now();
-    startTimeRef.current = startTimestamp;
 
     const animate = (currentTimestamp) => {
       const elapsed = currentTimestamp - startTimestamp;
