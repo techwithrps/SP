@@ -50,12 +50,17 @@ export default function GlobalFilterBar({
   };
 
   const selectedTerminalObj = terminals.find(t => String(t.terminalId) === String(selectedTerminal));
+  const hasData = (t) => (t.totalContainers > 0 || t.netRevenue > 0 || t.billAmount > 0 || t.invoiceCount > 0);
+
+  const activeTerminals = terminals.filter(hasData).sort((a, b) => (b.netRevenue || 0) - (a.netRevenue || 0));
+  const inactiveTerminals = terminals.filter(t => !hasData(t));
 
   const handleQuickExport = () => {
     const wb = XLSX.utils.book_new();
     const dataToExport = terminals.map(t => ({
       'Terminal ID': t.terminalId,
       'Terminal / Branch': t.terminalName,
+      'Status': hasData(t) ? 'Active with Data' : 'Zero Data / Inactive',
       'Code': t.terminalCode || `T-${t.terminalId}`,
       'Job Orders': t.totalJobs || 0,
       'Containers': t.totalContainers || 0,
@@ -82,7 +87,7 @@ export default function GlobalFilterBar({
           <div className="flex flex-wrap items-end gap-3.5 w-full lg:w-auto">
             
             {/* 1. Terminal / Branch Selector */}
-            <div className="flex flex-col min-w-[280px] flex-1 sm:flex-initial">
+            <div className="flex flex-col min-w-[290px] flex-1 sm:flex-initial">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-[#2b1f55]" />
                 Branch / Terminal Selection
@@ -94,24 +99,23 @@ export default function GlobalFilterBar({
                   className="w-full h-11 pl-3.5 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all cursor-pointer shadow-sm"
                 >
                   <option value="ALL">🏢 All Terminals & Regional Hubs ({terminals.length || 39} Total)</option>
-                  <optgroup label="── Active Operational Hubs ──">
-                    {terminals
-                      .filter(t => t.totalContainers > 0)
-                      .sort((a, b) => b.netRevenue - a.netRevenue)
-                      .map(t => (
-                        <option key={t.terminalId} value={String(t.terminalId)}>
-                          {t.terminalName} ({formatNumber(t.totalContainers)} Cont | {formatCurrency(t.netRevenue)})
-                        </option>
-                      ))}
+                  
+                  {/* 🟢 Active Operational Hubs */}
+                  <optgroup label="── 🟢 Active Hubs with Data ──">
+                    {activeTerminals.map(t => (
+                      <option key={t.terminalId} value={String(t.terminalId)}>
+                        🟢 {t.terminalName} ({formatNumber(t.totalContainers)} Cont | {formatCurrency(t.netRevenue)})
+                      </option>
+                    ))}
                   </optgroup>
-                  <optgroup label="── Other Regional Terminals & Ports ──">
-                    {terminals
-                      .filter(t => t.totalContainers === 0)
-                      .map(t => (
-                        <option key={t.terminalId} value={String(t.terminalId)}>
-                          {t.terminalName} (Transit Station)
-                        </option>
-                      ))}
+
+                  {/* 🔴 Inactive / Zero Data Terminals */}
+                  <optgroup label="── 🔴 Inactive / Zero Data Terminals ──">
+                    {inactiveTerminals.map(t => (
+                      <option key={t.terminalId} value={String(t.terminalId)} className="text-rose-600 font-semibold bg-rose-50/50">
+                        🔴 {t.terminalName} (No Data / Inactive)
+                      </option>
+                    ))}
                   </optgroup>
                 </select>
               </div>
@@ -186,8 +190,16 @@ export default function GlobalFilterBar({
             Displaying Analytics for:
           </span>
 
-          <span className="inline-flex items-center font-bold text-[#2b1f55] bg-purple-100/70 border border-purple-200 px-2.5 py-1 rounded-lg">
-            {selectedTerminal === 'ALL' ? 'All 39 Terminals & Ports' : (selectedTerminalObj?.terminalName || `Terminal ${selectedTerminal}`)}
+          <span className={`inline-flex items-center font-bold px-2.5 py-1 rounded-lg border ${
+            selectedTerminal === 'ALL'
+              ? 'text-[#2b1f55] bg-purple-100/70 border-purple-200'
+              : (selectedTerminalObj && !hasData(selectedTerminalObj)
+                  ? 'text-rose-700 bg-rose-100/80 border-rose-300'
+                  : 'text-[#2b1f55] bg-purple-100/70 border-purple-200')
+          }`}>
+            {selectedTerminal === 'ALL' 
+              ? 'All 39 Terminals & Ports' 
+              : `${selectedTerminalObj && !hasData(selectedTerminalObj) ? '🔴 ' : '🟢 '}${selectedTerminalObj?.terminalName || `Terminal ${selectedTerminal}`}`}
           </span>
 
           <span className="text-slate-400 font-bold">&bull;</span>

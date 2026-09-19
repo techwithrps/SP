@@ -123,11 +123,28 @@ export default function FilterBar({
             className="w-full px-2.5 py-2 bg-purple-50/70 border border-purple-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
           >
             <option value="ALL">🏢 All Terminals ({terminals.length || 39})</option>
-            {terminals.map((t) => (
-              <option key={t.id || t.terminalId} value={String(t.id || t.terminalId)}>
-                {t.name || t.terminalName}
-              </option>
-            ))}
+            
+            {/* 🟢 Active Hubs */}
+            <optgroup label="── 🟢 Active Hubs with Data ──">
+              {terminals
+                .filter(t => (t.totalContainers > 0 || t.netRevenue > 0 || t.billAmount > 0 || t.invoiceCount > 0))
+                .map((t) => (
+                  <option key={t.id || t.terminalId} value={String(t.id || t.terminalId)}>
+                    🟢 {t.name || t.terminalName}
+                  </option>
+                ))}
+            </optgroup>
+
+            {/* 🔴 Inactive / Zero Data */}
+            <optgroup label="── 🔴 Inactive / Zero Data ──">
+              {terminals
+                .filter(t => !(t.totalContainers > 0 || t.netRevenue > 0 || t.billAmount > 0 || t.invoiceCount > 0))
+                .map((t) => (
+                  <option key={t.id || t.terminalId} value={String(t.id || t.terminalId)} className="text-rose-600 font-semibold bg-rose-50">
+                    🔴 {t.name || t.terminalName} (No Data)
+                  </option>
+                ))}
+            </optgroup>
           </select>
         </div>
 

@@ -794,38 +794,52 @@ export default function AnalyticsCharts({
                   ) : (
                     displayTerminals.map((t, idx) => {
                       const isSelected = selectedTerminal === String(t.terminalId);
+                      const hasData = (t.displayContainers > 0 || t.netRevenue > 0 || t.billAmount > 0 || t.invoiceCount > 0);
                       return (
                         <tr 
                           key={t.terminalId}
                           className={`transition-colors ${
-                            isSelected ? 'bg-purple-100/90 font-semibold ring-1 ring-purple-300' : (idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/40 hover:bg-slate-50')
+                            isSelected 
+                              ? 'bg-purple-100/90 font-semibold ring-1 ring-purple-300' 
+                              : (!hasData 
+                                  ? 'bg-rose-50/30 hover:bg-rose-50/60 text-slate-500' 
+                                  : (idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/40 hover:bg-slate-50'))
                           }`}
                         >
                           <td className="py-3 px-3.5 font-bold text-slate-800 flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${t.displayContainers > 0 ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                            <span className="truncate max-w-[200px]" title={t.terminalName}>{t.terminalName}</span>
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${hasData ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-rose-500 shadow-sm shadow-rose-500/50 animate-pulse'}`}></span>
+                            <span className={`truncate max-w-[200px] ${!hasData ? 'text-rose-800/80 font-medium' : ''}`} title={t.terminalName}>
+                              {t.terminalName}
+                            </span>
                             {t.displayContainers > 10000 && (
                               <span className="text-[9px] px-1.5 py-0.5 bg-purple-100 text-[#2b1f55] rounded-md font-bold uppercase tracking-wider shrink-0">
                                 Major Hub
+                              </span>
+                            )}
+                            {!hasData && (
+                              <span className="text-[9px] px-1.5 py-0.5 bg-rose-100 text-rose-700 border border-rose-200 rounded-md font-bold uppercase tracking-wider shrink-0">
+                                No Data
                               </span>
                             )}
                           </td>
                           <td className="py-3 px-3 text-center font-mono text-slate-500">
                             {t.terminalCode || `T-${t.terminalId}`}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono font-bold text-slate-700">
+                          <td className={`py-3 px-3 text-right font-mono ${hasData ? 'font-bold text-slate-700' : 'text-slate-400'}`}>
                             {formatNumber(t.displayJobs)}
                           </td>
                           <td className="py-3 px-3 text-right font-mono text-slate-700">
-                            <span className="font-bold text-slate-900">{formatNumber(t.displayContainers)}</span>
-                            <span className="text-[10px] text-slate-400 ml-1">
-                              ({formatNumber(t.display40ft)} / {formatNumber(t.display20ft)})
-                            </span>
+                            <span className={`font-bold ${hasData ? 'text-slate-900' : 'text-slate-400'}`}>{formatNumber(t.displayContainers)}</span>
+                            {hasData && (
+                              <span className="text-[10px] text-slate-400 ml-1">
+                                ({formatNumber(t.display40ft)} / {formatNumber(t.display20ft)})
+                              </span>
+                            )}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono font-bold text-amber-700">
+                          <td className={`py-3 px-3 text-right font-mono ${hasData ? 'font-bold text-amber-700' : 'text-slate-400'}`}>
                             {formatNumber(t.displayTeus)}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono text-slate-600">
+                          <td className={`py-3 px-3 text-right font-mono ${hasData ? 'text-slate-600 font-bold' : 'text-slate-400'}`}>
                             {formatNumber(t.invoiceCount)}
                             {t.creditCount > 0 && (
                               <span className="text-[10px] text-rose-500 block font-normal">
@@ -833,13 +847,13 @@ export default function AnalyticsCharts({
                               </span>
                             )}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono text-slate-600">
+                          <td className={`py-3 px-3 text-right font-mono ${hasData ? 'text-slate-600 font-semibold' : 'text-slate-400'}`}>
                             {formatCurrency(t.billAmount)}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono text-emerald-700">
+                          <td className={`py-3 px-3 text-right font-mono ${hasData ? 'text-emerald-700 font-semibold' : 'text-slate-400'}`}>
                             {formatCurrency(t.taxAmount)}
                           </td>
-                          <td className="py-3 px-3.5 text-right font-mono font-black text-[#2b1f55]">
+                          <td className={`py-3 px-3.5 text-right font-mono font-black ${hasData ? 'text-[#2b1f55]' : 'text-slate-400'}`}>
                             {formatCurrency(t.netRevenue)}
                           </td>
                           <td className="py-3 px-3 text-center">
@@ -848,7 +862,9 @@ export default function AnalyticsCharts({
                               className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all shadow-sm ${
                                 isSelected 
                                   ? 'bg-purple-700 text-white ring-2 ring-purple-400' 
-                                  : 'bg-slate-100 text-slate-700 hover:bg-[#2b1f55] hover:text-white'
+                                  : (!hasData 
+                                      ? 'bg-rose-100/70 text-rose-700 hover:bg-rose-600 hover:text-white' 
+                                      : 'bg-slate-100 text-slate-700 hover:bg-[#2b1f55] hover:text-white')
                               }`}
                             >
                               {isSelected ? 'Filtered ✓' : 'Filter'}

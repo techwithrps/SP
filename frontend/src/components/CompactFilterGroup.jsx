@@ -1,13 +1,6 @@
 import React from 'react';
 import { Building2, Calendar, RotateCcw } from 'lucide-react';
 
-function formatCurrency(val) {
-  const num = Number(val) || 0;
-  if (Math.abs(num) >= 10000000) return `₹ ${(num / 10000000).toFixed(2)} Cr`;
-  if (Math.abs(num) >= 100000) return `₹ ${(num / 100000).toFixed(2)} Lakh`;
-  return `₹ ${num.toLocaleString('en-IN')}`;
-}
-
 function formatNumber(val) {
   const num = Number(val) || 0;
   return num.toLocaleString('en-IN');
@@ -35,6 +28,10 @@ export default function CompactFilterGroup({
     if (setSelectedFY) setSelectedFY('ALL');
   };
 
+  const hasData = (t) => (t.totalContainers > 0 || t.netRevenue > 0 || t.billAmount > 0 || t.invoiceCount > 0);
+  const activeTerminals = terminals.filter(hasData).sort((a, b) => (b.netRevenue || 0) - (a.netRevenue || 0));
+  const inactiveTerminals = terminals.filter(t => !hasData(t));
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       {/* 1. Compact Terminal Dropdown */}
@@ -43,27 +40,26 @@ export default function CompactFilterGroup({
         <select
           value={selectedTerminal}
           onChange={(e) => setSelectedTerminal && setSelectedTerminal(e.target.value)}
-          className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer max-w-[190px] sm:max-w-[220px] truncate"
+          className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer max-w-[200px] sm:max-w-[240px] truncate"
         >
           <option value="ALL">🏢 All Terminals ({terminals.length || 39})</option>
-          <optgroup label="── Active Hubs ──">
-            {terminals
-              .filter(t => t.totalContainers > 0)
-              .sort((a, b) => (b.netRevenue || 0) - (a.netRevenue || 0))
-              .map(t => (
-                <option key={t.terminalId} value={String(t.terminalId)}>
-                  {t.terminalName} ({formatNumber(t.totalContainers)} Cont)
-                </option>
-              ))}
+          
+          {/* 🟢 Active Hubs with Data */}
+          <optgroup label="── 🟢 Active Hubs with Data ──">
+            {activeTerminals.map(t => (
+              <option key={t.terminalId} value={String(t.terminalId)}>
+                🟢 {t.terminalName} ({formatNumber(t.totalContainers)} Cont)
+              </option>
+            ))}
           </optgroup>
-          <optgroup label="── Other Stations ──">
-            {terminals
-              .filter(t => !t.totalContainers)
-              .map(t => (
-                <option key={t.terminalId} value={String(t.terminalId)}>
-                  {t.terminalName}
-                </option>
-              ))}
+
+          {/* 🔴 Inactive / Zero Data Terminals */}
+          <optgroup label="── 🔴 Inactive / Zero Data ──">
+            {inactiveTerminals.map(t => (
+              <option key={t.terminalId} value={String(t.terminalId)} className="text-rose-600 font-semibold bg-rose-50">
+                🔴 {t.terminalName} (No Data)
+              </option>
+            ))}
           </optgroup>
         </select>
       </div>
