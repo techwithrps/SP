@@ -74,12 +74,12 @@ export default function FilterBar({
 
   // Helper to extract fiscal year from record
   const getRecordFY = (item) => {
-    const invDate = item.INVOICE_DATE || '';
-    const invRef = item.INVOICE_REF_NO || item.PARTY_INV_NO || '';
-    if (invRef.includes('26-27') || invDate.includes('/2026') || invDate.includes('-2026') || invDate.includes('/2027')) return 'FY 2026-27';
-    if (invRef.includes('25-26') || invDate.includes('/2025') || invDate.includes('-2025')) return 'FY 2025-26';
-    if (invRef.includes('24-25') || invDate.includes('/2024') || invDate.includes('-2024')) return 'FY 2024-25';
-    if (invRef.includes('23-24') || invDate.includes('/2023') || invDate.includes('-2023')) return 'FY 2023-24';
+    const invDate = String(item.INVOICE_DATE || item.CREATED_DATE || item.CREATED_ON || item.LINE_HANDOVER_DATE || '');
+    const invRef = String(item.INVOICE_REF_NO || item.PARTY_INV_NO || '');
+    if (invRef.includes('26-27') || invDate.includes('2026') || invDate.includes('2027') || invDate.includes('/26') || invDate.includes('-26')) return 'FY 2026-27';
+    if (invRef.includes('25-26') || invDate.includes('2025') || invDate.includes('/25') || invDate.includes('-25')) return 'FY 2025-26';
+    if (invRef.includes('24-25') || invDate.includes('2024') || invDate.includes('/24') || invDate.includes('-24')) return 'FY 2024-25';
+    if (invRef.includes('23-24') || invDate.includes('2023') || invDate.includes('/23') || invDate.includes('-23')) return 'FY 2023-24';
     return 'FY 2022-23 & Earlier';
   };
 
