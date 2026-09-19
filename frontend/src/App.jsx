@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Globe2, Ship, Truck, Users } from 'lucide-react';
 import Navbar from './components/Navbar';
 import GlobalFilterBar from './components/GlobalFilterBar';
 import KPICards from './components/KPICards';
@@ -162,24 +163,79 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Tab 1: Branch Wise Analytics (Initial Default Page with Master Filter Bar) */}
+        {/* SPJ Global Highlight Banner across all pages */}
+        <div className="bg-gradient-to-r from-[#1e1346] via-[#2b1f55] to-[#3a2872] rounded-3xl p-5 text-white shadow-card flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+              <Globe2 className="w-6 h-6 text-amber-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-display font-extrabold text-lg text-white tracking-wide">
+                  SPJ Global
+                </h2>
+              </div>
+              <p className="text-xs text-purple-200 mt-0.5">
+                Comprehensive Cargo Invoicing & Real-time Yard Movement Analytics
+              </p>
+            </div>
+          </div>
+
+          {/* 4 Stat Badges matching spjcargo.com */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
+              <Globe2 className="w-5 h-5 text-blue-300" />
+              <div>
+                <div className="font-extrabold text-base font-display">120</div>
+                <div className="text-[10px] text-purple-200">Countries Served</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
+              <Ship className="w-5 h-5 text-cyan-300" />
+              <div>
+                <div className="font-extrabold text-base font-display">2,300</div>
+                <div className="text-[10px] text-purple-200">Ports Served</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
+              <Truck className="w-5 h-5 text-emerald-300" />
+              <div>
+                <div className="font-extrabold text-base font-display">3,200</div>
+                <div className="text-[10px] text-purple-200">Road Served</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
+              <Users className="w-5 h-5 text-amber-300" />
+              <div>
+                <div className="font-extrabold text-base font-display">5,000+</div>
+                <div className="text-[10px] text-purple-200">Happy Clients</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Master Global Filter Bar (Terminal & FY Filter) across ALL pages */}
+        <GlobalFilterBar
+          selectedTerminal={selectedTerminal}
+          setSelectedTerminal={handleSetSelectedTerminal}
+          selectedFY={selectedFY}
+          setSelectedFY={setSelectedFY}
+          terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+          financialYears={financialYears}
+          onRefresh={() => {
+            fetchCIRData();
+            fetchInitialData();
+          }}
+          loading={loading}
+          activeTab={activeTab}
+        />
+
+        {/* Tab 1: Branch Wise Analytics */}
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            <GlobalFilterBar
-              selectedTerminal={selectedTerminal}
-              setSelectedTerminal={handleSetSelectedTerminal}
-              selectedFY={selectedFY}
-              setSelectedFY={setSelectedFY}
-              terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
-              financialYears={financialYears}
-              onRefresh={() => {
-                fetchCIRData();
-                fetchInitialData();
-              }}
-              loading={loading}
-              activeTab={activeTab}
-            />
-
             <AnalyticsCharts
               selectedTerminal={selectedTerminal}
               setSelectedTerminal={handleSetSelectedTerminal}
@@ -192,7 +248,6 @@ export default function App() {
         {/* Tab 2: Total Sales */}
         {activeTab === 'sales' && (
           <div className="space-y-6">
-            {/* Top KPI Cards & SPJ Stat Highlights Bar */}
             <KPICards kpis={kpis} loading={loading} />
 
             <FilterBar

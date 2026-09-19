@@ -96,65 +96,6 @@ export default function KPICards({ kpis = {}, loading = false }) {
 
   return (
     <div className="space-y-4">
-      
-      {/* Website Matched Purple Highlight Bar */}
-      <div className="bg-gradient-to-r from-[#1e1346] via-[#2b1f55] to-[#3a2872] rounded-3xl p-5 text-white shadow-card flex flex-col lg:flex-row items-center justify-between gap-6">
-        
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
-            <Globe2 className="w-6 h-6 text-amber-400" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-display font-extrabold text-lg text-white">
-                SPJ Global Logistics & Cold Storage Operations
-              </h2>
-            </div>
-            <p className="text-xs text-purple-200 mt-0.5">
-              Comprehensive Cargo Invoicing & Real-time Yard Movement Analytics
-            </p>
-          </div>
-        </div>
-
-        {/* 4 Stat Badges matching spjcargo.com */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
-          
-          <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
-            <Globe2 className="w-5 h-5 text-blue-300" />
-            <div>
-              <div className="font-extrabold text-base font-display">120</div>
-              <div className="text-[10px] text-purple-200">Countries Served</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
-            <Ship className="w-5 h-5 text-cyan-300" />
-            <div>
-              <div className="font-extrabold text-base font-display">2,300</div>
-              <div className="text-[10px] text-purple-200">Ports Served</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
-            <Truck className="w-5 h-5 text-emerald-300" />
-            <div>
-              <div className="font-extrabold text-base font-display">3,200</div>
-              <div className="text-[10px] text-purple-200">Road Served</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
-            <Users className="w-5 h-5 text-amber-300" />
-            <div>
-              <div className="font-extrabold text-base font-display">5,000+</div>
-              <div className="text-[10px] text-purple-200">Happy Clients</div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {cards.map((card, idx) => {
