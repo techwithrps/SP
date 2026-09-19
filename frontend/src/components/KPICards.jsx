@@ -94,16 +94,19 @@ export default function KPICards({ kpis = {}, loading = false }) {
     }
   ];
 
+  const delayClasses = ['delay-1', 'delay-2', 'delay-3', 'delay-4', 'delay-5'];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-slide-up">
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {cards.map((card, idx) => {
           const Icon = card.icon;
+          const delay = delayClasses[idx % delayClasses.length];
           return (
             <div
               key={idx}
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover:shadow-card hover:border-slate-300 transition-all duration-200"
+              className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all duration-300 animate-slide-up ${delay}`}
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -121,7 +124,7 @@ export default function KPICards({ kpis = {}, loading = false }) {
                   </div>
                 </div>
 
-                <div className={`p-3 rounded-2xl ${card.iconBg}`}>
+                <div className={`p-3 rounded-2xl ${card.iconBg} animate-float transition-transform hover:scale-110`}>
                   <Icon className="w-5 h-5" />
                 </div>
               </div>

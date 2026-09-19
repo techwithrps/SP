@@ -229,10 +229,10 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* SPJ Global Highlight Banner across all pages */}
-        <div className="bg-gradient-to-r from-[#1e1346] via-[#2b1f55] to-[#3a2872] rounded-3xl p-5 text-white shadow-card flex flex-col lg:flex-row items-center justify-between gap-6">
+        {/* SPJ Global Highlight Banner across all pages with animated gradient and floating icons */}
+        <div className="bg-gradient-to-r from-[#180f38] via-[#2b1f55] to-[#3e1e68] rounded-3xl p-5 text-white shadow-card flex flex-col lg:flex-row items-center justify-between gap-6 animate-fade-in hover-lift border border-purple-500/20">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 animate-float shadow-lg shadow-purple-950/50">
               <Globe2 className="w-6 h-6 text-amber-400" />
             </div>
             <div>
@@ -240,6 +240,10 @@ export default function App() {
                 <h2 className="font-display font-extrabold text-lg text-white tracking-wide">
                   SPJ Global
                 </h2>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Active Enterprise Cloud
+                </span>
               </div>
               <p className="text-xs text-purple-200 mt-0.5">
                 Comprehensive Cargo Invoicing & Real-time Yard Movement Analytics
@@ -249,7 +253,7 @@ export default function App() {
 
           {/* 4 Stat Badges matching spjcargo.com */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
               <Globe2 className="w-5 h-5 text-blue-300" />
               <div>
                 <div className="font-extrabold text-base font-display">120</div>
@@ -257,7 +261,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
               <Ship className="w-5 h-5 text-cyan-300" />
               <div>
                 <div className="font-extrabold text-base font-display">2,300</div>
@@ -265,7 +269,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
               <Truck className="w-5 h-5 text-emerald-300" />
               <div>
                 <div className="font-extrabold text-base font-display">3,200</div>
@@ -273,7 +277,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
               <Users className="w-5 h-5 text-amber-300" />
               <div>
                 <div className="font-extrabold text-base font-display">5,000+</div>
@@ -284,27 +288,29 @@ export default function App() {
         </div>
 
         {/* Master Global Filter Bar (Terminal & FY Filter) across ALL pages */}
-        <GlobalFilterBar
-          selectedTerminal={selectedTerminal}
-          setSelectedTerminal={handleSetSelectedTerminal}
-          selectedFY={selectedFY}
-          setSelectedFY={setSelectedFY}
-          terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
-          financialYears={financialYears}
-          terminalFyMatrix={terminalFyMatrix}
-          onRefresh={() => {
-            fetchCIRData();
-            fetchInitialData();
-          }}
-          loading={loading}
-          activeTab={activeTab}
-        />
+        <div className="animate-slide-up">
+          <GlobalFilterBar
+            selectedTerminal={selectedTerminal}
+            setSelectedTerminal={handleSetSelectedTerminal}
+            selectedFY={selectedFY}
+            setSelectedFY={setSelectedFY}
+            terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+            financialYears={financialYears}
+            terminalFyMatrix={terminalFyMatrix}
+            onRefresh={() => {
+              fetchCIRData();
+              fetchInitialData();
+            }}
+            loading={loading}
+            activeTab={activeTab}
+          />
+        </div>
 
-        {/* Tab Content wrapped in ErrorBoundary */}
+        {/* Tab Content wrapped in ErrorBoundary with smooth entrance */}
         <ErrorBoundary>
           {/* Tab 1: Branch Wise Analytics */}
           {activeTab === 'analytics' && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <AnalyticsCharts
                 selectedTerminal={selectedTerminal}
                 setSelectedTerminal={handleSetSelectedTerminal}
@@ -316,7 +322,7 @@ export default function App() {
 
           {/* Tab 2: Total Sales */}
           {activeTab === 'sales' && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <KPICards kpis={kpis} loading={loading} />
 
               <FilterBar
@@ -348,7 +354,7 @@ export default function App() {
 
           {/* Tab 3: Container / Volumes */}
           {activeTab === 'containers' && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <ContainerFleetView
                 selectedTerminal={selectedTerminal}
                 setSelectedTerminal={handleSetSelectedTerminal}
@@ -362,7 +368,7 @@ export default function App() {
 
           {/* Tab 4: Fleet */}
           {activeTab === 'fleet' && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <FleetView
                 selectedTerminal={selectedTerminal}
                 setSelectedTerminal={handleSetSelectedTerminal}
@@ -376,7 +382,7 @@ export default function App() {
 
           {/* Tab 5: Yard Operations */}
           {activeTab === 'operations' && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <OperationsView
                 selectedTerminal={selectedTerminal}
                 setSelectedTerminal={handleSetSelectedTerminal}
