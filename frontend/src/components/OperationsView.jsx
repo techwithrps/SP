@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 
 import CompactFilterGroup from './CompactFilterGroup';
+import AnimatedCounter from './AnimatedCounter';
+import { SkeletonKPICard } from './SkeletonLoader';
 
 export default function OperationsView({
   selectedTerminal = 'ALL',
@@ -85,85 +87,96 @@ export default function OperationsView({
       
       {/* Operations Quick Counters */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Cargo Gate-Ins</span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
-              <ArrowDownRight className="w-4 h-4" />
+        {loading ? (
+          <>
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+          </>
+        ) : (
+          <>
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500">Cargo Gate-Ins</span>
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs">
+                  <ArrowDownRight className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+                <AnimatedCounter value={isFiltered ? gateInsList.length : (stats.totalGateIn || 655)} />
+              </div>
+              <div className="text-[11px] text-emerald-700 font-semibold mt-1">Vehicles Inward</div>
             </div>
-          </div>
-          <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {isFiltered ? gateInsList.length.toLocaleString('en-IN') : (stats.totalGateIn?.toLocaleString('en-IN') || '655')}
-          </div>
-          <div className="text-[11px] text-emerald-700 font-semibold mt-1">Vehicles Inward</div>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Vehicle Outward</span>
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-200">
-              <ArrowUpRight className="w-4 h-4" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500">Vehicle Outward</span>
+                <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs">
+                  <ArrowUpRight className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+                <AnimatedCounter value={isFiltered ? gateOutsList.length : (stats.totalGateOut || 806)} />
+              </div>
+              <div className="text-[11px] text-blue-700 font-semibold mt-1">Dispatched Fleet</div>
             </div>
-          </div>
-          <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {isFiltered ? gateOutsList.length.toLocaleString('en-IN') : (stats.totalGateOut?.toLocaleString('en-IN') || '806')}
-          </div>
-          <div className="text-[11px] text-blue-700 font-semibold mt-1">Dispatched Fleet</div>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Dispatch Notes</span>
-            <div className="p-2 rounded-xl bg-orange-50 text-[#ff6a00] border border-orange-200">
-              <FileCheck className="w-4 h-4" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500">Dispatch Notes</span>
+                <div className="p-2 rounded-xl bg-orange-50 text-[#ff6a00] border border-orange-200 shadow-xs">
+                  <FileCheck className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+                <AnimatedCounter value={isFiltered ? dispatchesList.length : (stats.totalDispatches || 427)} />
+              </div>
+              <div className="text-[11px] text-orange-700 font-semibold mt-1">Cold Chain Orders</div>
             </div>
-          </div>
-          <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {isFiltered ? dispatchesList.length.toLocaleString('en-IN') : (stats.totalDispatches?.toLocaleString('en-IN') || '427')}
-          </div>
-          <div className="text-[11px] text-orange-700 font-semibold mt-1">Cold Chain Orders</div>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Picklists</span>
-            <div className="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-200">
-              <Layers className="w-4 h-4" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500">Picklists</span>
+                <div className="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 shadow-xs">
+                  <Layers className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+                <AnimatedCounter value={isFiltered ? picklistsList.length : (stats.totalPicklists || 395)} />
+              </div>
+              <div className="text-[11px] text-purple-700 font-semibold mt-1">Picked Items Tracked</div>
             </div>
-          </div>
-          <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {isFiltered ? picklistsList.length.toLocaleString('en-IN') : (stats.totalPicklists?.toLocaleString('en-IN') || '395')}
-          </div>
-          <div className="text-[11px] text-purple-700 font-semibold mt-1">Picked Items Tracked</div>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">ASN Notices</span>
-            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200">
-              <Package className="w-4 h-4" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500">ASN Notices</span>
+                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-xs">
+                  <Package className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+                <AnimatedCounter value={isFiltered ? asnsList.length : (stats.totalASNs || 322)} />
+              </div>
+              <div className="text-[11px] text-indigo-700 font-semibold mt-1">Advanced Shipping</div>
             </div>
-          </div>
-          <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {isFiltered ? asnsList.length.toLocaleString('en-IN') : (stats.totalASNs?.toLocaleString('en-IN') || '322')}
-          </div>
-          <div className="text-[11px] text-indigo-700 font-semibold mt-1">Advanced Shipping</div>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Cross Stuffing</span>
-            <div className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-200">
-              <Container className="w-4 h-4" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500">Cross Stuffing</span>
+                <div className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 shadow-xs">
+                  <Container className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+                <AnimatedCounter value={isFiltered ? crossStuffingList.length : (stats.totalCrossStuffing || 56)} />
+              </div>
+              <div className="text-[11px] text-amber-700 font-semibold mt-1">Transfers Executed</div>
             </div>
-          </div>
-          <div className="text-2xl font-black font-display text-slate-900 mt-2">
-            {isFiltered ? crossStuffingList.length.toLocaleString('en-IN') : (stats.totalCrossStuffing?.toLocaleString('en-IN') || '56')}
-          </div>
-          <div className="text-[11px] text-amber-700 font-semibold mt-1">Transfers Executed</div>
-        </div>
-
+          </>
+        )}
       </div>
 
       {/* Sub-tab switcher & Filters */}

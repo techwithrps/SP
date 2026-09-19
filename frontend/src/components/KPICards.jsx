@@ -11,6 +11,8 @@ import {
   Truck, 
   Users 
 } from 'lucide-react';
+import AnimatedCounter from './AnimatedCounter';
+import { SkeletonKPICard } from './SkeletonLoader';
 
 function formatCurrency(amount) {
   if (!amount && amount !== 0) return '₹ 0.00';
@@ -41,60 +43,75 @@ export default function KPICards({ kpis = {}, loading = false }) {
       title: 'Gross Sale',
       subtitle: kpis.totalCreditAmount ? `Invoice Amt - Credit (₹ ${formatCurrency(kpis.totalCreditAmount)})` : 'Invoice Amt - Credit Amt',
       value: formatCurrency(totalGrossAmount),
-      raw: `₹ ${Number(totalGrossAmount).toLocaleString('en-IN')}`,
+      raw: totalGrossAmount,
       icon: IndianRupee,
       iconBg: 'bg-orange-50 text-orange-600 border border-orange-200',
       valueColor: 'text-[#2b1f55]',
       badge: 'Gross Sale',
-      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200'
+      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+      isCurrency: true
     },
     {
       title: 'Net Bill Amount',
       subtitle: 'Pre-Tax Freight & Handling',
       value: formatCurrency(totalBillAmount),
-      raw: `₹ ${Number(totalBillAmount).toLocaleString('en-IN')}`,
+      raw: totalBillAmount,
       icon: Receipt,
       iconBg: 'bg-blue-50 text-blue-600 border border-blue-200',
       valueColor: 'text-blue-900',
       badge: 'Base Revenue',
-      badgeColor: 'text-blue-700 bg-blue-50 border-blue-200'
+      badgeColor: 'text-blue-700 bg-blue-50 border-blue-200',
+      isCurrency: true
     },
     {
       title: 'Tax Collected (GST)',
       subtitle: '18% Standard GST Rate',
       value: formatCurrency(totalTax),
-      raw: `₹ ${Number(totalTax).toLocaleString('en-IN')}`,
+      raw: totalTax,
       icon: Percent,
       iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
       valueColor: 'text-emerald-800',
       badge: 'GST Output',
-      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200'
+      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+      isCurrency: true
     },
     {
       title: 'Invoice & Credit Count',
       subtitle: `${invoiceCount} Invoices / ${creditNoteCount} Credit Notes`,
       value: `${totalRecords} Records`,
-      raw: `${invoiceCount} Active`,
+      raw: totalRecords,
       icon: FileText,
       iconBg: 'bg-purple-50 text-purple-600 border border-purple-200',
       valueColor: 'text-purple-900',
       badge: `${invoiceCount} Invoices`,
-      badgeColor: 'text-purple-700 bg-purple-50 border-purple-200'
+      badgeColor: 'text-purple-700 bg-purple-50 border-purple-200',
+      suffix: ' Records'
     },
     {
       title: 'Containers Handled',
       subtitle: `${containerCount} Active Units in Yard`,
       value: `${containerCount} Containers`,
-      raw: `${teuCount} TEU`,
+      raw: containerCount,
       icon: Container,
       iconBg: 'bg-amber-50 text-amber-600 border border-amber-200',
       valueColor: 'text-amber-900',
       badge: 'Multi-Modal',
-      badgeColor: 'text-amber-700 bg-amber-50 border-amber-200'
+      badgeColor: 'text-amber-700 bg-amber-50 border-amber-200',
+      suffix: ' Containers'
     }
   ];
 
   const delayClasses = ['delay-1', 'delay-2', 'delay-3', 'delay-4', 'delay-5'];
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 animate-fade-in">
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <SkeletonKPICard key={idx} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 animate-slide-up">
@@ -115,11 +132,11 @@ export default function KPICards({ kpis = {}, loading = false }) {
                   </p>
                   <div className="mt-2">
                     <h3 className={`text-2xl font-black font-display tracking-tight ${card.valueColor}`}>
-                      {loading ? (
-                        <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span>
-                      ) : (
-                        card.value
-                      )}
+                      <AnimatedCounter 
+                        value={card.value} 
+                        duration={700}
+                        decimals={card.isCurrency ? 2 : 0}
+                      />
                     </h3>
                   </div>
                 </div>

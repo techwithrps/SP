@@ -19,6 +19,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import CompactFilterGroup from './CompactFilterGroup';
+import AnimatedCounter from './AnimatedCounter';
+import { SkeletonKPICard } from './SkeletonLoader';
 import * as XLSX from 'xlsx';
 
 export default function ContainerFleetView({
@@ -158,87 +160,96 @@ export default function ContainerFleetView({
       
       {/* Container Fleet KPI Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Total Containers Handled
-              </p>
-              <h3 className="text-2xl font-black font-display text-[#2b1f55] mt-2">
-                {displayStats.totalContainers.toLocaleString('en-IN')} Units
-              </h3>
-              <p className="text-[11px] text-purple-700 font-semibold mt-1">
-                {displayStats.totalTeus.toLocaleString('en-IN')} TEU Equivalent
-              </p>
+        {loading ? (
+          <>
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+          </>
+        ) : (
+          <>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Total Containers Handled
+                  </p>
+                  <h3 className="text-2xl font-black font-display text-[#2b1f55] mt-2">
+                    <AnimatedCounter value={displayStats.totalContainers} suffix=" Units" />
+                  </h3>
+                  <p className="text-[11px] text-purple-700 font-semibold mt-1">
+                    <AnimatedCounter value={displayStats.totalTeus} suffix=" TEU Equivalent" />
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs">
+                  <Container className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200">
-              <Container className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Total Fleet Job Orders (FLEET_CONT_JO)
-              </p>
-              <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
-                {displayStats.totalJobs.toLocaleString('en-IN')} Jobs
-              </h3>
-              <p className="text-[11px] text-blue-700 font-semibold mt-1 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-blue-600" /> Multi-Modal Dispatch Mapped
-              </p>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Total Fleet Job Orders (FLEET_CONT_JO)
+                  </p>
+                  <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
+                    <AnimatedCounter value={displayStats.totalJobs} suffix=" Jobs" />
+                  </h3>
+                  <p className="text-[11px] text-blue-700 font-semibold mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-blue-600" /> Multi-Modal Dispatch Mapped
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs">
+                  <Layers className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200">
-              <Layers className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
 
-        <div className={`bg-white p-5 rounded-2xl border shadow-soft transition-all ${
-          sizeFilter === '40' ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20' : 'border-slate-200'
-        }`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                40 FT High-Cube Units (2 TEU)
-              </p>
-              <h3 className="text-2xl font-black font-display text-emerald-800 mt-2">
-                {displayStats.units40ft.toLocaleString('en-IN')} Units
-              </h3>
-              <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {displayStats.totalContainers > 0 ? `${((displayStats.units40ft / displayStats.totalContainers) * 100).toFixed(1)}%` : '92.7%'} Primary Heavy Fleet
-              </p>
+            <div className={`bg-white p-5 rounded-2xl border shadow-soft hover-lift transition-all ${
+              sizeFilter === '40' ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20' : 'border-slate-200'
+            }`}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    40 FT High-Cube Units (2 TEU)
+                  </p>
+                  <h3 className="text-2xl font-black font-display text-emerald-800 mt-2">
+                    <AnimatedCounter value={displayStats.units40ft} suffix=" Units" />
+                  </h3>
+                  <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {displayStats.totalContainers > 0 ? `${((displayStats.units40ft / displayStats.totalContainers) * 100).toFixed(1)}%` : '92.7%'} Primary Heavy Fleet
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs">
+                  <Truck className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200">
-              <Truck className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
 
-        <div className={`bg-white p-5 rounded-2xl border shadow-soft transition-all ${
-          sizeFilter === '20' ? 'border-orange-500 ring-2 ring-orange-500/20 bg-orange-50/20' : 'border-slate-200'
-        }`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                20 FT Standard Units (1 TEU)
-              </p>
-              <h3 className="text-2xl font-black font-display text-orange-600 mt-2 truncate">
-                {displayStats.units20ft.toLocaleString('en-IN')} Units
-              </h3>
-              <p className="text-[11px] text-slate-500 font-medium mt-1">
-                {displayStats.totalContainers > 0 ? `${((displayStats.units20ft / displayStats.totalContainers) * 100).toFixed(1)}%` : '7.3%'} Active Across Terminals
-              </p>
+            <div className={`bg-white p-5 rounded-2xl border shadow-soft hover-lift transition-all ${
+              sizeFilter === '20' ? 'border-orange-500 ring-2 ring-orange-500/20 bg-orange-50/20' : 'border-slate-200'
+            }`}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    20 FT Standard Units (1 TEU)
+                  </p>
+                  <h3 className="text-2xl font-black font-display text-orange-600 mt-2 truncate">
+                    <AnimatedCounter value={displayStats.units20ft} suffix=" Units" />
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium mt-1">
+                    {displayStats.totalContainers > 0 ? `${((displayStats.units20ft / displayStats.totalContainers) * 100).toFixed(1)}%` : '7.3%'} Active Across Terminals
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-orange-50 text-orange-600 border border-orange-200 shadow-xs">
+                  <MapPin className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-2xl bg-orange-50 text-orange-600 border border-orange-200">
-              <MapPin className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
-
+          </>
+        )}
       </div>
 
       {/* Filter and Search Bar */}

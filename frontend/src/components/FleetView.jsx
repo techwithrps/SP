@@ -15,6 +15,8 @@ import {
   Filter
 } from 'lucide-react';
 import CompactFilterGroup from './CompactFilterGroup';
+import AnimatedCounter from './AnimatedCounter';
+import { SkeletonKPICard } from './SkeletonLoader';
 import * as XLSX from 'xlsx';
 
 export default function FleetView({
@@ -156,83 +158,92 @@ export default function FleetView({
       
       {/* 1. Fleet KPI Summary Cards (Oracle SPJLIVE Verified Figures) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Total Fleet Vehicles & Equipment
-              </p>
-              <h3 className="text-2xl font-black font-display text-[#2b1f55] mt-2">
-                {totalVehiclesCount.toLocaleString('en-IN')} Trucks
-              </h3>
-              <p className="text-[11px] text-purple-700 font-semibold mt-1">
-                Active Multimodal Commercial Fleet
-              </p>
+        {loading ? (
+          <>
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+            <SkeletonKPICard />
+          </>
+        ) : (
+          <>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Total Fleet Vehicles & Equipment
+                  </p>
+                  <h3 className="text-2xl font-black font-display text-[#2b1f55] mt-2">
+                    <AnimatedCounter value={totalVehiclesCount} suffix=" Trucks" />
+                  </h3>
+                  <p className="text-[11px] text-purple-700 font-semibold mt-1">
+                    Active Multimodal Commercial Fleet
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs">
+                  <Truck className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200">
-              <Truck className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                SPJ Own Dedicated Fleet (Vendor ID 0)
-              </p>
-              <h3 className="text-2xl font-black font-display text-emerald-800 mt-2">
-                {ownFleetCount.toLocaleString('en-IN')} Multi-Axles
-              </h3>
-              <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Dedicated SPJ Fleet
-              </p>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    SPJ Own Dedicated Fleet (Vendor ID 0)
+                  </p>
+                  <h3 className="text-2xl font-black font-display text-emerald-800 mt-2">
+                    <AnimatedCounter value={ownFleetCount} suffix=" Multi-Axles" />
+                  </h3>
+                  <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Dedicated SPJ Fleet
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Partner Carrier Commercial Fleet
-              </p>
-              <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
-                {carrierFleetCount.toLocaleString('en-IN')} Vehicles
-              </h3>
-              <p className="text-[11px] text-blue-700 font-semibold mt-1">
-                Transworld, Allcargo, Concor & Others
-              </p>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Partner Carrier Commercial Fleet
+                  </p>
+                  <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
+                    <AnimatedCounter value={carrierFleetCount} suffix=" Vehicles" />
+                  </h3>
+                  <p className="text-[11px] text-blue-700 font-semibold mt-1">
+                    Transworld, Allcargo, Concor & Others
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs">
+                  <Navigation className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200">
-              <Navigation className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Transporter Carrier Networks
-              </p>
-              <h3 className="text-2xl font-black font-display text-amber-900 mt-2">
-                {uniqueTransporters} Networks
-              </h3>
-              <p className="text-[11px] text-amber-700 font-semibold mt-1">
-                SPJ Fleet & Key Logistics Partners
-              </p>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Transporter Carrier Networks
+                  </p>
+                  <h3 className="text-2xl font-black font-display text-amber-900 mt-2">
+                    <AnimatedCounter value={uniqueTransporters} suffix=" Networks" />
+                  </h3>
+                  <p className="text-[11px] text-amber-700 font-semibold mt-1">
+                    SPJ Fleet & Key Logistics Partners
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 shadow-xs">
+                  <User className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
-              <User className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
-
+          </>
+        )}
       </div>
 
       {/* 2. Search & Toolbar */}

@@ -39,6 +39,7 @@ import {
   ArrowDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import AnimatedCounter from './AnimatedCounter';
 
 function formatCurrency(val) {
   const num = Number(val) || 0;
@@ -434,7 +435,11 @@ export default function AnalyticsCharts({
             <TrendingUp className="w-3.5 h-3.5" /> Gross Sale (Net Revenue)
           </p>
           <h3 className="text-2xl lg:text-3xl font-black font-display text-white mt-2">
-            {loading ? <span className="inline-block w-32 h-8 bg-white/20 animate-pulse rounded"></span> : formatCurrency(dynamicMetrics.grossSale)}
+            {loading ? (
+              <span className="inline-block w-32 h-8 bg-white/20 animate-pulse rounded"></span>
+            ) : (
+              <AnimatedCounter value={formatCurrency(dynamicMetrics.grossSale)} decimals={2} duration={750} />
+            )}
           </h3>
           <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px]">
             <span className="text-slate-300">Invoice Gross - Credit Amt</span>
@@ -445,20 +450,24 @@ export default function AnalyticsCharts({
         </div>
 
         {/* Card 2: Net Bill Amount */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-1">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 Net Bill Amount (Base)
               </p>
               <h3 className="text-2xl font-black font-display text-slate-800 mt-2">
-                {loading ? <span className="inline-block w-28 h-7 bg-slate-100 animate-pulse rounded"></span> : formatCurrency(dynamicMetrics.billAmount)}
+                {loading ? (
+                  <span className="inline-block w-28 h-7 bg-slate-100 animate-pulse rounded"></span>
+                ) : (
+                  <AnimatedCounter value={formatCurrency(dynamicMetrics.billAmount)} decimals={2} duration={750} />
+                )}
               </h3>
               <p className="text-[11px] text-blue-700 font-semibold mt-1 flex items-center gap-1">
                 <Receipt className="w-3 h-3" /> Invoiced Base Value
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200">
+            <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 animate-float">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
@@ -471,20 +480,24 @@ export default function AnalyticsCharts({
         </div>
 
         {/* Card 3: Tax Collected (GST 18%) */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-2">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 Tax Collected (GST 18%)
               </p>
               <h3 className="text-2xl font-black font-display text-emerald-700 mt-2">
-                {loading ? <span className="inline-block w-28 h-7 bg-slate-100 animate-pulse rounded"></span> : formatCurrency(dynamicMetrics.taxAmount)}
+                {loading ? (
+                  <span className="inline-block w-28 h-7 bg-slate-100 animate-pulse rounded"></span>
+                ) : (
+                  <AnimatedCounter value={formatCurrency(dynamicMetrics.taxAmount)} decimals={2} duration={750} />
+                )}
               </h3>
               <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3" /> Output GST Ledger
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200">
+            <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 animate-float">
               <Percent className="w-5 h-5" />
             </div>
           </div>
@@ -497,20 +510,25 @@ export default function AnalyticsCharts({
         </div>
 
         {/* Card 4: Invoices & Credits Count */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-3">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 Invoices & Credit Notes
               </p>
               <h3 className="text-2xl font-black font-display text-purple-900 mt-2">
-                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.invoiceCount)}`} <span className="text-sm font-semibold text-slate-400">Invoices</span>
+                {loading ? (
+                  <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span>
+                ) : (
+                  <AnimatedCounter value={dynamicMetrics.invoiceCount} duration={750} />
+                )}{' '}
+                <span className="text-sm font-semibold text-slate-400">Invoices</span>
               </h3>
               <p className="text-[11px] text-rose-600 font-semibold mt-1 flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3" /> {formatNumber(dynamicMetrics.creditCount)} Credits ({formatCurrency(dynamicMetrics.creditAmount)})
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200">
+            <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 animate-float">
               <FileText className="w-5 h-5" />
             </div>
           </div>
@@ -523,20 +541,25 @@ export default function AnalyticsCharts({
         </div>
 
         {/* Card 5: Total Containers Handled */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-4">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 Container Volume (Total Units)
               </p>
               <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
-                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.totalContainers)}`} <span className="text-sm font-semibold text-slate-400">Units</span>
+                {loading ? (
+                  <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span>
+                ) : (
+                  <AnimatedCounter value={dynamicMetrics.totalContainers} duration={750} />
+                )}{' '}
+                <span className="text-sm font-semibold text-slate-400">Units</span>
               </h3>
               <p className="text-[11px] text-blue-700 font-semibold mt-1">
                 40ft: <span className="font-bold">{formatNumber(dynamicMetrics.units40ft)}</span> | 20ft: <span className="font-bold">{formatNumber(dynamicMetrics.units20ft)}</span>
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200">
+            <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 animate-float">
               <Container className="w-5 h-5" />
             </div>
           </div>
@@ -549,14 +572,19 @@ export default function AnalyticsCharts({
         </div>
 
         {/* Card 6: TEUs Handled */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-5">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 Total TEU Capacity
               </p>
               <h3 className="text-2xl font-black font-display text-amber-900 mt-2">
-                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.teus)}`} <span className="text-sm font-semibold text-slate-400">TEUs</span>
+                {loading ? (
+                  <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span>
+                ) : (
+                  <AnimatedCounter value={dynamicMetrics.teus} duration={750} />
+                )}{' '}
+                <span className="text-sm font-semibold text-slate-400">TEUs</span>
               </h3>
               <p className="text-[11px] text-amber-700 font-semibold mt-1">
                 Standard Twenty-Foot Equivalent Units

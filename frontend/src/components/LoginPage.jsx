@@ -23,8 +23,8 @@ export const MASTER_USER = {
   username: 'admin',
   password: 'SPJ@Cargo2026',
   altPassword: 'admin',
-  name: 'Rishabh Pratap Singh',
-  role: 'Enterprise Administrator',
+  name: 'Admin',
+  role: 'System Administrator',
   badge: 'Master Admin'
 };
 
