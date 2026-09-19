@@ -160,25 +160,24 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Persistent Global Filter Bar across ALL pages/tabs */}
-        <GlobalFilterBar
-          selectedTerminal={selectedTerminal}
-          setSelectedTerminal={handleSetSelectedTerminal}
-          selectedFY={selectedFY}
-          setSelectedFY={setSelectedFY}
-          terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
-          financialYears={financialYears}
-          onRefresh={() => {
-            fetchCIRData();
-            fetchInitialData();
-          }}
-          loading={loading}
-          activeTab={activeTab}
-        />
-
-        {/* Tab 1: Branch Wise Analytics (Initial Default Page) */}
+        {/* Tab 1: Branch Wise Analytics (Initial Default Page with Master Filter Bar) */}
         {activeTab === 'analytics' && (
           <div className="space-y-6">
+            <GlobalFilterBar
+              selectedTerminal={selectedTerminal}
+              setSelectedTerminal={handleSetSelectedTerminal}
+              selectedFY={selectedFY}
+              setSelectedFY={setSelectedFY}
+              terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+              financialYears={financialYears}
+              onRefresh={() => {
+                fetchCIRData();
+                fetchInitialData();
+              }}
+              loading={loading}
+              activeTab={activeTab}
+            />
+
             <AnalyticsCharts
               selectedTerminal={selectedTerminal}
               setSelectedTerminal={handleSetSelectedTerminal}
@@ -197,7 +196,15 @@ export default function App() {
             <FilterBar
               filters={filters}
               setFilters={setFilters}
-              masters={masters}
+              masters={{
+                ...masters,
+                terminals: allTerminals.length > 0 ? allTerminals : (masters.terminals || [])
+              }}
+              selectedTerminal={selectedTerminal}
+              setSelectedTerminal={handleSetSelectedTerminal}
+              selectedFY={selectedFY}
+              setSelectedFY={setSelectedFY}
+              financialYears={financialYears}
               onReset={handleResetFilters}
               onExport={handleExportExcel}
               loading={loading}
@@ -217,7 +224,11 @@ export default function App() {
           <div className="space-y-6">
             <ContainerFleetView
               selectedTerminal={selectedTerminal}
+              setSelectedTerminal={handleSetSelectedTerminal}
               selectedFY={selectedFY}
+              setSelectedFY={setSelectedFY}
+              terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+              financialYears={financialYears}
             />
           </div>
         )}
@@ -227,7 +238,11 @@ export default function App() {
           <div className="space-y-6">
             <FleetView
               selectedTerminal={selectedTerminal}
+              setSelectedTerminal={handleSetSelectedTerminal}
               selectedFY={selectedFY}
+              setSelectedFY={setSelectedFY}
+              terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+              financialYears={financialYears}
             />
           </div>
         )}
@@ -237,7 +252,11 @@ export default function App() {
           <div className="space-y-6">
             <OperationsView
               selectedTerminal={selectedTerminal}
+              setSelectedTerminal={handleSetSelectedTerminal}
               selectedFY={selectedFY}
+              setSelectedFY={setSelectedFY}
+              terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+              financialYears={financialYears}
             />
           </div>
         )}

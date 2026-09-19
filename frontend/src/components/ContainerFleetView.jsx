@@ -18,9 +18,17 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import CompactFilterGroup from './CompactFilterGroup';
 import * as XLSX from 'xlsx';
 
-export default function ContainerFleetView() {
+export default function ContainerFleetView({
+  selectedTerminal = 'ALL',
+  setSelectedTerminal,
+  selectedFY = 'ALL',
+  setSelectedFY,
+  terminals = [],
+  financialYears = []
+}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -173,20 +181,32 @@ export default function ContainerFleetView() {
       {/* Filter and Search Bar */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft space-y-4">
         
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Search */}
-          <div className="relative w-full md:w-96">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search Container No (e.g. SUDU, ILCU), Truck, Client..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+          {/* Left: Compact Terminal & FY Filters (SABSE AAGEY) + Search */}
+          <div className="flex flex-wrap items-center gap-3 flex-1">
+            <CompactFilterGroup
+              selectedTerminal={selectedTerminal}
+              setSelectedTerminal={setSelectedTerminal}
+              selectedFY={selectedFY}
+              setSelectedFY={setSelectedFY}
+              terminals={terminals}
+              financialYears={financialYears}
             />
+
+            {/* Search */}
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search Container No, Truck, Client..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
+              />
+            </div>
           </div>
 
           {/* Actions */}

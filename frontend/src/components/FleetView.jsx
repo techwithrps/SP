@@ -14,9 +14,17 @@ import {
   ChevronRight,
   Filter
 } from 'lucide-react';
+import CompactFilterGroup from './CompactFilterGroup';
 import * as XLSX from 'xlsx';
 
-export default function FleetView() {
+export default function FleetView({
+  selectedTerminal = 'ALL',
+  setSelectedTerminal,
+  selectedFY = 'ALL',
+  setSelectedFY,
+  terminals = [],
+  financialYears = []
+}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -190,20 +198,32 @@ export default function FleetView() {
       </div>
 
       {/* 2. Search & Toolbar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search by Truck Number, Driver Name, Transporter, Container..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2b1f55] focus:bg-white transition-all"
+        {/* Left: Compact Terminal & FY Filters (SABSE AAGEY) + Search */}
+        <div className="flex flex-wrap items-center gap-3 flex-1">
+          <CompactFilterGroup
+            selectedTerminal={selectedTerminal}
+            setSelectedTerminal={setSelectedTerminal}
+            selectedFY={selectedFY}
+            setSelectedFY={setSelectedFY}
+            terminals={terminals}
+            financialYears={financialYears}
           />
+
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search by Truck Number, Driver Name, Transporter..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2b1f55] focus:bg-white transition-all"
+            />
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

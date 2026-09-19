@@ -11,7 +11,16 @@ import {
   Layers
 } from 'lucide-react';
 
-export default function OperationsView() {
+import CompactFilterGroup from './CompactFilterGroup';
+
+export default function OperationsView({
+  selectedTerminal = 'ALL',
+  setSelectedTerminal,
+  selectedFY = 'ALL',
+  setSelectedFY,
+  terminals = [],
+  financialYears = []
+}) {
   const [opsData, setOpsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState('gateIn');
@@ -123,38 +132,51 @@ export default function OperationsView() {
 
       </div>
 
-      {/* Sub-tab switcher */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300">
-          {[
-            { key: 'gateIn', label: 'Cargo Gate-In (655)', icon: ArrowDownRight },
-            { key: 'dispatch', label: 'Dispatches & Temps (427)', icon: Thermometer },
-            { key: 'gateOut', label: 'Vehicle Outward (806)', icon: ArrowUpRight },
-            { key: 'cross', label: 'Cross Stuffing (56)', icon: Container },
-            { key: 'asn', label: 'ASN Inward (322)', icon: Package },
-          ].map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveSubTab(tab.key)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                  activeSubTab === tab.key
-                    ? 'bg-[#2b1f55] text-white shadow-sm'
-                    : 'text-slate-700 hover:text-[#2b1f55] hover:bg-white'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
-              </button>
-            );
-          })}
+      {/* Sub-tab switcher & Filters */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        
+        {/* Left: Compact Terminal & FY Filters (SABSE AAGEY) + Sub-tabs */}
+        <div className="flex flex-wrap items-center gap-3">
+          <CompactFilterGroup
+            selectedTerminal={selectedTerminal}
+            setSelectedTerminal={setSelectedTerminal}
+            selectedFY={selectedFY}
+            setSelectedFY={setSelectedFY}
+            terminals={terminals}
+            financialYears={financialYears}
+          />
+
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300">
+            {[
+              { key: 'gateIn', label: 'Cargo Gate-In (655)', icon: ArrowDownRight },
+              { key: 'dispatch', label: 'Dispatches & Temps (427)', icon: Thermometer },
+              { key: 'gateOut', label: 'Vehicle Outward (806)', icon: ArrowUpRight },
+              { key: 'cross', label: 'Cross Stuffing (56)', icon: Container },
+              { key: 'asn', label: 'ASN Inward (322)', icon: Package },
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveSubTab(tab.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    activeSubTab === tab.key
+                      ? 'bg-[#2b1f55] text-white shadow-sm'
+                      : 'text-slate-700 hover:text-[#2b1f55] hover:bg-white'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <button
           onClick={fetchOperations}
           disabled={loading}
-          className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 transition-all shadow-sm"
+          className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 transition-all shadow-sm self-end lg:self-auto"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#2b1f55]' : ''}`} />
           Refresh

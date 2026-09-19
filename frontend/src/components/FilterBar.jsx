@@ -4,7 +4,7 @@ import {
   RotateCcw, 
   Download, 
   Building2, 
-  MapPin, 
+  Calendar,
   Users, 
   Wrench, 
   Navigation, 
@@ -16,13 +16,24 @@ export default function FilterBar({
   filters,
   setFilters,
   masters = {},
+  selectedTerminal = 'ALL',
+  setSelectedTerminal,
+  selectedFY = 'ALL',
+  setSelectedFY,
+  financialYears = [
+    'All Financial Years', 
+    'FY 2026-27', 
+    'FY 2025-26', 
+    'FY 2024-25', 
+    'FY 2023-24', 
+    'FY 2022-23 & Earlier'
+  ],
   onReset,
   onExport,
   loading = false,
   totalRecords = 0
 }) {
   const {
-    companies = [],
     terminals = [],
     customers = [],
     services = [],
@@ -36,8 +47,18 @@ export default function FilterBar({
     }));
   };
 
+  const handleTerminalChange = (val) => {
+    handleChange('terminalId', val === 'ALL' ? 'all' : val);
+    if (setSelectedTerminal) setSelectedTerminal(val);
+  };
+
+  const handleFYChange = (val) => {
+    handleChange('financialYear', val);
+    if (setSelectedFY) setSelectedFY(val);
+  };
+
   return (
-    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft space-y-4">
+    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft space-y-4">
       {/* Top Search and Action Header */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         
@@ -79,18 +100,58 @@ export default function FilterBar({
           <button
             onClick={onExport}
             disabled={loading || totalRecords === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#ff6a00] hover:bg-[#e65c00] text-white font-bold text-xs shadow-md transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#2b1f55] to-[#4338ca] hover:opacity-95 text-white font-bold text-xs shadow-md transition-all disabled:opacity-50"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-4 h-4 text-emerald-400" />
             Export Excel
           </button>
         </div>
       </div>
 
-      {/* Grid of SP_CIR_NEW Parameter Filters */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-3 border-t border-slate-100">
+      {/* Grid of Parameter Filters (Branch & FY SABSE AAGEY) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 pt-3 border-t border-slate-100">
         
-        {/* Customer / Bill-to */}
+        {/* 1. Branch / Terminal Selection (SABSE AAGEY - Column 1) */}
+        <div>
+          <label className="block text-[11px] font-bold text-[#2b1f55] mb-1 flex items-center gap-1">
+            <Building2 className="w-3 h-3 text-[#2b1f55]" />
+            Terminal / Branch
+          </label>
+          <select
+            value={selectedTerminal !== 'ALL' ? selectedTerminal : (filters.terminalId || 'all')}
+            onChange={(e) => handleTerminalChange(e.target.value)}
+            className="w-full px-2.5 py-2 bg-purple-50/70 border border-purple-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
+          >
+            <option value="ALL">🏢 All Terminals ({terminals.length || 39})</option>
+            {terminals.map((t) => (
+              <option key={t.id || t.terminalId} value={String(t.id || t.terminalId)}>
+                {t.name || t.terminalName}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 2. Financial Year Filter (SABSE AAGEY - Column 2) */}
+        <div>
+          <label className="block text-[11px] font-bold text-[#ff6a00] mb-1 flex items-center gap-1">
+            <Calendar className="w-3 h-3 text-[#ff6a00]" />
+            Financial Year
+          </label>
+          <select
+            value={selectedFY}
+            onChange={(e) => handleFYChange(e.target.value)}
+            className="w-full px-2.5 py-2 bg-orange-50/70 border border-orange-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:bg-white focus:border-[#ff6a00] cursor-pointer"
+          >
+            <option value="ALL">📅 All FYs (Cumulative)</option>
+            <option value="FY 2026-27">FY 2026-27</option>
+            <option value="FY 2025-26">FY 2025-26</option>
+            <option value="FY 2024-25">FY 2024-25</option>
+            <option value="FY 2023-24">FY 2023-24</option>
+            <option value="FY 2022-23 & Earlier">FY 2022-23 & Earlier</option>
+          </select>
+        </div>
+
+        {/* 3. Customer / Bill-to */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Users className="w-3 h-3 text-blue-600" />
@@ -99,7 +160,7 @@ export default function FilterBar({
           <select
             value={filters.customerId || 'all'}
             onChange={(e) => handleChange('customerId', e.target.value)}
-            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
+            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
           >
             <option value="all">All Customers ({customers.length})</option>
             {customers.map((c) => (
@@ -110,7 +171,7 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* Service Type */}
+        {/* 4. Service Type */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Wrench className="w-3 h-3 text-orange-600" />
@@ -119,7 +180,7 @@ export default function FilterBar({
           <select
             value={filters.serviceId || 'all'}
             onChange={(e) => handleChange('serviceId', e.target.value)}
-            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
+            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
           >
             <option value="all">All Services ({services.length})</option>
             {services.map((s) => (
@@ -130,7 +191,7 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* Trip Type */}
+        {/* 5. Trip Type */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Navigation className="w-3 h-3 text-emerald-600" />
@@ -139,7 +200,7 @@ export default function FilterBar({
           <select
             value={filters.tripType || 'all'}
             onChange={(e) => handleChange('tripType', e.target.value)}
-            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
+            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
           >
             <option value="all">All Trip Types</option>
             {tripTypes.map((t) => (
@@ -150,7 +211,7 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* Container Number */}
+        {/* 6. Container Number */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <SlidersHorizontal className="w-3 h-3 text-purple-600" />
@@ -165,7 +226,7 @@ export default function FilterBar({
           />
         </div>
 
-        {/* Container Size (20 FT / 40 FT) */}
+        {/* 7. Container Size (20 FT / 40 FT) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <SlidersHorizontal className="w-3 h-3 text-cyan-600" />
@@ -174,7 +235,7 @@ export default function FilterBar({
           <select
             value={filters.size || 'all'}
             onChange={(e) => handleChange('size', e.target.value)}
-            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
+            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
           >
             <option value="all">All Sizes</option>
             <option value="20">20 FT (1 TEU)</option>
@@ -183,7 +244,7 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* Bill of Lading (BL) */}
+        {/* 8. Bill of Lading (BL) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <FileText className="w-3 h-3 text-indigo-600" />
@@ -196,26 +257,6 @@ export default function FilterBar({
             onChange={(e) => handleChange('blNo', e.target.value)}
             className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
           />
-        </div>
-
-        {/* Terminal ID */}
-        <div>
-          <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-            <MapPin className="w-3 h-3 text-rose-600" />
-            Terminal
-          </label>
-          <select
-            value={filters.terminalId || 'all'}
-            onChange={(e) => handleChange('terminalId', e.target.value)}
-            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55]"
-          >
-            <option value="all">All Terminals</option>
-            {terminals.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
         </div>
 
       </div>
