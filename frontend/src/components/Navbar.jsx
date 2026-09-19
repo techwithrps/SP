@@ -37,25 +37,8 @@ export default function Navbar({
   const currentItem = navItems.find(item => item.id === activeTab) || navItems[0];
   const CurrentIcon = currentItem.icon;
 
-  // Close menu on outside click
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMobileMenuOpen(false);
-      }
-    }
-    if (mobileMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [mobileMenuOpen]);
-
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs w-full">
+    <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs w-full">
       {/* Main Navbar */}
       <div className="max-w-[1700px] mx-auto px-3 sm:px-6 lg:px-8 w-full">
         <div className="flex items-center justify-between h-14 sm:h-20 gap-2">
@@ -87,8 +70,12 @@ export default function Navbar({
 
             {/* Hamburger / Close Menu Button */}
             <button
-              onClick={() => setMobileMenuOpen(prev => !prev)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2b1f55] hover:bg-[#3b2b73] text-white rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all cursor-pointer border border-purple-800/50"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMobileMenuOpen(prev => !prev);
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#2b1f55] hover:bg-[#3b2b73] active:bg-[#1f1540] text-white rounded-xl text-xs font-extrabold shadow-sm active:scale-95 transition-all cursor-pointer border border-purple-800/50 select-none"
               title="Open Navigation Menu"
             >
               {mobileMenuOpen ? (
@@ -107,17 +94,18 @@ export default function Navbar({
 
           {/* 📱 Mobile Menu Dropdown Modal Drawer (Portaled / Fixed with Backdrop) */}
           {mobileMenuOpen && (
-            <>
+            <div className="fixed inset-0 z-[100] lg:hidden">
               {/* Dimmed Backdrop */}
               <div 
-                className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-50 lg:hidden transition-opacity duration-200"
+                className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity duration-200"
                 onClick={() => setMobileMenuOpen(false)}
               />
 
               {/* Menu Modal Drawer */}
               <div 
                 ref={menuRef}
-                className="fixed top-16 right-3 left-3 sm:left-auto sm:right-6 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 p-4 z-50 lg:hidden animate-scale-in space-y-3.5 max-h-[calc(100vh-80px)] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+                className="fixed top-16 right-3 left-3 sm:left-auto sm:right-6 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 p-4 z-[101] animate-scale-in space-y-3.5 max-h-[calc(100vh-80px)] overflow-y-auto"
               >
                 
                 {/* 1. Admin Profile Header in Menu */}
@@ -201,7 +189,7 @@ export default function Navbar({
                 )}
 
               </div>
-            </>
+            </div>
           )}
 
           {/* 💻 DESKTOP: Navigation Tabs (Screen >= lg) */}
