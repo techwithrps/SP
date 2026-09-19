@@ -811,8 +811,8 @@ export default function AnalyticsCharts({
 
             </div>
 
-            {/* Matrix Table */}
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+            {/* Matrix Table for Desktop (Screen >= md) */}
+            <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200 select-none">
@@ -960,6 +960,105 @@ export default function AnalyticsCharts({
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Matrix Cards for Mobile (Screen < md) */}
+            <div className="md:hidden space-y-2.5">
+              {displayTerminals.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 font-medium bg-slate-50 rounded-2xl border border-slate-200">
+                  No terminal records match the current filter.
+                </div>
+              ) : (
+                displayTerminals.map((t) => {
+                  const isSelected = selectedTerminal === String(t.terminalId);
+                  const hasData = (t.displayContainers > 0 || t.netRevenue > 0 || t.billAmount > 0 || t.invoiceCount > 0);
+                  return (
+                    <div 
+                      key={t.terminalId}
+                      className={`p-3 rounded-2xl border transition-all ${
+                        isSelected 
+                          ? 'bg-purple-50/90 border-purple-400 ring-2 ring-purple-300 shadow-sm' 
+                          : (!hasData 
+                              ? 'bg-rose-50/20 border-rose-100' 
+                              : 'bg-white border-slate-200 shadow-xs')
+                      }`}
+                    >
+                      {/* Card Top: Status, Name, Code */}
+                      <div className="flex items-start justify-between gap-2 mb-2 pb-2 border-b border-slate-100">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <span className={`w-2 h-2 rounded-full shrink-0 ${hasData ? 'bg-emerald-500 shadow-xs shadow-emerald-500/50' : 'bg-rose-500 shadow-xs shadow-rose-500/50 animate-pulse'}`}></span>
+                          <span className="font-extrabold text-xs text-slate-900 truncate" title={t.terminalName}>
+                            {t.terminalName}
+                          </span>
+                          {t.displayContainers > 10000 && (
+                            <span className="text-[9px] px-1.5 py-0.2 bg-purple-100 text-[#2b1f55] rounded font-bold uppercase tracking-wider shrink-0">
+                              Major Hub
+                            </span>
+                          )}
+                          {!hasData && (
+                            <span className="text-[9px] px-1.5 py-0.2 bg-rose-100 text-rose-700 rounded font-bold uppercase tracking-wider shrink-0">
+                              No Data
+                            </span>
+                          )}
+                        </div>
+                        
+                        <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
+                          {t.terminalCode || `T-${t.terminalId}`}
+                        </span>
+                      </div>
+
+                      {/* Metrics Grid (2 Columns) */}
+                      <div className="grid grid-cols-2 gap-1.5 text-[11px] mb-2.5">
+                        {/* Gross Revenue */}
+                        <div className="bg-purple-50/60 p-2 rounded-xl border border-purple-100/80">
+                          <div className="text-[9px] text-slate-500 font-medium">Gross Revenue</div>
+                          <div className="font-extrabold text-xs text-[#2b1f55] truncate">
+                            {hasData ? formatCurrency(t.netRevenue) : '₹ 0'}
+                          </div>
+                        </div>
+
+                        {/* Containers & TEU */}
+                        <div className="bg-amber-50/60 p-2 rounded-xl border border-amber-100/80">
+                          <div className="text-[9px] text-slate-500 font-medium">Containers (TEUs)</div>
+                          <div className="font-extrabold text-xs text-amber-900 truncate">
+                            {hasData ? `${formatNumber(t.displayContainers)} (${formatNumber(t.displayTeus)} T)` : '0 Units'}
+                          </div>
+                        </div>
+
+                        {/* Invoices & Jobs */}
+                        <div className="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                          <div className="text-[9px] text-slate-500 font-medium">Invoices & Jobs</div>
+                          <div className="font-bold text-xs text-slate-700 truncate">
+                            {hasData ? `${formatNumber(t.invoiceCount)} Inv • ${formatNumber(t.displayJobs)} Jobs` : '0 Inv'}
+                          </div>
+                        </div>
+
+                        {/* Tax / Base Bill */}
+                        <div className="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                          <div className="text-[9px] text-slate-500 font-medium">Base / GST</div>
+                          <div className="font-bold text-xs text-emerald-700 truncate">
+                            {hasData ? `${formatCurrency(t.billAmount)} • ${formatCurrency(t.taxAmount)}` : '₹ 0'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <button
+                        onClick={() => setSelectedTerminal(isSelected ? 'ALL' : String(t.terminalId))}
+                        className={`w-full py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer ${
+                          isSelected 
+                            ? 'bg-purple-700 text-white ring-2 ring-purple-400' 
+                            : (!hasData 
+                                ? 'bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white border border-rose-200' 
+                                : 'bg-slate-100 text-slate-700 hover:bg-[#2b1f55] hover:text-white border border-slate-200')
+                        }`}
+                      >
+                        {isSelected ? '✓ Filter Applied (Tap to Reset)' : 'Filter This Branch'}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 

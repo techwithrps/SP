@@ -55,17 +55,17 @@ export default function Navbar({
   }, [mobileMenuOpen]);
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
+    <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs w-full max-w-full overflow-hidden">
       {/* Main Navbar */}
-      <div className="max-w-[1700px] mx-auto px-2.5 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-20 gap-2">
+      <div className="max-w-[1700px] mx-auto px-2 sm:px-6 lg:px-8 w-full">
+        <div className="flex items-center justify-between h-13 sm:h-20 gap-1.5 sm:gap-2">
           
           {/* Logo */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             <img 
               src="/logo.png" 
               alt="SPJ Group of Companies" 
-              className="h-8 sm:h-12 lg:h-14 w-auto object-contain cursor-pointer" 
+              className="h-7 sm:h-11 lg:h-14 max-w-[95px] sm:max-w-[140px] md:max-w-none w-auto object-contain cursor-pointer" 
               onClick={() => {
                 setActiveTab('analytics');
                 setMobileMenuOpen(false);
@@ -78,19 +78,19 @@ export default function Navbar({
           </div>
 
           {/* 📱 MOBILE: Menu Dropdown Selector Button (Screen < lg) */}
-          <div className="relative lg:hidden" ref={menuRef}>
+          <div className="relative lg:hidden shrink-0" ref={menuRef}>
             <button
               onClick={() => setMobileMenuOpen(prev => !prev)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2b1f55] text-white rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all cursor-pointer border border-purple-800/40"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#2b1f55] text-white rounded-xl text-[11px] font-extrabold shadow-sm active:scale-95 transition-all cursor-pointer border border-purple-800/40"
             >
               <CurrentIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="font-extrabold truncate max-w-[110px] sm:max-w-[160px]">{currentItem.shortLabel}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${mobileMenuOpen ? 'rotate-180' : ''}`} />
+              <span className="truncate max-w-[88px] xs:max-w-[110px] sm:max-w-[160px]">{currentItem.shortLabel}</span>
+              <ChevronDown className={`w-3 h-3 transition-transform duration-200 shrink-0 ${mobileMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Mobile Dropdown Menu Card */}
             {mobileMenuOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 animate-scale-in">
+              <div className="absolute right-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 w-64 max-w-[calc(100vw-24px)] bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 animate-scale-in">
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-100">
                   Select Dashboard Module
                 </div>
@@ -149,7 +149,7 @@ export default function Navbar({
           </nav>
 
           {/* Right Action: Admin User Profile & Sign Out */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             {lastUpdated && (
               <span className="hidden 2xl:inline text-[11px] text-slate-400 font-medium tracking-tight">
                 Updated: {lastUpdated}
@@ -158,7 +158,7 @@ export default function Navbar({
 
             {/* Admin User Capsule */}
             {currentUser && (
-              <div className="flex items-center bg-slate-50 hover:bg-slate-100/90 transition-all border border-slate-200/90 rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pl-2 sm:pl-3.5 gap-1.5 sm:gap-3 shadow-2xs">
+              <div className="flex items-center bg-slate-50 hover:bg-slate-100/90 transition-all border border-slate-200 rounded-xl sm:rounded-2xl p-0.5 sm:p-1.5 pl-1.5 sm:pl-3.5 gap-1 sm:gap-3 shadow-2xs shrink-0">
                 <div className="hidden sm:flex flex-col text-left">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-extrabold text-slate-900 tracking-tight leading-none">
@@ -173,7 +173,7 @@ export default function Navbar({
                   </span>
                 </div>
 
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#2b1f55] to-[#453084] text-white flex items-center justify-center font-black text-xs shadow-sm shrink-0">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#2b1f55] to-[#453084] text-white flex items-center justify-center font-black text-xs shadow-sm shrink-0">
                   <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-200" />
                 </div>
 
