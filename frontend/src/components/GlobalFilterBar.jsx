@@ -103,17 +103,17 @@ export default function GlobalFilterBar({
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-soft overflow-hidden transition-all">
+    <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-soft overflow-hidden transition-all">
       {/* Top Filter & Actions Row */}
-      <div className="p-5">
-        <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4">
+      <div className="p-3 sm:p-5">
+        <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-3 sm:gap-4">
           
           {/* Controls Group */}
-          <div className="flex flex-wrap items-end gap-3.5 w-full lg:w-auto">
+          <div className="flex flex-wrap items-end gap-2.5 sm:gap-3.5 w-full lg:w-auto">
             
             {/* 1. Terminal / Branch Selector */}
-            <div className="flex flex-col min-w-[290px] flex-1 sm:flex-initial">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <div className="flex flex-col min-w-full sm:min-w-[280px] flex-1 sm:flex-initial">
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-[#2b1f55]" />
                 Branch / Terminal Selection
               </label>
@@ -121,7 +121,7 @@ export default function GlobalFilterBar({
                 <select
                   value={selectedTerminal}
                   onChange={(e) => setSelectedTerminal(e.target.value)}
-                  className="w-full h-11 pl-3.5 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all cursor-pointer shadow-sm"
+                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all cursor-pointer shadow-xs"
                 >
                   <option value="ALL">🏢 All Terminals & Regional Hubs ({terminals.length || 39} Total)</option>
                   
@@ -149,8 +149,8 @@ export default function GlobalFilterBar({
             </div>
 
             {/* 2. Financial Year Selector */}
-            <div className="flex flex-col min-w-[240px] flex-1 sm:flex-initial">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <div className="flex flex-col min-w-full sm:min-w-[220px] flex-1 sm:flex-initial">
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" />
                 Financial Year Filter
               </label>
@@ -158,7 +158,7 @@ export default function GlobalFilterBar({
                 <select
                   value={selectedFY}
                   onChange={(e) => setSelectedFY(e.target.value)}
-                  className="w-full h-11 pl-3.5 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-sm"
+                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-xs"
                 >
                   <option value="ALL">📅 All Financial Years (Cumulative)</option>
                   <option value="FY 2026-27">FY 2026-27 (Current Fiscal)</option>
@@ -174,22 +174,22 @@ export default function GlobalFilterBar({
             {isFilterActive && (
               <button
                 onClick={resetFilters}
-                className="h-11 inline-flex items-center gap-1.5 px-4 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold transition-all shadow-sm shrink-0"
+                className="h-9 sm:h-11 inline-flex items-center gap-1.5 px-3 sm:px-4 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
                 title="Reset to All Terminals and All Financial Years"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <span>Reset</span>
               </button>
             )}
 
           </div>
 
           {/* Action Buttons Group */}
-          <div className="flex items-center gap-2.5 w-full lg:w-auto justify-end">
+          <div className="flex items-center gap-2 w-full lg:w-auto justify-end pt-1 lg:pt-0">
             <button
               onClick={onRefresh}
               disabled={loading}
-              className="h-11 inline-flex items-center justify-center gap-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all border border-slate-200 shadow-sm disabled:opacity-50"
+              className="h-9 sm:h-11 inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all border border-slate-200 shadow-xs disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#2b1f55]' : ''}`} />
               <span>Sync DB</span>
@@ -197,10 +197,10 @@ export default function GlobalFilterBar({
 
             <button
               onClick={handleQuickExport}
-              className="h-11 inline-flex items-center justify-center gap-2 px-5 bg-gradient-to-r from-[#2b1f55] to-[#4338ca] text-white hover:opacity-95 rounded-xl text-xs font-bold shadow-md shadow-purple-900/20 transition-all shrink-0"
+              className="h-9 sm:h-11 inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-5 bg-gradient-to-r from-[#2b1f55] to-[#4338ca] text-white hover:opacity-95 rounded-xl text-xs font-bold shadow-md shadow-purple-900/20 transition-all shrink-0 cursor-pointer"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-              <span>Export Excel (.xlsx)</span>
+              <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+              <span>Export Excel</span>
             </button>
           </div>
 
@@ -208,16 +208,16 @@ export default function GlobalFilterBar({
       </div>
 
       {/* Bottom Context & Status Bar */}
-      <div className="px-5 py-3 bg-slate-50/80 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="px-3 sm:px-5 py-2 sm:py-3 bg-slate-50/80 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-xs">
         
         {/* Left: Active Scope Pills */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-1.5 text-slate-500 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Displaying Analytics for:
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <span className="flex items-center gap-1 text-slate-500 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Scope:
           </span>
 
-          <span className={`inline-flex items-center font-bold px-2.5 py-1 rounded-lg border ${
+          <span className={`inline-flex items-center font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border ${
             selectedTerminal === 'ALL'
               ? 'text-[#2b1f55] bg-purple-100/70 border-purple-200'
               : (selectedTerminalObj && (selectedTerminalObj.currentStats?.totalContainers === 0 && selectedTerminalObj.currentStats?.netRevenue === 0)
@@ -225,22 +225,22 @@ export default function GlobalFilterBar({
                   : 'text-[#2b1f55] bg-purple-100/70 border-purple-200')
           }`}>
             {selectedTerminal === 'ALL' 
-              ? 'All 39 Terminals & Ports' 
+              ? 'All 39 Terminals' 
               : `${selectedTerminalObj && (selectedTerminalObj.currentStats?.totalContainers === 0 && selectedTerminalObj.currentStats?.netRevenue === 0) ? '🔴 ' : '🟢 '}${selectedTerminalObj?.terminalName || `Terminal ${selectedTerminal}`}`}
           </span>
 
           <span className="text-slate-400 font-bold">&bull;</span>
 
-          <span className="inline-flex items-center font-bold text-[#ea580c] bg-orange-100/70 border border-orange-200 px-2.5 py-1 rounded-lg">
-            {selectedFY === 'ALL' ? 'All Financial Years (Cumulative)' : selectedFY}
+          <span className="inline-flex items-center font-bold text-[#ea580c] bg-orange-100/70 border border-orange-200 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg">
+            {selectedFY === 'ALL' ? 'All FYs' : selectedFY}
           </span>
         </div>
 
         {/* Right: Database Source */}
-        <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Source: Oracle Cloud Live</span>
-          <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">SPJLIVE</span>
+        <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500 font-mono">
+          <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
+          <span>Oracle Live</span>
+          <span className="font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">SPJLIVE</span>
         </div>
 
       </div>
@@ -248,3 +248,4 @@ export default function GlobalFilterBar({
     </div>
   );
 }
+

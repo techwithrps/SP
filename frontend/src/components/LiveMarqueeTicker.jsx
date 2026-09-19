@@ -101,36 +101,36 @@ export default function LiveMarqueeTicker({ stats = {} }) {
   ];
 
   return (
-    <div className="w-full bg-[#160f2e] text-white border-b border-purple-900/40 relative overflow-hidden py-2 select-none shadow-inner">
+    <div className="w-full bg-[#160f2e] text-white border-b border-purple-900/40 relative overflow-hidden py-1.5 sm:py-2 select-none shadow-inner">
       <div className="flex items-center">
         
         {/* Fixed Left Live Indicator Badge */}
-        <div className="relative z-20 flex items-center gap-2 pl-4 pr-3.5 py-0.5 bg-[#160f2e] border-r border-purple-800/50 shrink-0 shadow-lg">
-          <span className="flex h-2 w-2 relative">
+        <div className="relative z-20 flex items-center gap-1.5 sm:gap-2 pl-2.5 sm:pl-4 pr-2 sm:pr-3.5 py-0.5 bg-[#160f2e] border-r border-purple-800/50 shrink-0 shadow-lg">
+          <span className="flex h-1.5 w-1.5 sm:h-2 sm:w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-rose-500"></span>
           </span>
-          <span className="text-[10px] font-black tracking-widest text-rose-400 uppercase">
-            LIVE ERP TICKER
+          <span className="text-[9px] sm:text-[10px] font-black tracking-widest text-rose-400 uppercase">
+            LIVE TICKER
           </span>
         </div>
 
         {/* Continuous Smooth Scrolling Marquee */}
         <div className="overflow-hidden whitespace-nowrap flex-1 relative">
-          <div className="inline-flex gap-8 items-center animate-ticker hover:[animation-play-state:paused] cursor-pointer">
+          <div className="inline-flex gap-5 sm:gap-8 items-center animate-ticker hover:[animation-play-state:paused] cursor-pointer">
             {/* Double the list for seamless continuous infinite loop */}
             {[...tickerItems, ...tickerItems].map((item, idx) => {
               const Icon = item.icon;
               return (
                 <div 
                   key={idx} 
-                  className="inline-flex items-center gap-2 text-xs text-slate-300 hover:text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-slate-300 hover:text-white transition-colors"
                 >
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-black border uppercase tracking-tight ${item.badgeColor}`}>
+                  <span className={`px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-black border uppercase tracking-tight ${item.badgeColor}`}>
                     {item.category}
                   </span>
                   
-                  <Icon className={`w-3.5 h-3.5 ${item.iconColor} shrink-0`} />
+                  <Icon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${item.iconColor} shrink-0`} />
                   
                   <span className="font-semibold text-slate-400">
                     {item.label}:
@@ -140,7 +140,7 @@ export default function LiveMarqueeTicker({ stats = {} }) {
                     {item.value}
                   </span>
 
-                  <span className="text-purple-800/80 mx-2">•</span>
+                  <span className="text-purple-800/80 mx-1.5 sm:mx-2">•</span>
                 </div>
               );
             })}
@@ -151,3 +151,4 @@ export default function LiveMarqueeTicker({ stats = {} }) {
     </div>
   );
 }
+

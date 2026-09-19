@@ -210,3 +210,13 @@ body {
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
 }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

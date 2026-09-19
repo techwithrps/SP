@@ -232,73 +232,74 @@ export default function App() {
       <LiveMarqueeTicker stats={kpis} />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-[1700px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-[1700px] w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-3 sm:space-y-6">
         
         {/* SPJ Global Highlight Banner across all pages with animated gradient and floating icons */}
-        <div className="bg-gradient-to-r from-[#180f38] via-[#2b1f55] to-[#3e1e68] rounded-3xl p-5 text-white shadow-card flex flex-col lg:flex-row items-center justify-between gap-6 animate-fade-in hover-lift border border-purple-500/20">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 animate-float shadow-lg shadow-purple-950/50">
-              <Globe2 className="w-6 h-6 text-amber-400" />
+        <div className="bg-gradient-to-r from-[#180f38] via-[#2b1f55] to-[#3e1e68] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 sm:gap-6 animate-fade-in hover-lift border border-purple-500/20">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 animate-float shadow-lg shadow-purple-950/50">
+              <Globe2 className="w-4 h-4 sm:w-6 sm:h-6 text-amber-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-display font-extrabold text-lg text-white tracking-wide">
+                <h2 className="font-display font-extrabold text-base sm:text-lg text-white tracking-wide">
                   SPJ Global
                 </h2>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1">
+                <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 sm:px-2 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                   Active Enterprise Cloud
                 </span>
               </div>
-              <p className="text-xs text-purple-200 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-purple-200 mt-0.5 line-clamp-1 sm:line-clamp-none">
                 Comprehensive Cargo Invoicing & Real-time Yard Movement Analytics
               </p>
             </div>
           </div>
 
           {/* 4 Stat Badges matching spjcargo.com */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
-              <Globe2 className="w-5 h-5 text-blue-300" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 w-full lg:w-auto">
+            <div className="flex items-center gap-2 sm:gap-3 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
+              <Globe2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300 shrink-0" />
               <div>
-                <div className="font-extrabold text-base font-display">
+                <div className="font-extrabold text-xs sm:text-base font-display">
                   <AnimatedCounter value={120} />
                 </div>
-                <div className="text-[10px] text-purple-200">Countries Served</div>
+                <div className="text-[9px] sm:text-[10px] text-purple-200">Countries Served</div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
-              <Ship className="w-5 h-5 text-cyan-300" />
+            <div className="flex items-center gap-2 sm:gap-3 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
+              <Ship className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-300 shrink-0" />
               <div>
-                <div className="font-extrabold text-base font-display">
+                <div className="font-extrabold text-xs sm:text-base font-display">
                   <AnimatedCounter value={2300} />
                 </div>
-                <div className="text-[10px] text-purple-200">Ports Served</div>
+                <div className="text-[9px] sm:text-[10px] text-purple-200">Ports Served</div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
-              <Truck className="w-5 h-5 text-emerald-300" />
+            <div className="flex items-center gap-2 sm:gap-3 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
+              <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300 shrink-0" />
               <div>
-                <div className="font-extrabold text-base font-display">
+                <div className="font-extrabold text-xs sm:text-base font-display">
                   <AnimatedCounter value={3200} />
                 </div>
-                <div className="text-[10px] text-purple-200">Road Served</div>
+                <div className="text-[9px] sm:text-[10px] text-purple-200">Road Served</div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
-              <Users className="w-5 h-5 text-amber-300" />
+            <div className="flex items-center gap-2 sm:gap-3 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 hover-lift transition-all">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 shrink-0" />
               <div>
-                <div className="font-extrabold text-base font-display">
+                <div className="font-extrabold text-xs sm:text-base font-display">
                   <AnimatedCounter value={5000} suffix="+" />
                 </div>
-                <div className="text-[10px] text-purple-200">Happy Clients</div>
+                <div className="text-[9px] sm:text-[10px] text-purple-200">Happy Clients</div>
               </div>
             </div>
           </div>
         </div>
+
 
         {/* Master Global Filter Bar (Terminal & FY Filter) across ALL pages */}
         <div className="animate-slide-up">

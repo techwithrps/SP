@@ -105,7 +105,7 @@ export default function KPICards({ kpis = {}, loading = false }) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 animate-fade-in">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4 animate-fade-in">
         {Array.from({ length: 5 }).map((_, idx) => (
           <SkeletonKPICard key={idx} />
         ))}
@@ -116,22 +116,23 @@ export default function KPICards({ kpis = {}, loading = false }) {
   return (
     <div className="space-y-4 animate-slide-up">
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4">
         {cards.map((card, idx) => {
           const Icon = card.icon;
           const delay = delayClasses[idx % delayClasses.length];
+          const isLastSingle = idx === 4; // 5th card spans 2 columns on small mobile
           return (
             <div
               key={idx}
-              className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all duration-300 animate-slide-up ${delay}`}
+              className={`bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all duration-300 animate-slide-up ${delay} ${isLastSingle ? 'col-span-2 sm:col-span-1 lg:col-span-1' : ''}`}
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                     {card.title}
                   </p>
-                  <div className="mt-2">
-                    <h3 className={`text-2xl font-black font-display tracking-tight ${card.valueColor}`}>
+                  <div className="mt-1 sm:mt-2">
+                    <h3 className={`text-base sm:text-2xl font-black font-display tracking-tight ${card.valueColor}`}>
                       <AnimatedCounter 
                         value={card.value} 
                         duration={700}
@@ -141,16 +142,16 @@ export default function KPICards({ kpis = {}, loading = false }) {
                   </div>
                 </div>
 
-                <div className={`p-3 rounded-2xl ${card.iconBg} animate-float transition-transform hover:scale-110`}>
-                  <Icon className="w-5 h-5" />
+                <div className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl ${card.iconBg} animate-float transition-transform hover:scale-110 shrink-0`}>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 font-medium truncate max-w-[130px]">
+              <div className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+                <span className="text-slate-500 font-medium truncate max-w-[90px] sm:max-w-[130px]">
                   {card.subtitle}
                 </span>
-                <span className={`px-2 py-0.5 rounded-md border text-[10px] font-bold ${card.badgeColor}`}>
+                <span className={`px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-md border text-[9px] sm:text-[10px] font-bold ${card.badgeColor}`}>
                   {card.badge}
                 </span>
               </div>
@@ -162,3 +163,4 @@ export default function KPICards({ kpis = {}, loading = false }) {
     </div>
   );
 }
+
