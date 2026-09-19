@@ -14,23 +14,26 @@ import {
   AlertCircle,
   KeyRound,
   Sparkles,
-  Zap
+  Zap,
+  Building2,
+  Layers
 } from 'lucide-react';
 
 // Single Master Administrator Account
 export const MASTER_USER = {
-  id: 'admin@spjcargo.com',
+  id: 'admin',
+  altId: 'admin@spjcargo.com',
   username: 'admin',
-  password: 'SPJ@Cargo2026',
-  altPassword: 'admin',
+  password: 'admin',
+  altPassword: 'SPJ@Cargo2026',
   name: 'Admin',
   role: 'System Administrator',
   badge: 'Master Admin'
 };
 
 export default function LoginPage({ onLoginSuccess }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
@@ -51,18 +54,23 @@ export default function LoginPage({ onLoginSuccess }) {
     setLoading(true);
 
     setTimeout(() => {
-      const isMatch = (
-        (cleanUser === MASTER_USER.id.toLowerCase() || cleanUser === MASTER_USER.username.toLowerCase()) &&
-        (cleanPass === MASTER_USER.password || cleanPass === MASTER_USER.altPassword)
+      const isUserMatch = (
+        cleanUser === MASTER_USER.username.toLowerCase() ||
+        cleanUser === MASTER_USER.id.toLowerCase() ||
+        cleanUser === MASTER_USER.altId.toLowerCase()
+      );
+      const isPassMatch = (
+        cleanPass === MASTER_USER.password ||
+        cleanPass === MASTER_USER.altPassword
       );
 
-      if (isMatch) {
+      if (isUserMatch && isPassMatch) {
         if (rememberMe) {
           localStorage.setItem('spj_auth_user', JSON.stringify({
-            id: MASTER_USER.id,
-            name: MASTER_USER.name,
-            role: MASTER_USER.role,
-            badge: MASTER_USER.badge,
+            id: 'admin',
+            name: 'Admin',
+            role: 'System Administrator',
+            badge: 'Master Admin',
             loginTime: new Date().toISOString()
           }));
         }
@@ -70,82 +78,98 @@ export default function LoginPage({ onLoginSuccess }) {
         onLoginSuccess(MASTER_USER);
       } else {
         setLoading(false);
-        setError('Invalid credentials. Use admin@spjcargo.com / SPJ@Cargo2026 or tap Quick Login below.');
+        setError('Invalid credentials. Please use admin / admin.');
       }
-    }, 400);
+    }, 350);
   };
 
   const handleOneClickFill = () => {
-    setUsername(MASTER_USER.id);
-    setPassword(MASTER_USER.password);
+    setUsername('admin');
+    setPassword('admin');
     setError('');
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0819] text-slate-100 flex flex-col justify-between relative overflow-hidden font-sans selection:bg-[#ff6a00] selection:text-white">
+    <div className="min-h-screen relative flex flex-col justify-between overflow-hidden font-sans selection:bg-[#ff6a00] selection:text-white">
       
-      {/* Background Animated Ambient Glowing Orbs */}
-      <div className="absolute top-[-15%] left-[-10%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[140px] pointer-events-none animate-float"></div>
-      <div className="absolute bottom-[-15%] right-[-10%] w-[650px] h-[650px] bg-orange-600/20 rounded-full blur-[150px] pointer-events-none animate-float-rev"></div>
-      <div className="absolute top-[35%] right-[25%] w-[400px] h-[400px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none animate-glow"></div>
+      {/* Daylight Port Background Image with Crisp Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
+        style={{ backgroundImage: "url('/login-bg.jpg')" }}
+      >
+        {/* Luminous daylight gradient overlay for perfect readability */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/80 via-slate-900/40 to-sky-900/30 backdrop-blur-[2px]"></div>
+      </div>
 
-      {/* Top Bar Brand Header */}
-      <header className="px-6 sm:px-12 py-6 flex items-center justify-between relative z-10 animate-fade-in">
+      {/* Floating Ambient Glowing Lights */}
+      <div className="absolute top-10 left-10 w-96 h-96 bg-sky-400/20 rounded-full blur-[120px] pointer-events-none animate-float"></div>
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-orange-400/20 rounded-full blur-[130px] pointer-events-none animate-float-rev"></div>
+
+      {/* Top Header */}
+      <header className="px-6 sm:px-12 py-5 flex items-center justify-between relative z-10 animate-fade-in">
         <div className="flex items-center gap-3">
-          <img 
-            src="/logo.png" 
-            alt="SPJ Cargo" 
-            className="h-12 w-auto object-contain bg-white/95 px-3 py-1.5 rounded-2xl shadow-xl shadow-purple-950/60 hover-lift cursor-pointer" 
-          />
+          <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl shadow-slate-950/20 border border-white/80 hover-lift flex items-center gap-2">
+            <img 
+              src="/logo.png" 
+              alt="SPJ Cargo" 
+              className="h-10 sm:h-12 w-auto object-contain cursor-pointer" 
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-purple-200">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>256-Bit SSL Encrypted Portal</span>
+          <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/80 backdrop-blur-md border border-white text-xs font-bold text-slate-800 shadow-md">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>256-Bit SSL Enterprise Protected</span>
           </div>
-          <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-700/50 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-black shadow-md">
+            <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
             ORACLE LIVE
-          </span>
+          </div>
         </div>
       </header>
 
-      {/* Center Auth Card */}
+      {/* Center Auth Card with Bright Luxury Glassmorphism */}
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-6 relative z-10">
-        <div className="w-full max-w-md bg-white/[0.04] backdrop-blur-2xl border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-black/80 space-y-6 animate-scale-in">
+        <div className="w-full max-w-[440px] bg-white/92 backdrop-blur-xl border border-white rounded-3xl p-7 sm:p-9 shadow-2xl shadow-slate-950/30 space-y-6 animate-scale-in">
           
-          {/* Card Header with Glowing Icon */}
+          {/* Card Header */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#2b1f55] via-[#ea580c] to-[#ff6a00] p-0.5 shadow-xl shadow-orange-500/25 mb-1 animate-glow">
-              <div className="w-full h-full bg-[#150f2c] rounded-2xl flex items-center justify-center">
-                <Lock className="w-7 h-7 text-orange-400 animate-float" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#2b1f55] to-[#ff6a00] p-0.5 shadow-xl shadow-orange-500/20 mb-1 animate-glow">
+              <div className="w-full h-full bg-white rounded-2xl flex items-center justify-center">
+                <Lock className="w-7 h-7 text-[#ff6a00] animate-float" />
               </div>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white">
-              Enterprise Sign In
+            
+            <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-slate-900">
+              Admin Portal
             </h1>
-            <p className="text-xs text-purple-200/80">
-              SPJ Cargo & Cold Logistics Operations ERP Portal
+            <p className="text-xs font-medium text-slate-500">
+              SPJ Cargo & Cold Chain Operations Intelligence ERP
             </p>
           </div>
 
           {/* Error Alert */}
           {error && (
-            <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-200 animate-shake">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <span>{error}</span>
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-2.5 text-xs text-rose-700 animate-shake shadow-xs">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <span className="font-semibold">{error}</span>
             </div>
           )}
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             
-            {/* User ID / Email Input */}
+            {/* User ID Input */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-orange-400" />
-                User ID / Corporate Email
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-[#ff6a00]" />
+                User ID
               </label>
               <div className="relative">
                 <input
@@ -155,8 +179,8 @@ export default function LoginPage({ onLoginSuccess }) {
                     setUsername(e.target.value);
                     setError('');
                   }}
-                  placeholder="admin@spjcargo.com"
-                  className="w-full h-12 pl-4 pr-10 bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/20 focus:border-[#ff6a00] rounded-2xl text-sm font-medium text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 transition-all"
+                  placeholder="admin"
+                  className="w-full h-12 pl-4 pr-10 bg-slate-50/90 hover:bg-slate-100/80 focus:bg-white border border-slate-300 focus:border-[#ff6a00] rounded-2xl text-sm font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-[#ff6a00]/15 transition-all shadow-inner"
                   required
                 />
               </div>
@@ -164,8 +188,8 @@ export default function LoginPage({ onLoginSuccess }) {
 
             {/* Password Input */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <KeyRound className="w-3.5 h-3.5 text-purple-400" />
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-[#2b1f55]" />
                 Password
               </label>
               <div className="relative">
@@ -176,14 +200,14 @@ export default function LoginPage({ onLoginSuccess }) {
                     setPassword(e.target.value);
                     setError('');
                   }}
-                  placeholder="SPJ@Cargo2026"
-                  className="w-full h-12 pl-4 pr-11 bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/20 focus:border-[#ff6a00] rounded-2xl text-sm font-medium text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 transition-all"
+                  placeholder="admin"
+                  className="w-full h-12 pl-4 pr-11 bg-slate-50/90 hover:bg-slate-100/80 focus:bg-white border border-slate-300 focus:border-[#ff6a00] rounded-2xl text-sm font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-[#ff6a00]/15 transition-all shadow-inner"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -192,19 +216,19 @@ export default function LoginPage({ onLoginSuccess }) {
 
             {/* Remember Me */}
             <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300 hover:text-white select-none">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 hover:text-slate-900 select-none">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-white/30 bg-white/5 text-[#ff6a00] focus:ring-[#ff6a00] cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 text-[#ff6a00] focus:ring-[#ff6a00] cursor-pointer"
                 />
-                <span>Remember this workstation</span>
+                <span>Remember session</span>
               </label>
 
-              <span className="text-[11px] text-purple-300 font-semibold flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                Protected
+              <span className="text-[11px] text-purple-800 font-bold flex items-center gap-1 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">
+                <ShieldCheck className="w-3.5 h-3.5 text-purple-700" />
+                Admin Protected
               </span>
             </div>
 
@@ -212,13 +236,13 @@ export default function LoginPage({ onLoginSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-gradient-to-r from-[#ff6a00] via-[#ea580c] to-[#d946ef] hover:opacity-95 text-white font-black text-sm rounded-2xl shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer disabled:opacity-50 hover-lift"
+              className="w-full h-12 bg-gradient-to-r from-[#2b1f55] via-[#3d2c77] to-[#ff6a00] hover:opacity-95 text-white font-black text-sm rounded-2xl shadow-xl shadow-purple-900/20 flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer disabled:opacity-50 hover-lift active:scale-[0.98]"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
               ) : (
                 <>
-                  <span>Access Operations Dashboard</span>
+                  <span>Sign In as Admin</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -226,19 +250,19 @@ export default function LoginPage({ onLoginSuccess }) {
 
           </form>
 
-          {/* Single 1-Click Master Autofill & Login Button */}
-          <div className="pt-3 border-t border-white/10 space-y-2">
+          {/* Quick 1-Click Credentials Pill */}
+          <div className="pt-2 border-t border-slate-200/80">
             <button
               type="button"
               onClick={handleOneClickFill}
-              className="w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-orange-400/50 rounded-2xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all cursor-pointer group"
+              className="w-full py-2.5 px-3.5 bg-gradient-to-r from-orange-50 to-purple-50 hover:from-orange-100 hover:to-purple-100 border border-orange-200/70 rounded-2xl text-xs font-bold text-slate-700 flex items-center justify-between transition-all cursor-pointer group shadow-xs"
             >
-              <span className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-                <span>Auto-Fill Master Credentials</span>
+              <span className="flex items-center gap-2 text-slate-800 font-extrabold">
+                <Zap className="w-4 h-4 text-[#ff6a00] group-hover:scale-110 transition-transform" />
+                <span>Quick Auto-Fill</span>
               </span>
-              <span className="font-mono text-[11px] text-orange-400 bg-orange-950/50 px-2 py-0.5 rounded border border-orange-500/30">
-                admin / SPJ@Cargo2026
+              <span className="font-mono text-[11px] font-black text-white bg-gradient-to-r from-[#ff6a00] to-[#2b1f55] px-2.5 py-0.5 rounded-lg shadow-2xs">
+                admin / admin
               </span>
             </button>
           </div>
@@ -247,21 +271,25 @@ export default function LoginPage({ onLoginSuccess }) {
       </main>
 
       {/* Footer System Highlights */}
-      <footer className="px-6 py-4 border-t border-white/10 bg-black/30 backdrop-blur-md relative z-10 animate-fade-in">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <Globe2 className="w-4 h-4 text-purple-400" />
-              <span>39 Multi-Modal Terminals</span>
+      <footer className="px-6 py-4 bg-slate-900/85 backdrop-blur-md text-white border-t border-white/20 relative z-10 animate-fade-in">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-semibold text-slate-200">
+            <div className="flex items-center gap-1.5">
+              <Globe2 className="w-4 h-4 text-sky-400" />
+              <span>39 Terminals</span>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-300">
+            <div className="flex items-center gap-1.5">
               <Container className="w-4 h-4 text-orange-400" />
-              <span>89,249 Active Yard Units</span>
+              <span>89,249 Active Units</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Truck className="w-4 h-4 text-emerald-400" />
+              <span>Multi-Modal Fleet</span>
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-500">
-            © {new Date().getFullYear()} SPJ Cargo & Logistics • Enterprise Revenue Intelligence
+          <div className="text-[11px] text-slate-400 font-medium">
+            © {new Date().getFullYear()} SPJ Group • Cold Chain & Yard Operations Dashboard
           </div>
         </div>
       </footer>
