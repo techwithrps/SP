@@ -55,7 +55,7 @@ export default function Navbar({
   }, [mobileMenuOpen]);
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs w-full max-w-full overflow-hidden">
+    <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs w-full">
       {/* Main Navbar */}
       <div className="max-w-[1700px] mx-auto px-3 sm:px-6 lg:px-8 w-full">
         <div className="flex items-center justify-between h-14 sm:h-20 gap-2">
@@ -78,7 +78,7 @@ export default function Navbar({
           </div>
 
           {/* 📱 MOBILE: Clean Menu Toggle Button (Screen < lg) */}
-          <div className="flex items-center gap-2 lg:hidden" ref={menuRef}>
+          <div className="flex items-center gap-2 lg:hidden">
             {/* Active Tab Name Pill */}
             <div className="hidden xs:flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-[#2b1f55] rounded-xl border border-purple-200/80 text-[11px] font-bold">
               <CurrentIcon className="w-3.5 h-3.5 text-[#ff6a00]" />
@@ -103,39 +103,58 @@ export default function Navbar({
                 </>
               )}
             </button>
+          </div>
 
-            {/* 📱 Mobile Menu Dropdown Modal Drawer */}
-            {mobileMenuOpen && (
-              <div className="absolute right-3 top-14 mt-1 w-[calc(100vw-24px)] max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 p-3 z-50 animate-scale-in space-y-3">
+          {/* 📱 Mobile Menu Dropdown Modal Drawer (Portaled / Fixed with Backdrop) */}
+          {mobileMenuOpen && (
+            <>
+              {/* Dimmed Backdrop */}
+              <div 
+                className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-50 lg:hidden transition-opacity duration-200"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+
+              {/* Menu Modal Drawer */}
+              <div 
+                ref={menuRef}
+                className="fixed top-16 right-3 left-3 sm:left-auto sm:right-6 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 p-4 z-50 lg:hidden animate-scale-in space-y-3.5 max-h-[calc(100vh-80px)] overflow-y-auto"
+              >
                 
                 {/* 1. Admin Profile Header in Menu */}
                 {currentUser && (
-                  <div className="flex items-center justify-between p-2.5 bg-gradient-to-r from-slate-900 via-[#1e133d] to-[#2b1f55] rounded-xl text-white shadow-xs">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center font-black text-xs text-purple-200 shrink-0">
+                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-900 via-[#1e133d] to-[#2b1f55] rounded-2xl text-white shadow-md">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center font-black text-xs text-purple-200 shrink-0">
                         <ShieldCheck className="w-5 h-5 text-amber-400" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-extrabold text-white">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-extrabold text-white">
                             {currentUser.name || 'Admin'}
                           </span>
-                          <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded-full border border-emerald-500/30">
+                          <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
                             LIVE
                           </span>
                         </div>
-                        <span className="text-[10px] text-purple-200 block">
+                        <span className="text-xs text-purple-200 block">
                           {currentUser.role || 'System Administrator'}
                         </span>
                       </div>
                     </div>
+
+                    <button 
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
 
                 {/* 2. Navigation Modules List */}
-                <div className="space-y-1">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1">
-                    Select Module
+                <div className="space-y-1.5">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-0.5">
+                    Select Dashboard Module
                   </div>
                   {navItems.map((item) => {
                     const Icon = item.icon;
@@ -147,15 +166,15 @@ export default function Navbar({
                           setActiveTab(item.id);
                           setMobileMenuOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left ${
+                        className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer text-left ${
                           isActive 
-                            ? 'bg-[#2b1f55] text-white shadow-sm' 
+                            ? 'bg-gradient-to-r from-[#2b1f55] to-[#453084] text-white shadow-md' 
                             : 'text-slate-700 hover:bg-slate-100'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-3">
                           <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
-                          <span>{item.label}</span>
+                          <span className="text-xs font-bold">{item.label}</span>
                         </div>
                         {isActive && (
                           <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm"></span>
@@ -173,7 +192,7 @@ export default function Navbar({
                         setMobileMenuOpen(false);
                         if (onLogout) onLogout();
                       }}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 active:scale-[0.99] transition-all cursor-pointer shadow-2xs"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs font-extrabold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 active:scale-[0.99] transition-all cursor-pointer shadow-xs"
                     >
                       <LogOut className="w-4 h-4 text-rose-600" />
                       <span>Sign Out from Dashboard</span>
@@ -182,8 +201,8 @@ export default function Navbar({
                 )}
 
               </div>
-            )}
-          </div>
+            </>
+          )}
 
           {/* 💻 DESKTOP: Navigation Tabs (Screen >= lg) */}
           <nav className="hidden lg:flex items-center bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 gap-1">
