@@ -6,9 +6,7 @@ import {
   Container,
   Truck, 
   Layers,
-  RefreshCw,
-  Phone,
-  Mail
+  RefreshCw
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -20,58 +18,22 @@ export default function Navbar({
 }) {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-      
-      {/* Top Contact Bar */}
-      <div className="bg-[#2b1f55] text-white text-[11px] py-1.5 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[1700px] mx-auto flex flex-wrap items-center justify-between gap-2">
-          
-          <div className="flex items-center gap-4 text-purple-200">
-            <div className="flex items-center gap-1.5 font-medium">
-              <Phone className="w-3 h-3 text-amber-400" />
-              <span>+91-9810296622</span>
-              <span className="text-purple-400">•</span>
-              <span>011-49061530</span>
-            </div>
-            <div className="hidden md:flex items-center gap-1.5">
-              <Mail className="w-3 h-3 text-amber-400" />
-              <span>support@elogisol.in</span>
-            </div>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-3 text-purple-200 text-[11px]">
-            <span className="font-semibold text-white">Group Divisions:</span>
-            <span>SPJ Cargo</span> • 
-            <span>SPJ Cold Storage</span> • 
-            <span>S.J. Cargo Movers</span> • 
-            <span>Puran Joshi Custom's Broker</span>
-          </div>
-
-        </div>
-      </div>
-
       {/* Main Navbar */}
       <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logos */}
+          {/* Logo */}
           <div className="flex items-center gap-4">
             <img 
               src="/logo.png" 
               alt="SPJ Group of Companies" 
-              className="h-14 w-auto object-contain"
+              className="h-14 w-auto object-contain cursor-pointer"
+              onClick={() => setActiveTab('analytics')}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.style.display = 'none';
               }}
             />
-
-            <div className="h-9 w-px bg-slate-200 hidden sm:block" />
-
-            <div className="hidden sm:flex items-center">
-              <span className="text-sm font-black font-display tracking-tight text-[#2b1f55]">
-                eLogisol Technologies
-              </span>
-            </div>
           </div>
 
           {/* Navigation Tabs (Ordered: Branch Wise Analytics -> Total Sales -> Container / Volumes -> Fleet -> Yard Operations) */}
