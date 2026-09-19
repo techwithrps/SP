@@ -129,6 +129,21 @@ body {
 /* UTILITY CLASSES FOR SMOOTH INTERACTION                       */
 /* ------------------------------------------------------------- */
 
+@keyframes ticker {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker {
+  display: inline-flex;
+  width: max-content;
+  animation: ticker 40s linear infinite;
+}
+
 .animate-fade-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

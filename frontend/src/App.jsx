@@ -12,6 +12,7 @@ import OperationsView from './components/OperationsView';
 import InvoiceDetailModal from './components/InvoiceDetailModal';
 import LoginPage from './components/LoginPage';
 import AnimatedCounter from './components/AnimatedCounter';
+import LiveMarqueeTicker from './components/LiveMarqueeTicker';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -226,6 +227,9 @@ export default function App() {
         currentUser={currentUser}
         onLogout={handleLogout}
       />
+
+      {/* Real-time Enterprise Live Marquee Ticker (Revenue, Top Clients & Yard Ops) */}
+      <LiveMarqueeTicker stats={kpis} />
 
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
