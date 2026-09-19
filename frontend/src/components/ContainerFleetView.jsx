@@ -528,6 +528,8 @@ export default function ContainerFleetView({
                   const contType = row.contType || row.CONT_TYPE || 'DRY';
                   const tripType = row.tripType || row.TRIP_TYPE || 'Export';
                   const joNo = row.joNo || row.INVOICE_NO || '-';
+                  const seal = row.sealNo || row.SEAL_NO || '-';
+                  const booking = row.bookingNo || row.BOOKING_NO || '-';
                   const custName = row.customerName || row.CUSTOMER_NAME || 'Direct Merchant';
                   const termName = row.terminalName || row.TERMINAL_NAME || 'TRANSWORLD-DADRI';
                   const inDate = row.icdInDate || row.GATE_IN_DATE || '-';

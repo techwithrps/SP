@@ -25,23 +25,30 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     console.error('App Error caught by ErrorBoundary:', error, errorInfo);
   }
+  componentDidUpdate(prevProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false, error: null });
+    }
+  }
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-slate-800 p-6 rounded-3xl border border-slate-700 text-center space-y-4">
-            <h3 className="text-lg font-bold text-rose-400">Dashboard View Render Warning</h3>
-            <p className="text-xs text-slate-300">
-              {this.state.error?.message || 'An unexpected rendering state occurred while updating views.'}
+        <div className="py-12 flex items-center justify-center">
+          <div className="max-w-md w-full bg-white p-6 rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-600 font-bold">
+              ⚠️
+            </div>
+            <h3 className="text-base font-bold text-slate-900">Dashboard View Render Notice</h3>
+            <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono">
+              {this.state.error?.message || 'An unexpected rendering state occurred.'}
             </p>
             <button
               onClick={() => {
                 this.setState({ hasError: false, error: null });
-                window.location.reload();
               }}
-              className="px-4 py-2 bg-[#ff6a00] hover:bg-[#e05d00] text-white rounded-xl text-xs font-bold transition-all shadow-md"
+              className="px-4 py-2 bg-[#2b1f55] hover:bg-[#3b2b73] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
             >
-              Reload Dashboard
+              Reset View
             </button>
           </div>
         </div>
@@ -321,7 +328,7 @@ export default function App() {
         </div>
 
         {/* Tab Content wrapped in ErrorBoundary with smooth entrance */}
-        <ErrorBoundary>
+        <ErrorBoundary resetKey={activeTab}>
           {/* Tab 1: Branch Wise Analytics */}
           {activeTab === 'analytics' && (
             <div className="space-y-6 animate-fade-in">
