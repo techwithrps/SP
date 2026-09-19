@@ -13,7 +13,9 @@ import {
   CheckCircle2, 
   AlertCircle,
   KeyRound,
-  Zap
+  TrendingUp,
+  BarChart3,
+  Layers
 } from 'lucide-react';
 
 // Master Administrator Account
@@ -29,8 +31,8 @@ export const MASTER_USER = {
 };
 
 export default function LoginPage({ onLoginSuccess }) {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
@@ -75,110 +77,147 @@ export default function LoginPage({ onLoginSuccess }) {
         onLoginSuccess(MASTER_USER);
       } else {
         setLoading(false);
-        setError('Invalid credentials. Please use admin / admin.');
+        setError('Invalid credentials. Please enter valid Admin details.');
       }
     }, 300);
   };
 
-  const handleOneClickFill = () => {
-    setUsername('admin');
-    setPassword('admin');
-    setError('');
-  };
-
   return (
-    <div className="min-h-screen relative flex flex-col justify-between overflow-hidden font-sans selection:bg-[#ff6a00] selection:text-white bg-slate-900">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-900 font-sans selection:bg-[#ff6a00] selection:text-white">
       
-      {/* Background Image with Clean Cinematic Dark Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/login-bg.jpg')" }}
-      >
-        <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[1px]"></div>
-      </div>
+      {/* Left Hero Brand Panel (60% Desktop) */}
+      <div className="relative lg:w-[58%] xl:w-[62%] min-h-[380px] lg:min-h-screen bg-slate-950 flex flex-col justify-between p-8 sm:p-12 lg:p-16 overflow-hidden">
+        
+        {/* Background Port Image with Smooth Rich Gradient */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
+          style={{ backgroundImage: "url('/login-bg.jpg')" }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/85 to-[#2b1f55]/60"></div>
+        </div>
 
-      {/* Top Header */}
-      <header className="px-6 sm:px-12 py-5 flex items-center justify-between relative z-10 animate-fade-in">
-        <div className="flex items-center gap-3">
-          <div className="bg-white px-4 py-2 rounded-2xl shadow-xl border border-slate-200 hover-lift flex items-center">
+        {/* Ambient Subtle Glow */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#ff6a00]/15 rounded-full blur-[140px] pointer-events-none"></div>
+
+        {/* Top Header on Left Panel */}
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg flex items-center">
             <img 
               src="/logo.png" 
-              alt="SPJ Cargo" 
-              className="h-10 sm:h-11 w-auto object-contain cursor-pointer" 
+              alt="SPJ Group of Companies" 
+              className="h-10 sm:h-11 w-auto object-contain" 
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.style.display = 'none';
               }}
             />
           </div>
+
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-purple-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              256-Bit SSL
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              ORACLE LIVE
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/95 border border-slate-200 text-xs font-bold text-slate-800 shadow-md">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>256-Bit SSL Protected</span>
+        {/* Middle Value Proposition Hero Content */}
+        <div className="relative z-10 max-w-xl my-auto py-10 space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-500/20 border border-orange-500/30 text-[#ff8a3d] text-xs font-black tracking-wide uppercase">
+            <TrendingUp className="w-4 h-4" />
+            Intelligence & Revenue Dashboard
           </div>
-          
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-black shadow-md">
-            <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-            ORACLE LIVE
-          </div>
-        </div>
-      </header>
 
-      {/* Center Auth Card: High-Contrast Solid White Luxury Card */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-6 relative z-10">
-        <div className="w-full max-w-[430px] bg-white rounded-3xl p-8 sm:p-9 shadow-2xl shadow-black/60 border border-slate-100 space-y-6 animate-scale-in">
-          
-          {/* Card Header */}
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-50 border border-orange-200 shadow-sm mb-1">
-              <Lock className="w-8 h-8 text-[#ff6a00]" />
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-display text-white tracking-tight leading-[1.15]">
+            Global Logistics & Real-time Yard Movement
+          </h1>
+
+          <p className="text-sm sm:text-base text-slate-300 font-normal leading-relaxed">
+            Live multimodal container operations, freight invoicing analytics, and fleet intelligence across 39 terminals nationwide.
+          </p>
+
+          {/* Quick Metrics Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4">
+            <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
+              <div className="text-2xl font-black text-white font-display">89,249</div>
+              <div className="text-[11px] font-medium text-slate-300">Active Yard Units</div>
             </div>
-            
-            <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-slate-900">
+
+            <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
+              <div className="text-2xl font-black text-white font-display">₹ 7,423 Cr</div>
+              <div className="text-[11px] font-medium text-slate-300">Total Sales Tracked</div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 col-span-2 sm:col-span-1">
+              <div className="text-2xl font-black text-white font-display">39</div>
+              <div className="text-[11px] font-medium text-slate-300">Active Terminals</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Left */}
+        <div className="relative z-10 text-xs text-slate-400 pt-4 border-t border-white/10 flex items-center justify-between">
+          <span>© {new Date().getFullYear()} SPJ Group of Companies</span>
+          <span className="text-slate-500">Enterprise Edition v2.4</span>
+        </div>
+
+      </div>
+
+      {/* Right Login Form Panel (40% Desktop) */}
+      <div className="lg:w-[42%] xl:w-[38%] bg-white flex flex-col justify-between p-8 sm:p-12 lg:p-16">
+        
+        {/* Top Spacer */}
+        <div className="hidden lg:block"></div>
+
+        {/* Form Container */}
+        <div className="w-full max-w-sm mx-auto space-y-8 my-auto py-8">
+          
+          <div className="space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-black font-display text-slate-900 tracking-tight">
               Admin Portal
-            </h1>
-            <p className="text-xs font-semibold text-slate-500">
-              SPJ Cargo Operations & Revenue Intelligence ERP
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium">
+              Enter your administrative credentials to continue
             </p>
           </div>
 
-          {/* Error Alert */}
+          {/* Error Message */}
           {error && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-2.5 text-xs text-rose-700 animate-shake">
+            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-xs text-rose-700 animate-shake">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <span className="font-bold">{error}</span>
+              <span className="font-semibold">{error}</span>
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             
-            {/* User ID Input */}
+            {/* User ID */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-[#ff6a00]" />
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-[#2b1f55]" />
                 User ID
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => {
-                    setUsername(e.target.value);
-                    setError('');
-                  }}
-                  placeholder="admin"
-                  className="w-full h-12 pl-4 pr-10 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border-2 border-slate-200 focus:border-[#ff6a00] rounded-2xl text-sm font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-[#ff6a00]/15 transition-all"
-                  required
-                />
-              </div>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setError('');
+                }}
+                placeholder="Enter User ID"
+                className="w-full h-12 px-4 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border-2 border-slate-200 focus:border-[#ff6a00] rounded-2xl text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-[#ff6a00]/15 transition-all"
+                required
+              />
             </div>
 
-            {/* Password Input */}
+            {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <KeyRound className="w-3.5 h-3.5 text-[#2b1f55]" />
                 Password
               </label>
@@ -190,23 +229,23 @@ export default function LoginPage({ onLoginSuccess }) {
                     setPassword(e.target.value);
                     setError('');
                   }}
-                  placeholder="admin"
-                  className="w-full h-12 pl-4 pr-11 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border-2 border-slate-200 focus:border-[#ff6a00] rounded-2xl text-sm font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-[#ff6a00]/15 transition-all"
+                  placeholder="Enter Password"
+                  className="w-full h-12 pl-4 pr-11 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border-2 border-slate-200 focus:border-[#ff6a00] rounded-2xl text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-[#ff6a00]/15 transition-all"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Remember Me */}
+            {/* Remember Me & Protection Badge */}
             <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-600 hover:text-slate-900 select-none">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 hover:text-slate-900 select-none">
                 <input
                   type="checkbox"
                   checked={rememberMe}
@@ -216,9 +255,9 @@ export default function LoginPage({ onLoginSuccess }) {
                 <span>Remember session</span>
               </label>
 
-              <span className="text-[11px] text-purple-800 font-extrabold flex items-center gap-1 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">
+              <span className="text-[11px] font-bold text-purple-800 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200 flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-purple-700" />
-                Admin Protected
+                Protected
               </span>
             </div>
 
@@ -226,13 +265,13 @@ export default function LoginPage({ onLoginSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-gradient-to-r from-[#2b1f55] via-[#3a2973] to-[#ff6a00] hover:opacity-95 text-white font-black text-sm rounded-2xl shadow-lg shadow-purple-950/20 flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer disabled:opacity-50 hover-lift active:scale-[0.98]"
+              className="w-full h-12 bg-gradient-to-r from-[#2b1f55] to-[#ff6a00] hover:opacity-95 text-white font-black text-sm rounded-2xl shadow-lg shadow-purple-950/20 flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer disabled:opacity-50 hover-lift active:scale-[0.98]"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
               ) : (
                 <>
-                  <span>Sign In as Admin</span>
+                  <span>Sign In to Dashboard</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -240,49 +279,14 @@ export default function LoginPage({ onLoginSuccess }) {
 
           </form>
 
-          {/* Quick 1-Click Credentials Pill */}
-          <div className="pt-2 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={handleOneClickFill}
-              className="w-full py-2.5 px-3.5 bg-gradient-to-r from-orange-50 to-purple-50 hover:from-orange-100 hover:to-purple-100 border border-orange-200/80 rounded-2xl text-xs font-bold text-slate-800 flex items-center justify-between transition-all cursor-pointer group shadow-2xs"
-            >
-              <span className="flex items-center gap-2 font-black">
-                <Zap className="w-4 h-4 text-[#ff6a00] group-hover:scale-110 transition-transform" />
-                <span>Quick Auto-Fill</span>
-              </span>
-              <span className="font-mono text-[11px] font-black text-white bg-gradient-to-r from-[#ff6a00] to-[#2b1f55] px-2.5 py-0.5 rounded-lg shadow-xs">
-                admin / admin
-              </span>
-            </button>
-          </div>
-
         </div>
-      </main>
 
-      {/* Footer System Highlights */}
-      <footer className="px-6 py-4 bg-slate-950/80 backdrop-blur-md text-white border-t border-white/10 relative z-10 animate-fade-in">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-semibold text-slate-300">
-            <div className="flex items-center gap-1.5">
-              <Globe2 className="w-4 h-4 text-sky-400" />
-              <span>39 Terminals</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Container className="w-4 h-4 text-orange-400" />
-              <span>89,249 Active Units</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Truck className="w-4 h-4 text-emerald-400" />
-              <span>Multi-Modal Fleet</span>
-            </div>
-          </div>
-
-          <div className="text-[11px] text-slate-400 font-medium">
-            © {new Date().getFullYear()} SPJ Group • Cargo & Yard Operations Dashboard
-          </div>
+        {/* Bottom Note */}
+        <div className="text-center text-xs text-slate-400 font-medium">
+          Authorized personnel only • SPJ Live Enterprise Cloud
         </div>
-      </footer>
+
+      </div>
 
     </div>
   );
