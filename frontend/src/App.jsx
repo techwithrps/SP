@@ -10,6 +10,7 @@ import FleetView from './components/FleetView';
 import AnalyticsCharts from './components/AnalyticsCharts';
 import OperationsView from './components/OperationsView';
 import InvoiceDetailModal from './components/InvoiceDetailModal';
+import LoginPage from './components/LoginPage';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -49,6 +50,25 @@ class ErrorBoundary extends React.Component {
 }
 
 export default function App() {
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('spj_auth_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('spj_auth_user');
+    } catch (e) {
+      console.error(e);
+    }
+    setCurrentUser(null);
+  };
+
   // Default Initial Page: Branch Wise Analytics
   const [activeTab, setActiveTab] = useState('analytics');
   const [loading, setLoading] = useState(true);
@@ -185,6 +205,11 @@ export default function App() {
     window.open(`/api/export/excel?${queryParams.toString()}`, '_blank');
   };
 
+  // Render corporate login screen if not authenticated
+  if (!currentUser) {
+    return <LoginPage onLoginSuccess={(user) => setCurrentUser(user)} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans">
       {/* Top Navbar */}
@@ -197,6 +222,8 @@ export default function App() {
         }}
         loading={loading}
         lastUpdated={lastUpdated}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* Main Container */}
