@@ -63,34 +63,14 @@ export default function ContainerFleetView({
   const containers = data?.containers || [];
   const baseStats = data?.stats || {};
 
-  // Filtered containers supporting selectedTerminal, selectedFY, size, type, status, and search
+  // Filtered containers supporting size, type, status, and search
   const filteredContainers = useMemo(() => {
     return containers.filter(c => {
       const cStatus = (c.status || c.STATUS || '').toLowerCase();
       const cSize = String(c.contSize || c.CONT_SIZE || '').replace(/[^0-9]/g, '');
       const cType = (c.contType || c.CONT_TYPE || '').toLowerCase();
-      const cTermId = String(c.terminalId || c.TERMINAL_ID || '');
-      const cTermName = (c.terminalName || c.TERMINAL_NAME || '').toLowerCase();
-      const cDate = c.joDate || c.icdInDate || c.GATE_IN_DATE || '';
 
-      // 1. Terminal Filter
-      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-        const termMatch = cTermId === String(selectedTerminal) || cTermName.includes(String(selectedTerminal).toLowerCase());
-        if (!termMatch) return false;
-      }
-
-      // 2. Financial Year Filter
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-        let recFY = 'FY 2026-27';
-        if (cDate.includes('2026') || cDate.includes('/26')) recFY = 'FY 2026-27';
-        else if (cDate.includes('2025') || cDate.includes('/25')) recFY = 'FY 2025-26';
-        else if (cDate.includes('2024') || cDate.includes('/24')) recFY = 'FY 2024-25';
-        else if (cDate.includes('2023') || cDate.includes('/23')) recFY = 'FY 2023-24';
-        else recFY = 'FY 2022-23 & Earlier';
-        if (recFY !== selectedFY) return false;
-      }
-
-      // 3. Status Filter (In Chamber vs Dispatched vs All)
+      // 1. Status Filter (In Chamber vs Dispatched vs All)
       if (statusFilter !== 'all') {
         if (statusFilter === 'Stored in Cold Chamber') {
           if (!cStatus.includes('chamber') && !cStatus.includes('cold') && !cStatus.includes('yard') && !cStatus.includes('active') && !cStatus.includes('registered')) return false;
@@ -101,10 +81,10 @@ export default function ContainerFleetView({
         }
       }
 
-      // 4. Size Filter (40 FT vs 20 FT)
+      // 2. Size Filter (40 FT vs 20 FT)
       if (sizeFilter !== 'all' && cSize !== sizeFilter) return false;
 
-      // 5. Type Filter (Reefer, Dry, Open, Flat)
+      // 3. Type Filter (Reefer, Dry, Open, Flat)
       if (typeFilter !== 'all') {
         if (typeFilter === 'REEFER') {
           if (!cType.includes('rf') && !cType.includes('reefer')) return false;
@@ -115,7 +95,7 @@ export default function ContainerFleetView({
         }
       }
 
-      // 6. Global Search Keyword
+      // 4. Global Search Keyword
       if (search && search.trim() !== '') {
         const s = search.toLowerCase();
         const contNo = (c.contNo || c.CONT_NO || '').toLowerCase();
@@ -131,7 +111,7 @@ export default function ContainerFleetView({
 
       return true;
     });
-  }, [containers, search, statusFilter, sizeFilter, typeFilter, selectedTerminal, selectedFY]);
+  }, [containers, search, statusFilter, sizeFilter, typeFilter]);
 
   // Helper to look up terminal-specific verified stats
   const activeTerminalMeta = useMemo(() => {

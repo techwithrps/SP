@@ -83,114 +83,88 @@ export default function FilterBar({
     return 'FY 2022-23 & Earlier';
   };
 
-  // 1. Cascading Customers: Dynamic customer list active for selected Terminal & FY with Revenue Amount
+  // 1. Cascading Customers: Active customers in scope at top with revenue, plus all master customers
   const availableCustomers = useMemo(() => {
-    if (!records || records.length === 0) {
-      return customers.map(c => ({ id: c.id, name: c.name, revenue: 0, count: 0 }));
-    }
-
     const custMap = {};
-    records.forEach(r => {
-      // Check Terminal
-      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-        const tMatch = (r.TERMINAL_ID && String(r.TERMINAL_ID) === String(selectedTerminal)) ||
-                       (r.TERMINAL_NAME && r.TERMINAL_NAME.toLowerCase().includes(String(selectedTerminal).toLowerCase()));
-        if (!tMatch) return;
-      }
+    if (records && records.length > 0) {
+      records.forEach(r => {
+        const cId = r.CUSTOMER_ID || r.CUSTOMER_NAME;
+        const cName = r.CUSTOMER_NAME || 'SPJ Account Party';
+        const rev = Number(r.AMOUNT) || Number(r.BILL_AMOUNT) || 0;
 
-      // Check FY
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-        const recFY = getRecordFY(r);
-        if (recFY !== selectedFY) return;
-      }
-
-      const cId = r.CUSTOMER_ID || r.CUSTOMER_NAME;
-      const cName = r.CUSTOMER_NAME || 'SPJ Account Party';
-      const rev = Number(r.AMOUNT) || Number(r.BILL_AMOUNT) || 0;
-
-      if (!custMap[cId]) {
-        custMap[cId] = {
-          id: cId,
-          name: cName,
-          revenue: 0,
-          count: 0
-        };
-      }
-      custMap[cId].revenue += rev;
-      custMap[cId].count++;
-    });
+        if (!custMap[cId]) {
+          custMap[cId] = {
+            id: cId,
+            name: cName,
+            revenue: 0,
+            count: 0
+          };
+        }
+        custMap[cId].revenue += rev;
+        custMap[cId].count++;
+      });
+    }
 
     const activeList = Object.values(custMap).sort((a, b) => b.revenue - a.revenue);
+    const activeIds = new Set(activeList.map(a => String(a.id)));
+    const activeNames = new Set(activeList.map(a => String(a.name).toLowerCase().trim()));
 
-    if (activeList.length > 0) return activeList;
-    return customers.map(c => ({ id: c.id, name: c.name, revenue: 0, count: 0 }));
-  }, [records, customers, selectedTerminal, selectedFY]);
+    const otherList = (customers || [])
+      .filter(c => !activeIds.has(String(c.id)) && !activeNames.has(String(c.name).toLowerCase().trim()))
+      .map(c => ({ id: c.id, name: c.name, revenue: 0, count: 0 }));
 
-  // 2. Cascading Services: Filtered to services under the selected Terminal, FY, and Customer
+    return {
+      active: activeList,
+      others: otherList,
+      all: [...activeList, ...otherList]
+    };
+  }, [records, customers]);
+
+  // 2. Cascading Services: Active services in scope at top, plus all master services
   const availableServices = useMemo(() => {
-    if (!records || records.length === 0) {
-      return services.map(s => ({ id: s.id, name: s.name, count: 0 }));
-    }
-
     const sMap = {};
-    records.forEach(r => {
-      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-        const tMatch = (r.TERMINAL_ID && String(r.TERMINAL_ID) === String(selectedTerminal)) ||
-                       (r.TERMINAL_NAME && r.TERMINAL_NAME.toLowerCase().includes(String(selectedTerminal).toLowerCase()));
-        if (!tMatch) return;
-      }
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-        if (getRecordFY(r) !== selectedFY) return;
-      }
-      if (filters.customerId && filters.customerId !== 'all' && filters.customerId !== 'ALL') {
-        const cMatch = (r.CUSTOMER_ID && String(r.CUSTOMER_ID) === String(filters.customerId)) ||
-                       (r.CUSTOMER_NAME && r.CUSTOMER_NAME.toLowerCase().includes(String(filters.customerId).toLowerCase()));
-        if (!cMatch) return;
-      }
+    if (records && records.length > 0) {
+      records.forEach(r => {
+        const sId = r.SERVICE_ID || r.SERVICE_NAME;
+        const sName = r.SERVICE_NAME || 'Transportation & Handling';
+        const amt = Number(r.AMOUNT) || Number(r.BILL_AMOUNT) || 0;
 
-      const sId = r.SERVICE_ID || r.SERVICE_NAME;
-      const sName = r.SERVICE_NAME || 'Transportation & Handling';
-      const amt = Number(r.AMOUNT) || Number(r.BILL_AMOUNT) || 0;
-
-      if (!sMap[sId]) {
-        sMap[sId] = { id: sId, name: sName, count: 0, revenue: 0 };
-      }
-      sMap[sId].count++;
-      sMap[sId].revenue += amt;
-    });
-
-    const list = Object.values(sMap).sort((a, b) => b.revenue - a.revenue);
-    if (list.length > 0) return list;
-    return services.map(s => ({ id: s.id, name: s.name, count: 0 }));
-  }, [records, services, selectedTerminal, selectedFY, filters.customerId]);
-
-  // 3. Cascading Trip Types: Filtered to trip types under current selection
-  const availableTripTypes = useMemo(() => {
-    if (!records || records.length === 0) return tripTypes;
-
-    const trips = new Set();
-    records.forEach(r => {
-      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-        const tMatch = (r.TERMINAL_ID && String(r.TERMINAL_ID) === String(selectedTerminal)) ||
-                       (r.TERMINAL_NAME && r.TERMINAL_NAME.toLowerCase().includes(String(selectedTerminal).toLowerCase()));
-        if (!tMatch) return;
-      }
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-        if (getRecordFY(r) !== selectedFY) return;
-      }
-      if (filters.customerId && filters.customerId !== 'all' && filters.customerId !== 'ALL') {
-        const cMatch = (r.CUSTOMER_ID && String(r.CUSTOMER_ID) === String(filters.customerId)) ||
-                       (r.CUSTOMER_NAME && r.CUSTOMER_NAME.toLowerCase().includes(String(filters.customerId).toLowerCase()));
-        if (!cMatch) return;
-      }
-      if (r.TRIP_TYPE) trips.add(r.TRIP_TYPE);
-    });
-
-    if (trips.size > 0) {
-      return Array.from(trips).map(t => ({ code: t, name: t }));
+        if (!sMap[sId]) {
+          sMap[sId] = { id: sId, name: sName, count: 0, revenue: 0 };
+        }
+        sMap[sId].count++;
+        sMap[sId].revenue += amt;
+      });
     }
-    return tripTypes;
-  }, [records, tripTypes, selectedTerminal, selectedFY, filters.customerId]);
+
+    const activeList = Object.values(sMap).sort((a, b) => b.revenue - a.revenue);
+    const activeIds = new Set(activeList.map(a => String(a.id)));
+    const activeNames = new Set(activeList.map(a => String(a.name).toLowerCase().trim()));
+
+    const otherList = (services || [])
+      .filter(s => !activeIds.has(String(s.id)) && !activeNames.has(String(s.name).toLowerCase().trim()))
+      .map(s => ({ id: s.id, name: s.name, count: 0, revenue: 0 }));
+
+    return {
+      active: activeList,
+      others: otherList,
+      all: [...activeList, ...otherList]
+    };
+  }, [records, services]);
+
+  // 3. Cascading Trip Types: Standard operational categories
+  const availableTripTypes = useMemo(() => {
+    const standard = [
+      { code: 'Export', name: 'Export Movement' },
+      { code: 'Import', name: 'Import Movement' },
+      { code: 'Domestic', name: 'Domestic / Inter-ICD' },
+      { code: 'Empty Return', name: 'Empty Return & Repositioning' },
+      { code: 'Clearance', name: 'Customs Clearance' },
+      { code: 'Credit Note', name: 'Credit Note Reversals' },
+      { code: 'REBATE', name: 'Terminal Rebate' }
+    ];
+    return standard;
+  }, []);
 
   return (
     <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft space-y-4">
@@ -257,12 +231,25 @@ export default function FilterBar({
             onChange={(e) => handleChange('customerId', e.target.value)}
             className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer truncate"
           >
-            <option value="all">All Customers ({availableCustomers.length})</option>
-            {availableCustomers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.revenue > 0 ? `🟢 ${c.name}${formatRevenueBadge(c.revenue)}` : c.name}
-              </option>
-            ))}
+            <option value="all">🏢 All Customers ({availableCustomers.all?.length || 'All'})</option>
+            {availableCustomers.active?.length > 0 && (
+              <optgroup label="── 🟢 Active in Current Scope ──">
+                {availableCustomers.active.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    🟢 {c.name}{formatRevenueBadge(c.revenue)} ({c.count} Bills)
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {availableCustomers.others?.length > 0 && (
+              <optgroup label="── All Master Customers ──">
+                {availableCustomers.others.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </div>
 
@@ -277,12 +264,25 @@ export default function FilterBar({
             onChange={(e) => handleChange('serviceId', e.target.value)}
             className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer truncate"
           >
-            <option value="all">All Services ({availableServices.length})</option>
-            {availableServices.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}{s.count ? ` (${s.count} Invoices)` : ''}
-              </option>
-            ))}
+            <option value="all">⚡ All Services ({availableServices.all?.length || 'All'})</option>
+            {availableServices.active?.length > 0 && (
+              <optgroup label="── 🟢 Active in Current Scope ──">
+                {availableServices.active.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    🟢 {s.name}{formatRevenueBadge(s.revenue)} ({s.count} Items)
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {availableServices.others?.length > 0 && (
+              <optgroup label="── All Master Services ──">
+                {availableServices.others.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </div>
 

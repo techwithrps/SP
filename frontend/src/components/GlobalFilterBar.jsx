@@ -38,6 +38,7 @@ export default function GlobalFilterBar({
     'FY 2023-24', 
     'FY 2022-23 & Earlier'
   ],
+  terminalFyMatrix = [],
   onRefresh,
   loading = false,
   activeTab = 'analytics'
@@ -49,32 +50,56 @@ export default function GlobalFilterBar({
     if (setSelectedFY) setSelectedFY('ALL');
   };
 
-  const selectedTerminalObj = terminals.find(t => String(t.terminalId) === String(selectedTerminal));
-  const hasData = (t) => (t.totalContainers > 0 || t.netRevenue > 0 || t.billAmount > 0 || t.invoiceCount > 0);
+  // Compute terminal stats specifically for current selectedFY
+  const getTerminalStats = (t) => {
+    if (selectedFY === 'ALL' || selectedFY === 'all') {
+      return {
+        totalContainers: t.totalContainers || 0,
+        netRevenue: t.netRevenue || 0,
+        totalJobs: t.totalJobs || 0,
+        invoiceCount: t.invoiceCount || 0
+      };
+    }
+    const cell = terminalFyMatrix.find(m => String(m.terminalId) === String(t.terminalId) && m.fy === selectedFY);
+    if (cell) {
+      return {
+        totalContainers: cell.totalContainers || 0,
+        netRevenue: cell.netRevenue || 0,
+        totalJobs: cell.totalJobs || 0,
+        invoiceCount: cell.invoiceCount || 0
+      };
+    }
+    return { totalContainers: 0, netRevenue: 0, totalJobs: 0, invoiceCount: 0 };
+  };
 
-  const activeTerminals = terminals.filter(hasData).sort((a, b) => (b.netRevenue || 0) - (a.netRevenue || 0));
-  const inactiveTerminals = terminals.filter(t => !hasData(t));
+  const terminalsWithStats = terminals.map(t => ({
+    ...t,
+    currentStats: getTerminalStats(t)
+  }));
+
+  const activeTerminals = terminalsWithStats.filter(t => t.currentStats.totalContainers > 0 || t.currentStats.netRevenue > 0)
+    .sort((a, b) => (b.currentStats.netRevenue || 0) - (a.currentStats.netRevenue || 0));
+
+  const inactiveTerminals = terminalsWithStats.filter(t => t.currentStats.totalContainers === 0 && t.currentStats.netRevenue === 0);
+
+  const selectedTerminalObj = terminalsWithStats.find(t => String(t.terminalId) === String(selectedTerminal));
 
   const handleQuickExport = () => {
     const wb = XLSX.utils.book_new();
-    const dataToExport = terminals.map(t => ({
+    const dataToExport = terminalsWithStats.map(t => ({
       'Terminal ID': t.terminalId,
       'Terminal / Branch': t.terminalName,
-      'Status': hasData(t) ? 'Active with Data' : 'Zero Data / Inactive',
+      'Fiscal Year': selectedFY === 'ALL' ? 'Cumulative (All Years)' : selectedFY,
+      'Status': (t.currentStats.totalContainers > 0 || t.currentStats.netRevenue > 0) ? 'Active with Data' : 'Zero Data / Inactive',
       'Code': t.terminalCode || `T-${t.terminalId}`,
-      'Job Orders': t.totalJobs || 0,
-      'Containers': t.totalContainers || 0,
-      '40ft Units': t.units40ft || 0,
-      '20ft Units': t.units20ft || 0,
-      'TEUs': t.teus || 0,
-      'Invoices': t.invoiceCount || 0,
-      'Base Bill Amount (INR)': t.billAmount || 0,
-      'Tax GST (INR)': t.taxAmount || 0,
-      'Net Revenue (Gross Sale INR)': t.netRevenue || 0
+      'Job Orders': t.currentStats.totalJobs || 0,
+      'Containers': t.currentStats.totalContainers || 0,
+      'Invoices': t.currentStats.invoiceCount || 0,
+      'Net Revenue (Gross Sale INR)': t.currentStats.netRevenue || 0
     }));
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     XLSX.utils.book_append_sheet(wb, ws, 'Branch_Overview');
-    XLSX.writeFile(wb, `SPJ_Enterprise_Overview_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(wb, `SPJ_Enterprise_Overview_${selectedFY.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
@@ -100,23 +125,25 @@ export default function GlobalFilterBar({
                 >
                   <option value="ALL">🏢 All Terminals & Regional Hubs ({terminals.length || 39} Total)</option>
                   
-                  {/* 🟢 Active Operational Hubs */}
-                  <optgroup label="── 🟢 Active Hubs with Data ──">
+                  {/* 🟢 Active Operational Hubs in selected FY */}
+                  <optgroup label={selectedFY === 'ALL' ? "── 🟢 Active Hubs with Data ──" : `── 🟢 Active Hubs in ${selectedFY} ──`}>
                     {activeTerminals.map(t => (
                       <option key={t.terminalId} value={String(t.terminalId)}>
-                        🟢 {t.terminalName} ({formatNumber(t.totalContainers)} Cont | {formatCurrency(t.netRevenue)})
+                        🟢 {t.terminalName} ({formatNumber(t.currentStats.totalContainers)} Cont | {formatCurrency(t.currentStats.netRevenue)})
                       </option>
                     ))}
                   </optgroup>
 
-                  {/* 🔴 Inactive / Zero Data Terminals */}
-                  <optgroup label="── 🔴 Inactive / Zero Data Terminals ──">
-                    {inactiveTerminals.map(t => (
-                      <option key={t.terminalId} value={String(t.terminalId)} className="text-rose-600 font-semibold bg-rose-50/50">
-                        🔴 {t.terminalName} (No Data / Inactive)
-                      </option>
-                    ))}
-                  </optgroup>
+                  {/* 🔴 Inactive / Zero Data Terminals in selected FY */}
+                  {inactiveTerminals.length > 0 && (
+                    <optgroup label={selectedFY === 'ALL' ? "── 🔴 Inactive / Zero Data Terminals ──" : `── 🔴 No Activity in ${selectedFY} ──`}>
+                      {inactiveTerminals.map(t => (
+                        <option key={t.terminalId} value={String(t.terminalId)} className="text-rose-600 font-semibold bg-rose-50/50">
+                          🔴 {t.terminalName} (0 Cont | Inactive)
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
             </div>

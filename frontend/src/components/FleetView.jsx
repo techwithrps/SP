@@ -118,20 +118,6 @@ export default function FleetView({
         if (!tMatch) return false;
       }
 
-      // FY Filter
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-        const yr = String(item.manufacturingYear || item.date || '');
-        if (selectedFY === 'FY 2026-27') {
-          if (!yr.includes('2026') && !yr.includes('2027')) return false;
-        } else if (selectedFY === 'FY 2025-26') {
-          if (!yr.includes('2025')) return false;
-        } else if (selectedFY === 'FY 2024-25') {
-          if (!yr.includes('2024')) return false;
-        } else if (selectedFY === 'FY 2023-24') {
-          if (!yr.includes('2023')) return false;
-        }
-      }
-
       if (transporterFilter !== 'all' && item.transporterName !== transporterFilter) return false;
       if (search) {
         const s = search.toLowerCase();
@@ -144,7 +130,7 @@ export default function FleetView({
       }
       return true;
     });
-  }, [fleet, search, transporterFilter, selectedTerminal, selectedFY]);
+  }, [fleet, search, transporterFilter, selectedTerminal]);
 
   const totalPages = Math.ceil(filteredFleet.length / pageSize) || 1;
   const paginatedFleet = useMemo(() => {

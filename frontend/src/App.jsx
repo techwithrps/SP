@@ -25,6 +25,7 @@ export default function App() {
   const [selectedTerminal, setSelectedTerminal] = useState('ALL');
   const [selectedFY, setSelectedFY] = useState('ALL');
   const [allTerminals, setAllTerminals] = useState([]);
+  const [terminalFyMatrix, setTerminalFyMatrix] = useState([]);
   const [financialYears, setFinancialYears] = useState([
     'All Financial Years', 
     'FY 2026-27', 
@@ -70,6 +71,7 @@ export default function App() {
         const bd = fRes.data.branchDetailed;
         if (bd.terminals) setAllTerminals(bd.terminals);
         if (bd.financialYears) setFinancialYears(bd.financialYears);
+        if (bd.terminalFyMatrix) setTerminalFyMatrix(bd.terminalFyMatrix);
       }
     } catch (e) {
       console.error('Failed to load initial metadata:', e);
@@ -225,6 +227,7 @@ export default function App() {
           setSelectedFY={setSelectedFY}
           terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
           financialYears={financialYears}
+          terminalFyMatrix={terminalFyMatrix}
           onRefresh={() => {
             fetchCIRData();
             fetchInitialData();
@@ -266,7 +269,7 @@ export default function App() {
               onReset={handleResetFilters}
               onExport={handleExportExcel}
               loading={loading}
-              totalRecords={records.length}
+              totalRecords={kpis.totalRecords || records.length}
             />
 
             <CIRTable
