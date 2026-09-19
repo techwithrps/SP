@@ -422,57 +422,58 @@ export default function AnalyticsCharts({
     <div className="space-y-6">
       
       {/* ========================================================================= */}
-      {/* 1. TOP 8 DYNAMIC KPI CARDS (Rich, Accurate, Formula Breakdown) */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 1. TOP 8 DYNAMIC KPI CARDS (Ultra-Compact High Density 2-Col Mobile Grid) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         
         {/* Card 1: Gross Sale (Net of Credit Notes) */}
-        <div className="bg-gradient-to-br from-[#2b1f55] to-[#1e153d] p-5 rounded-3xl text-white shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <CircleDollarSign className="w-24 h-24 text-white" />
+        <div className="bg-gradient-to-br from-[#2b1f55] to-[#1e153d] p-2.5 sm:p-5 rounded-xl sm:rounded-3xl text-white shadow-md relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-2 sm:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <CircleDollarSign className="w-12 h-12 sm:w-24 sm:h-24 text-white" />
           </div>
-          <p className="text-[11px] font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5" /> Gross Sale (Net Revenue)
+          <p className="text-[9px] sm:text-[11px] font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1 truncate">
+            <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Gross Sale (Net)
           </p>
-          <h3 className="text-2xl lg:text-3xl font-black font-display text-white mt-2">
+          <h3 className="text-sm sm:text-2xl lg:text-3xl font-black font-display text-white mt-1 sm:mt-2 truncate">
             {loading ? (
-              <span className="inline-block w-32 h-8 bg-white/20 animate-pulse rounded"></span>
+              <span className="inline-block w-20 sm:w-32 h-5 sm:h-8 bg-white/20 animate-pulse rounded"></span>
             ) : (
               <AnimatedCounter value={formatCurrency(dynamicMetrics.grossSale)} decimals={2} duration={750} />
             )}
           </h3>
-          <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px]">
-            <span className="text-slate-300">Invoice Gross - Credit Amt</span>
-            <span className="font-bold text-emerald-400">
-              {dynamicMetrics.creditAmount > 0 ? `-${formatCurrency(dynamicMetrics.creditAmount)} CR` : 'Zero Credits'}
+          <div className="mt-1.5 pt-1.5 sm:mt-3 sm:pt-2.5 border-t border-white/10 flex items-center justify-between text-[9px] sm:text-[11px] gap-1">
+            <span className="text-slate-300 truncate">Inv - Credit</span>
+            <span className="font-bold text-emerald-400 shrink-0">
+              {dynamicMetrics.creditAmount > 0 ? `-${formatCurrency(dynamicMetrics.creditAmount)}` : '0 Credits'}
             </span>
           </div>
         </div>
 
         {/* Card 2: Net Bill Amount */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-1">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Net Bill Amount (Base)
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-1">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Net Bill (Base)
               </p>
-              <h3 className="text-2xl font-black font-display text-slate-800 mt-2">
+              <h3 className="text-sm sm:text-2xl font-black font-display text-slate-800 mt-1 sm:mt-2 truncate">
                 {loading ? (
-                  <span className="inline-block w-28 h-7 bg-slate-100 animate-pulse rounded"></span>
+                  <span className="inline-block w-16 sm:w-28 h-5 sm:h-7 bg-slate-100 animate-pulse rounded"></span>
                 ) : (
                   <AnimatedCounter value={formatCurrency(dynamicMetrics.billAmount)} decimals={2} duration={750} />
                 )}
               </h3>
-              <p className="text-[11px] text-blue-700 font-semibold mt-1 flex items-center gap-1">
-                <Receipt className="w-3 h-3" /> Invoiced Base Value
+              <p className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                <Receipt className="w-3 h-3 shrink-0" /> Invoiced Base
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 animate-float">
-              <DollarSign className="w-5 h-5" />
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 animate-float shrink-0">
+              <DollarSign className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Avg / Inv</span>
+          <div className="mt-1.5 pt-1.5 sm:mt-3 sm:pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[11px] text-slate-500">
+            <span>Avg/Inv</span>
             <span className="font-mono font-bold text-slate-700">
               {dynamicMetrics.invoiceCount > 0 ? formatCurrency(dynamicMetrics.billAmount / dynamicMetrics.invoiceCount) : '₹ 0'}
             </span>
@@ -480,91 +481,91 @@ export default function AnalyticsCharts({
         </div>
 
         {/* Card 3: Tax Collected (GST 18%) */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-2">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Tax Collected (GST 18%)
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-2">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Tax (GST 18%)
               </p>
-              <h3 className="text-2xl font-black font-display text-emerald-700 mt-2">
+              <h3 className="text-sm sm:text-2xl font-black font-display text-emerald-700 mt-1 sm:mt-2 truncate">
                 {loading ? (
-                  <span className="inline-block w-28 h-7 bg-slate-100 animate-pulse rounded"></span>
+                  <span className="inline-block w-16 sm:w-28 h-5 sm:h-7 bg-slate-100 animate-pulse rounded"></span>
                 ) : (
                   <AnimatedCounter value={formatCurrency(dynamicMetrics.taxAmount)} decimals={2} duration={750} />
                 )}
               </h3>
-              <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Output GST Ledger
+              <p className="text-[9px] sm:text-[11px] text-emerald-700 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                <ShieldCheck className="w-3 h-3 shrink-0" /> GST Ledger
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 animate-float">
-              <Percent className="w-5 h-5" />
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 animate-float shrink-0">
+              <Percent className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>GST Proportion</span>
+          <div className="mt-1.5 pt-1.5 sm:mt-3 sm:pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[11px] text-slate-500">
+            <span>GST Ratio</span>
             <span className="font-mono font-bold text-emerald-600">
-              {dynamicMetrics.billAmount > 0 ? `${((dynamicMetrics.taxAmount / dynamicMetrics.billAmount) * 100).toFixed(1)}% Tax` : '18.0%'}
+              {dynamicMetrics.billAmount > 0 ? `${((dynamicMetrics.taxAmount / dynamicMetrics.billAmount) * 100).toFixed(1)}%` : '18.0%'}
             </span>
           </div>
         </div>
 
         {/* Card 4: Invoices & Credits Count */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Invoices & Credit Notes
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-3">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Invoices & Credits
               </p>
-              <h3 className="text-2xl font-black font-display text-purple-900 mt-2">
+              <h3 className="text-sm sm:text-2xl font-black font-display text-purple-900 mt-1 sm:mt-2 truncate">
                 {loading ? (
-                  <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span>
+                  <span className="inline-block w-16 sm:w-24 h-5 sm:h-7 bg-slate-100 animate-pulse rounded"></span>
                 ) : (
                   <AnimatedCounter value={dynamicMetrics.invoiceCount} duration={750} />
                 )}{' '}
-                <span className="text-sm font-semibold text-slate-400">Invoices</span>
+                <span className="text-[10px] sm:text-sm font-semibold text-slate-400">Bills</span>
               </h3>
-              <p className="text-[11px] text-rose-600 font-semibold mt-1 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" /> {formatNumber(dynamicMetrics.creditCount)} Credits ({formatCurrency(dynamicMetrics.creditAmount)})
+              <p className="text-[9px] sm:text-[11px] text-rose-600 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                <AlertTriangle className="w-3 h-3 shrink-0" /> {formatNumber(dynamicMetrics.creditCount)} CR
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 animate-float">
-              <FileText className="w-5 h-5" />
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 animate-float shrink-0">
+              <FileText className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="mt-1.5 pt-1.5 sm:mt-3 sm:pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[11px] text-slate-500">
             <span>Credit Ratio</span>
             <span className="font-mono font-bold text-slate-700">
-              {dynamicMetrics.invoiceCount > 0 ? `${((dynamicMetrics.creditCount / dynamicMetrics.invoiceCount) * 100).toFixed(2)}%` : '0%'}
+              {dynamicMetrics.invoiceCount > 0 ? `${((dynamicMetrics.creditCount / dynamicMetrics.invoiceCount) * 100).toFixed(1)}%` : '0%'}
             </span>
           </div>
         </div>
 
         {/* Card 5: Total Containers Handled */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Container Volume (Total Units)
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-4">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Container Volume
               </p>
-              <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
+              <h3 className="text-sm sm:text-2xl font-black font-display text-blue-900 mt-1 sm:mt-2 truncate">
                 {loading ? (
-                  <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span>
+                  <span className="inline-block w-16 sm:w-24 h-5 sm:h-7 bg-slate-100 animate-pulse rounded"></span>
                 ) : (
                   <AnimatedCounter value={dynamicMetrics.totalContainers} duration={750} />
                 )}{' '}
-                <span className="text-sm font-semibold text-slate-400">Units</span>
+                <span className="text-[10px] sm:text-sm font-semibold text-slate-400">Units</span>
               </h3>
-              <p className="text-[11px] text-blue-700 font-semibold mt-1">
-                40ft: <span className="font-bold">{formatNumber(dynamicMetrics.units40ft)}</span> | 20ft: <span className="font-bold">{formatNumber(dynamicMetrics.units20ft)}</span>
+              <p className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 truncate">
+                40f: <span className="font-bold">{formatNumber(dynamicMetrics.units40ft)}</span> | 20f: <span className="font-bold">{formatNumber(dynamicMetrics.units20ft)}</span>
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 animate-float">
-              <Container className="w-5 h-5" />
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 animate-float shrink-0">
+              <Container className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>40ft Dominance</span>
+          <div className="mt-1.5 pt-1.5 sm:mt-3 sm:pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[11px] text-slate-500">
+            <span>40ft Share</span>
             <span className="font-mono font-bold text-blue-700">
               {dynamicMetrics.totalContainers > 0 ? `${((dynamicMetrics.units40ft / dynamicMetrics.totalContainers) * 100).toFixed(1)}%` : '92.7%'}
             </span>
@@ -572,30 +573,30 @@ export default function AnalyticsCharts({
         </div>
 
         {/* Card 6: TEUs Handled */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Total TEU Capacity
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group hover-lift animate-slide-up delay-5">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                TEU Capacity
               </p>
-              <h3 className="text-2xl font-black font-display text-amber-900 mt-2">
+              <h3 className="text-sm sm:text-2xl font-black font-display text-amber-900 mt-1 sm:mt-2 truncate">
                 {loading ? (
-                  <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span>
+                  <span className="inline-block w-16 sm:w-24 h-5 sm:h-7 bg-slate-100 animate-pulse rounded"></span>
                 ) : (
                   <AnimatedCounter value={dynamicMetrics.teus} duration={750} />
                 )}{' '}
-                <span className="text-sm font-semibold text-slate-400">TEUs</span>
+                <span className="text-[10px] sm:text-sm font-semibold text-slate-400">TEUs</span>
               </h3>
-              <p className="text-[11px] text-amber-700 font-semibold mt-1">
-                Standard Twenty-Foot Equivalent Units
+              <p className="text-[9px] sm:text-[11px] text-amber-700 font-semibold mt-0.5 truncate">
+                Twenty-Foot Equiv
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
-              <Layers className="w-5 h-5" />
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 shrink-0">
+              <Layers className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>TEU Multiplier</span>
+          <div className="mt-1.5 pt-1.5 sm:mt-3 sm:pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[11px] text-slate-500">
+            <span>Multiplier</span>
             <span className="font-mono font-bold text-amber-700">
               {dynamicMetrics.totalContainers > 0 ? `${(dynamicMetrics.teus / dynamicMetrics.totalContainers).toFixed(2)}x` : '1.93x'}
             </span>
@@ -603,25 +604,25 @@ export default function AnalyticsCharts({
         </div>
 
         {/* Card 7: Fleet Container Job Orders */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Fleet Job Orders (JO)
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Job Orders (JO)
               </p>
-              <h3 className="text-2xl font-black font-display text-cyan-900 mt-2">
-                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.totalJobs)}`} <span className="text-sm font-semibold text-slate-400">Orders</span>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-cyan-900 mt-1 sm:mt-2 truncate">
+                {loading ? <span className="inline-block w-16 sm:w-24 h-5 sm:h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.totalJobs)}`} <span className="text-[10px] sm:text-sm font-semibold text-slate-400">Jobs</span>
               </h3>
-              <p className="text-[11px] text-cyan-700 font-semibold mt-1">
-                FLEET_CONT_JO Dispatched
+              <p className="text-[9px] sm:text-[11px] text-cyan-700 font-semibold mt-0.5 truncate">
+                FLEET_CONT_JO
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-cyan-50 text-cyan-600 border border-cyan-200">
-              <Activity className="w-5 h-5" />
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-cyan-50 text-cyan-600 border border-cyan-200 shrink-0">
+              <Activity className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Avg Units / Job</span>
+          <div className="mt-1.5 pt-1.5 sm:mt-3 sm:pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[11px] text-slate-500">
+            <span>Cont/Job</span>
             <span className="font-mono font-bold text-cyan-700">
               {dynamicMetrics.totalJobs > 0 ? (dynamicMetrics.totalContainers / dynamicMetrics.totalJobs).toFixed(2) : '1.01'}
             </span>
@@ -629,27 +630,27 @@ export default function AnalyticsCharts({
         </div>
 
         {/* Card 8: Active Own Heavy Fleet */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Active Own Heavy Fleet
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-3xl border border-slate-200 shadow-soft relative overflow-hidden group">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Active Own Fleet
               </p>
-              <h3 className="text-2xl font-black font-display text-orange-900 mt-2">
-                {loading ? <span className="inline-block w-24 h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.ownFleet)}`} <span className="text-sm font-semibold text-slate-400">Trucks</span>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-orange-900 mt-1 sm:mt-2 truncate">
+                {loading ? <span className="inline-block w-16 sm:w-24 h-5 sm:h-7 bg-slate-100 animate-pulse rounded"></span> : `${formatNumber(dynamicMetrics.ownFleet)}`} <span className="text-[10px] sm:text-sm font-semibold text-slate-400">Trucks</span>
               </h3>
-              <p className="text-[11px] text-orange-700 font-semibold mt-1">
-                Multi-Axle Commercial Fleet
+              <p className="text-[9px] sm:text-[11px] text-orange-700 font-semibold mt-0.5 truncate">
+                Multi-Axle Fleet
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-orange-50 text-orange-600 border border-orange-200">
-              <Truck className="w-5 h-5" />
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-orange-50 text-orange-600 border border-orange-200 shrink-0">
+              <Truck className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="mt-1.5 pt-1.5 sm:mt-3 sm:pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[11px] text-slate-500">
             <span>Fleet Status</span>
             <span className="font-mono font-bold text-emerald-600 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> 100% Operational
+              <CheckCircle2 className="w-3 h-3" /> Live
             </span>
           </div>
         </div>
@@ -659,14 +660,14 @@ export default function AnalyticsCharts({
       {/* ========================================================================= */}
       {/* 2. SUB-VIEW NAVIGATION (Branches Matrix, YoY Trends, Owner Decision BI) */}
       {/* ========================================================================= */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-soft">
-        <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 bg-white p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft">
+        <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto py-0.5">
           {[
-            { key: 'branches', label: 'Branch Performance Matrix', icon: Building2 },
-            { key: 'yoy', label: 'Fiscal Year-over-Year (YoY)', icon: Calendar },
-            { key: 'decision_bi', label: 'Owner Intelligence & Decision Support', icon: Award },
-            { key: 'customer_bi', label: 'Top Customer Leaders', icon: Users },
-            { key: 'service_bi', label: 'Service & Tariff Breakdown', icon: Layers }
+            { key: 'branches', label: 'Branch Matrix', fullLabel: 'Branch Performance Matrix', icon: Building2 },
+            { key: 'yoy', label: 'YoY Trends', fullLabel: 'Fiscal Year-over-Year (YoY)', icon: Calendar },
+            { key: 'decision_bi', label: 'Owner BI', fullLabel: 'Owner Intelligence & Decision Support', icon: Award },
+            { key: 'customer_bi', label: 'Top Clients', fullLabel: 'Top Customer Leaders', icon: Users },
+            { key: 'service_bi', label: 'Services', fullLabel: 'Service & Tariff Breakdown', icon: Layers }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -674,30 +675,32 @@ export default function AnalyticsCharts({
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                   isActive
-                    ? 'bg-[#2b1f55] text-white shadow-md shadow-purple-900/20'
+                    ? 'bg-[#2b1f55] text-white shadow-sm shadow-purple-900/20'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-orange-400' : 'text-slate-400'}`} />
-                {tab.label}
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-orange-400' : 'text-slate-400'}`} />
+                <span className="sm:hidden">{tab.label}</span>
+                <span className="hidden sm:inline">{tab.fullLabel}</span>
               </button>
             );
           })}
         </div>
 
         {/* View specific context count & Export */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button
             onClick={handleExportExcel}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#2b1f55] to-[#4338ca] text-white hover:opacity-95 rounded-xl text-xs font-bold shadow-sm transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-gradient-to-r from-[#2b1f55] to-[#4338ca] text-white hover:opacity-95 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-            Export Matrix (.xlsx)
+            <span>Export Matrix</span>
           </button>
         </div>
       </div>
+
 
       {/* ========================================================================= */}
       {/* TAB 1: BRANCH PERFORMANCE MATRIX (Interactive, Sortable, Searchable) */}
@@ -1002,26 +1005,26 @@ export default function AnalyticsCharts({
               </ResponsiveContainer>
             </div>
 
-            {/* YoY Summary Grid Table */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* YoY Summary Grid Table (High Density 2-Col Mobile Grid) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
               {yoyChartData.map((fyItem, idx) => (
-                <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 hover:border-purple-300 transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-[#2b1f55] text-sm">FY {fyItem.fy}</span>
-                    <span className="text-[10px] px-2 py-0.5 bg-purple-100 text-[#2b1f55] rounded-full font-bold">
-                      {formatNumber(fyItem.invoiceCount)} Invoices
+                <div key={idx} className="bg-slate-50 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 hover:border-purple-300 transition-all">
+                  <div className="flex items-center justify-between mb-1 sm:mb-2">
+                    <span className="font-bold text-[#2b1f55] text-xs sm:text-sm">FY {fyItem.fy}</span>
+                    <span className="text-[8px] sm:text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5 bg-purple-100 text-[#2b1f55] rounded-full font-bold">
+                      {formatNumber(fyItem.invoiceCount)} Invs
                     </span>
                   </div>
-                  <h4 className="text-xl font-black text-slate-900 font-display">
+                  <h4 className="text-sm sm:text-xl font-black text-slate-900 font-display truncate">
                     {formatCurrency(fyItem.netRevenue)}
                   </h4>
-                  <div className="mt-2 text-[11px] text-slate-500 space-y-1">
+                  <div className="mt-1 sm:mt-2 text-[9px] sm:text-[11px] text-slate-500 space-y-0.5 sm:space-y-1">
                     <div className="flex justify-between">
-                      <span>Base Bill:</span>
+                      <span>Base:</span>
                       <span className="font-mono font-bold text-slate-700">{formatCurrency(fyItem.billAmount)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Credits Adjusted:</span>
+                      <span>Credits:</span>
                       <span className="font-mono font-bold text-rose-600">-{formatCurrency(fyItem.creditAmount)}</span>
                     </div>
                   </div>
@@ -1038,42 +1041,43 @@ export default function AnalyticsCharts({
       {/* TAB 3: OWNER BUSINESS INTELLIGENCE & DECISION SUPPORT */}
       {/* ========================================================================= */}
       {activeTab === 'decision_bi' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           
-          {/* Executive Strategic Highlights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Executive Strategic Highlights (2-Column Grid on Mobile/Tablet) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-6">
             
-            <div className="bg-gradient-to-br from-purple-900 to-[#2b1f55] text-white p-6 rounded-3xl shadow-xl">
-              <div className="p-3 bg-white/10 rounded-2xl w-fit mb-4">
-                <Award className="w-6 h-6 text-orange-400" />
+            <div className="bg-gradient-to-br from-purple-900 to-[#2b1f55] text-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl">
+              <div className="p-2 sm:p-3 bg-white/10 rounded-xl sm:rounded-2xl w-fit mb-2 sm:mb-4">
+                <Award className="w-4 h-4 sm:w-6 sm:h-6 text-orange-400" />
               </div>
-              <h4 className="text-lg font-bold mb-2">Key Revenue Driver: Dadri CFS</h4>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <h4 className="text-sm sm:text-lg font-bold mb-1 sm:mb-2">Key Revenue Driver: Dadri CFS</h4>
+              <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed">
                 TRANSWORLD-DADRI represents <span className="text-orange-300 font-bold">66.2%</span> of total enterprise gross sales (₹ 4,969 Cr) with 49,412 container movements, making it the central engine of cold storage and reefer logistics.
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-900 to-teal-900 text-white p-6 rounded-3xl shadow-xl">
-              <div className="p-3 bg-white/10 rounded-2xl w-fit mb-4">
-                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            <div className="bg-gradient-to-br from-emerald-900 to-teal-900 text-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl">
+              <div className="p-2 sm:p-3 bg-white/10 rounded-xl sm:rounded-2xl w-fit mb-2 sm:mb-4">
+                <CheckCircle2 className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-400" />
               </div>
-              <h4 className="text-lg font-bold mb-2">High-Margin Marine Gateways</h4>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <h4 className="text-sm sm:text-lg font-bold mb-1 sm:mb-2">High-Margin Marine Gateways</h4>
+              <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed">
                 Nhava Sheva (JNPT) and Kanpur (JRY & Panki) generate over <span className="text-emerald-300 font-bold">₹ 1,850 Cr</span> in combined billings with strong Ocean Freight and Line THC realizations.
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-amber-900 to-orange-950 text-white p-6 rounded-3xl shadow-xl">
-              <div className="p-3 bg-white/10 rounded-2xl w-fit mb-4">
-                <ShieldCheck className="w-6 h-6 text-amber-400" />
+            <div className="bg-gradient-to-br from-amber-900 to-orange-950 text-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl">
+              <div className="p-2 sm:p-3 bg-white/10 rounded-xl sm:rounded-2xl w-fit mb-2 sm:mb-4">
+                <ShieldCheck className="w-4 h-4 sm:w-6 sm:h-6 text-amber-400" />
               </div>
-              <h4 className="text-lg font-bold mb-2">Credit Note Audit & Loss Control</h4>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <h4 className="text-sm sm:text-lg font-bold mb-1 sm:mb-2">Credit Note Audit & Loss Control</h4>
+              <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed">
                 Total Credit Note write-offs stand at <span className="text-amber-300 font-bold">₹ 99.09 Cr</span> across 7,066 notes, representing a healthy <span className="text-amber-300 font-bold">1.31%</span> ratio against gross billings.
               </p>
             </div>
 
           </div>
+
 
           {/* Top Customers & Top Services Side-by-Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

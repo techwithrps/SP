@@ -85,8 +85,105 @@ export default function CIRTable({
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-x-auto min-h-[420px]">
+      {/* 📱 MOBILE VIEW: Compact Grid Cards (No horizontal sliding needed!) */}
+      <div className="md:hidden p-2.5 space-y-2 bg-slate-50/50">
+        {loading ? (
+          <div className="p-8 text-center text-slate-500">
+            <div className="flex flex-col items-center justify-center gap-2">
+              <div className="w-6 h-6 border-2 border-[#2b1f55] border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs font-semibold text-slate-600">Loading Records...</span>
+            </div>
+          </div>
+        ) : paginatedRecords.length === 0 ? (
+          <div className="p-8 text-center text-slate-500">
+            <AlertCircle className="w-6 h-6 text-amber-500 mx-auto mb-1" />
+            <span className="text-xs font-bold text-slate-800 block">No Records Found</span>
+          </div>
+        ) : (
+          paginatedRecords.map((row, idx) => {
+            const isCreditNote = row.INVOICE_TYPE === 'Credit Note' || Number(row.AMOUNT) < 0;
+            return (
+              <div
+                key={idx}
+                onClick={() => onSelectRecord(row)}
+                className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs active:scale-[0.99] transition-all cursor-pointer space-y-2 hover:border-[#2b1f55]"
+              >
+                {/* Header: Inv No, Date, Type Badge & Amount */}
+                <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-mono font-black text-[#2b1f55] bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                        {row.INVOICE_REF_NO || row.INVOICE_NO || 'INV-0'}
+                      </span>
+                      <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold ${
+                        isCreditNote
+                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      }`}>
+                        {isCreditNote ? 'Credit' : 'Invoice'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
+                      {row.INVOICE_DATE || '-'} {row.JOB_NO ? `• Job: ${row.JOB_NO}` : ''}
+                    </span>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className={`font-mono font-black text-sm ${isCreditNote ? 'text-rose-600' : 'text-[#2b1f55]'}`}>
+                      ₹ {Number(row.AMOUNT || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                    </div>
+                    <span className="text-[9px] text-emerald-600 font-semibold block">
+                      Tax: ₹ {Number(row.TAX || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2-Column Info Grid Matrix */}
+                <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <div className="min-w-0">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase block truncate">Party / Customer</span>
+                    <span className="font-bold text-slate-900 truncate block" title={row.CUSTOMER_NAME}>
+                      {row.CUSTOMER_NAME || 'SPJ Account Party'}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase block truncate">Service Charge</span>
+                    <span className="font-semibold text-purple-700 truncate block" title={row.SERVICE_NAME}>
+                      {row.SERVICE_NAME || 'Transportation'}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase block truncate">Container</span>
+                    <span className="font-mono font-bold text-slate-800 truncate block">
+                      {row.CONT_NO || 'No Cont'}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase block truncate">Size / Movement</span>
+                    <span className="font-semibold text-slate-700 truncate block">
+                      {row.CONT_SIZE ? `${row.CONT_SIZE} FT` : '40 FT'} ({row.TRIP_TYPE || 'Movement'})
+                    </span>
+                  </div>
+                </div>
+
+                {/* Footer Tap Hint */}
+                <div className="flex items-center justify-between pt-0.5 text-[10px] text-slate-400">
+                  <span>Terminal: {row.TERMINAL_NAME || 'Corporate'}</span>
+                  <span className="text-[#2b1f55] font-bold flex items-center gap-0.5">
+                    Tap for Full Audit <Eye className="w-3 h-3" />
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* 💻 DESKTOP VIEW: Full Data Table */}
+      <div className="hidden md:block overflow-x-auto min-h-[420px]">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
@@ -322,6 +419,7 @@ export default function CIRTable({
           </tbody>
         </table>
       </div>
+
 
       {/* Pagination Footer */}
       <div className="p-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50">

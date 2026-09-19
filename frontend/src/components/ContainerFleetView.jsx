@@ -158,8 +158,8 @@ export default function ContainerFleetView({
   return (
     <div className="space-y-6">
       
-      {/* Container Fleet KPI Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Container Fleet KPI Metrics (High Density 2-Col Mobile Grid) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {loading ? (
           <>
             <SkeletonKPICard />
@@ -169,88 +169,89 @@ export default function ContainerFleetView({
           </>
         ) : (
           <>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Total Containers Handled
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Total Containers
                   </p>
-                  <h3 className="text-2xl font-black font-display text-[#2b1f55] mt-2">
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-[#2b1f55] mt-1 sm:mt-2 truncate">
                     <AnimatedCounter value={displayStats.totalContainers} suffix=" Units" />
                   </h3>
-                  <p className="text-[11px] text-purple-700 font-semibold mt-1">
-                    <AnimatedCounter value={displayStats.totalTeus} suffix=" TEU Equivalent" />
+                  <p className="text-[9px] sm:text-[11px] text-purple-700 font-semibold mt-0.5 truncate">
+                    <AnimatedCounter value={displayStats.totalTeus} suffix=" TEU" />
                   </p>
                 </div>
-                <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs">
-                  <Container className="w-5 h-5" />
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs shrink-0">
+                  <Container className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Total Fleet Job Orders (FLEET_CONT_JO)
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Job Orders (JO)
                   </p>
-                  <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-blue-900 mt-1 sm:mt-2 truncate">
                     <AnimatedCounter value={displayStats.totalJobs} suffix=" Jobs" />
                   </h3>
-                  <p className="text-[11px] text-blue-700 font-semibold mt-1 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-blue-600" /> Multi-Modal Dispatch Mapped
+                  <p className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                    <CheckCircle2 className="w-3 h-3 text-blue-600 shrink-0" /> Multi-Modal
                   </p>
                 </div>
-                <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs">
-                  <Layers className="w-5 h-5" />
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs shrink-0">
+                  <Layers className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
             </div>
 
-            <div className={`bg-white p-5 rounded-2xl border shadow-soft hover-lift transition-all ${
+            <div className={`bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border shadow-soft hover-lift transition-all ${
               sizeFilter === '40' ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20' : 'border-slate-200'
             }`}>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    40 FT High-Cube Units (2 TEU)
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    40 FT High-Cube (2 TEU)
                   </p>
-                  <h3 className="text-2xl font-black font-display text-emerald-800 mt-2">
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-emerald-800 mt-1 sm:mt-2 truncate">
                     <AnimatedCounter value={displayStats.units40ft} suffix=" Units" />
                   </h3>
-                  <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {displayStats.totalContainers > 0 ? `${((displayStats.units40ft / displayStats.totalContainers) * 100).toFixed(1)}%` : '92.7%'} Primary Heavy Fleet
+                  <p className="text-[9px] sm:text-[11px] text-emerald-700 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" /> {displayStats.totalContainers > 0 ? `${((displayStats.units40ft / displayStats.totalContainers) * 100).toFixed(1)}%` : '92.7%'} Primary
                   </p>
                 </div>
-                <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs">
-                  <Truck className="w-5 h-5" />
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs shrink-0">
+                  <Truck className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
             </div>
 
-            <div className={`bg-white p-5 rounded-2xl border shadow-soft hover-lift transition-all ${
+            <div className={`bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border shadow-soft hover-lift transition-all ${
               sizeFilter === '20' ? 'border-orange-500 ring-2 ring-orange-500/20 bg-orange-50/20' : 'border-slate-200'
             }`}>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    20 FT Standard Units (1 TEU)
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    20 FT Units (1 TEU)
                   </p>
-                  <h3 className="text-2xl font-black font-display text-orange-600 mt-2 truncate">
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-orange-600 mt-1 sm:mt-2 truncate">
                     <AnimatedCounter value={displayStats.units20ft} suffix=" Units" />
                   </h3>
-                  <p className="text-[11px] text-slate-500 font-medium mt-1">
-                    {displayStats.totalContainers > 0 ? `${((displayStats.units20ft / displayStats.totalContainers) * 100).toFixed(1)}%` : '7.3%'} Active Across Terminals
+                  <p className="text-[9px] sm:text-[11px] text-slate-500 font-medium mt-0.5 truncate">
+                    {displayStats.totalContainers > 0 ? `${((displayStats.units20ft / displayStats.totalContainers) * 100).toFixed(1)}%` : '7.3%'} Active
                   </p>
                 </div>
-                <div className="p-3 rounded-2xl bg-orange-50 text-orange-600 border border-orange-200 shadow-xs">
-                  <MapPin className="w-5 h-5" />
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-orange-50 text-orange-600 border border-orange-200 shadow-xs shrink-0">
+                  <MapPin className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
             </div>
           </>
         )}
       </div>
+
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft space-y-4">
@@ -395,7 +396,95 @@ export default function ContainerFleetView({
           </div>
         </div>
 
-        <div className="overflow-x-auto min-h-[380px]">
+        {/* 📱 MOBILE VIEW: Compact Container Grid Cards (No horizontal sliding!) */}
+        <div className="md:hidden p-2.5 space-y-2 bg-slate-50/50">
+          {loading ? (
+            <div className="p-8 text-center text-slate-500">
+              <div className="flex flex-col items-center justify-center gap-2">
+                <div className="w-6 h-6 border-2 border-[#2b1f55] border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs font-semibold text-slate-600">Loading Containers...</span>
+              </div>
+            </div>
+          ) : paginatedContainers.length === 0 ? (
+            <div className="p-8 text-center text-slate-500">
+              <AlertCircle className="w-6 h-6 text-amber-500 mx-auto mb-1" />
+              <span className="text-xs font-bold text-slate-800 block">No Containers Found</span>
+            </div>
+          ) : (
+            paginatedContainers.map((row, idx) => {
+              const contNo = row.contNo || row.CONT_NO || '-';
+              const contSize = row.contSize || row.CONT_SIZE || '40';
+              const contType = row.contType || row.CONT_TYPE || 'DRY';
+              const tripType = row.tripType || row.TRIP_TYPE || 'Export';
+              const custName = row.customerName || row.CUSTOMER_NAME || 'Direct Merchant';
+              const termName = row.terminalName || row.TERMINAL_NAME || 'TRANSWORLD-DADRI';
+              const inDate = row.icdInDate || row.GATE_IN_DATE || '-';
+              const outDate = row.icdOutDate || row.GATE_OUT_DATE || '-';
+              const status = row.status || row.STATUS || 'Active';
+              const isOutward = status.includes('Outward') || status.includes('Dispatched');
+
+              return (
+                <div
+                  key={idx}
+                  className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-mono font-black text-[#2b1f55] bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                          {contNo}
+                        </span>
+                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold ${
+                          isOutward
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        }`}>
+                          {status}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
+                        In: {inDate} {outDate !== '-' ? `• Out: ${outDate}` : ''}
+                      </span>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="px-2 py-0.5 rounded-lg bg-orange-50 text-[#ea580c] border border-orange-200 text-xs font-black">
+                        {contSize} FT {contType}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase block truncate">Merchant / Client</span>
+                      <span className="font-bold text-slate-900 truncate block">{custName}</span>
+                    </div>
+
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase block truncate">Terminal</span>
+                      <span className="font-semibold text-slate-800 truncate block">{termName}</span>
+                    </div>
+
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase block truncate">Movement</span>
+                      <span className="font-semibold text-slate-700 truncate block">{tripType}</span>
+                    </div>
+
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase block truncate">Temp / Spec</span>
+                      <span className="font-semibold text-blue-700 truncate block">
+                        {contType === 'REEFER' ? '❄️ Cold Chain (-18°C)' : '📦 General Dry Cargo'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* 💻 DESKTOP VIEW: Full Table */}
+        <div className="hidden md:block overflow-x-auto min-h-[380px]">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
@@ -444,9 +533,8 @@ export default function ContainerFleetView({
                   const inDate = row.icdInDate || row.GATE_IN_DATE || '-';
                   const outDate = row.icdOutDate || row.GATE_OUT_DATE || '-';
                   const status = row.status || row.STATUS || 'Active';
-                  const seal = row.sealNo || row.SEAL_NO;
-                  const booking = row.bookingNo || row.BOOKING_NO;
                   const isOutward = status.includes('Outward') || status.includes('Dispatched');
+
                   const indexNum = (currentPage - 1) * pageSize + idx + 1;
 
                   return (

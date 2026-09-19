@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   BarChart3,
   TrendingUp, 
@@ -6,10 +6,12 @@ import {
   Container, 
   Truck, 
   Layers, 
-  RefreshCw,
-  LogOut,
-  User,
-  ShieldCheck
+  LogOut, 
+  User, 
+  ShieldCheck,
+  ChevronDown,
+  Menu,
+  X
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -21,6 +23,37 @@ export default function Navbar({
   currentUser,
   onLogout
 }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const navItems = [
+    { id: 'analytics', label: 'Branch Wise Analytics', shortLabel: 'Branch Wise', icon: TrendingUp },
+    { id: 'sales', label: 'Total Sales', shortLabel: 'Total Sales', icon: Receipt },
+    { id: 'containers', label: 'Container / Volumes', shortLabel: 'Containers', icon: Container },
+    { id: 'fleet', label: 'Fleet Operations', shortLabel: 'Fleet', icon: Truck },
+    { id: 'operations', label: 'Yard Operations', shortLabel: 'Yard Ops', icon: Layers },
+  ];
+
+  const currentItem = navItems.find(item => item.id === activeTab) || navItems[0];
+  const CurrentIcon = currentItem.icon;
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
+      }
+    }
+    if (mobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
       {/* Main Navbar */}
@@ -33,7 +66,10 @@ export default function Navbar({
               src="/logo.png" 
               alt="SPJ Group of Companies" 
               className="h-8 sm:h-12 lg:h-14 w-auto object-contain cursor-pointer" 
-              onClick={() => setActiveTab('analytics')}
+              onClick={() => {
+                setActiveTab('analytics');
+                setMobileMenuOpen(false);
+              }}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.style.display = 'none';
@@ -41,75 +77,75 @@ export default function Navbar({
             />
           </div>
 
-          {/* Navigation Tabs (Smooth horizontal touch scroll on mobile with no ugly scrollbars) */}
-          <nav className="flex items-center bg-slate-100/90 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-200 gap-0.5 sm:gap-1 overflow-x-auto no-scrollbar max-w-[60%] sm:max-w-none">
-            
-            {/* 1. Branch Wise Analytics */}
+          {/* 📱 MOBILE: Menu Dropdown Selector Button (Screen < lg) */}
+          <div className="relative lg:hidden" ref={menuRef}>
             <button
-              onClick={() => setActiveTab('analytics')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                activeTab === 'analytics'
-                  ? 'bg-[#2b1f55] text-white shadow-sm'
-                  : 'text-slate-600 hover:text-[#2b1f55] hover:bg-white'
-              }`}
+              onClick={() => setMobileMenuOpen(prev => !prev)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2b1f55] text-white rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all cursor-pointer border border-purple-800/40"
             >
-              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <span>Branch Wise</span>
-              <span className="hidden md:inline">Analytics</span>
+              <CurrentIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="font-extrabold truncate max-w-[110px] sm:max-w-[160px]">{currentItem.shortLabel}</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${mobileMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* 2. Total Sales */}
-            <button
-              onClick={() => setActiveTab('sales')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                activeTab === 'sales'
-                  ? 'bg-[#2b1f55] text-white shadow-sm'
-                  : 'text-slate-600 hover:text-[#2b1f55] hover:bg-white'
-              }`}
-            >
-              <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <span>Total Sales</span>
-            </button>
+            {/* Mobile Dropdown Menu Card */}
+            {mobileMenuOpen && (
+              <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 animate-scale-in">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-100">
+                  Select Dashboard Module
+                </div>
+                <div className="space-y-1 mt-1">
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-left ${
+                          isActive 
+                            ? 'bg-gradient-to-r from-[#2b1f55] to-[#453084] text-white shadow-sm' 
+                            : 'text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
+                          <span>{item.label}</span>
+                        </div>
+                        {isActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm"></span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
 
-            {/* 3. Container / Volumes */}
-            <button
-              onClick={() => setActiveTab('containers')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                activeTab === 'containers'
-                  ? 'bg-[#2b1f55] text-white shadow-sm'
-                  : 'text-slate-600 hover:text-[#2b1f55] hover:bg-white'
-              }`}
-            >
-              <Container className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <span>Containers</span>
-            </button>
-
-            {/* 4. Fleet */}
-            <button
-              onClick={() => setActiveTab('fleet')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                activeTab === 'fleet'
-                  ? 'bg-[#2b1f55] text-white shadow-sm'
-                  : 'text-slate-600 hover:text-[#2b1f55] hover:bg-white'
-              }`}
-            >
-              <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <span>Fleet</span>
-            </button>
-
-            {/* 5. Yard Operations */}
-            <button
-              onClick={() => setActiveTab('operations')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                activeTab === 'operations'
-                  ? 'bg-[#2b1f55] text-white shadow-sm'
-                  : 'text-slate-600 hover:text-[#2b1f55] hover:bg-white'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <span>Yard Ops</span>
-            </button>
-
+          {/* 💻 DESKTOP: Navigation Tabs (Screen >= lg) */}
+          <nav className="hidden lg:flex items-center bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'bg-[#2b1f55] text-white shadow-md'
+                      : 'text-slate-600 hover:text-[#2b1f55] hover:bg-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </nav>
 
           {/* Right Action: Admin User Profile & Sign Out */}
@@ -157,4 +193,5 @@ export default function Navbar({
     </header>
   );
 }
+
 

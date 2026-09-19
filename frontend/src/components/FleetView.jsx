@@ -156,8 +156,8 @@ export default function FleetView({
   return (
     <div className="space-y-6">
       
-      {/* 1. Fleet KPI Summary Cards (Oracle SPJLIVE Verified Figures) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 1. Fleet KPI Summary Cards (High Density 2-Col Mobile Grid) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {loading ? (
           <>
             <SkeletonKPICard />
@@ -167,78 +167,78 @@ export default function FleetView({
           </>
         ) : (
           <>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Total Fleet Vehicles & Equipment
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Total Fleet
                   </p>
-                  <h3 className="text-2xl font-black font-display text-[#2b1f55] mt-2">
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-[#2b1f55] mt-1 sm:mt-2 truncate">
                     <AnimatedCounter value={totalVehiclesCount} suffix=" Trucks" />
                   </h3>
-                  <p className="text-[11px] text-purple-700 font-semibold mt-1">
-                    Active Multimodal Commercial Fleet
+                  <p className="text-[9px] sm:text-[11px] text-purple-700 font-semibold mt-0.5 truncate">
+                    Multimodal Fleet
                   </p>
                 </div>
-                <div className="p-3 rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs">
-                  <Truck className="w-5 h-5" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    SPJ Own Dedicated Fleet (Vendor ID 0)
-                  </p>
-                  <h3 className="text-2xl font-black font-display text-emerald-800 mt-2">
-                    <AnimatedCounter value={ownFleetCount} suffix=" Multi-Axles" />
-                  </h3>
-                  <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Dedicated SPJ Fleet
-                  </p>
-                </div>
-                <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs">
-                  <ShieldCheck className="w-5 h-5" />
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs shrink-0">
+                  <Truck className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Partner Carrier Commercial Fleet
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    SPJ Own Fleet
                   </p>
-                  <h3 className="text-2xl font-black font-display text-blue-900 mt-2">
-                    <AnimatedCounter value={carrierFleetCount} suffix=" Vehicles" />
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-emerald-800 mt-1 sm:mt-2 truncate">
+                    <AnimatedCounter value={ownFleetCount} suffix=" Units" />
                   </h3>
-                  <p className="text-[11px] text-blue-700 font-semibold mt-1">
-                    Transworld, Allcargo, Concor & Others
+                  <p className="text-[9px] sm:text-[11px] text-emerald-700 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" /> SPJ Dedicated
                   </p>
                 </div>
-                <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs">
-                  <Navigation className="w-5 h-5" />
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs shrink-0">
+                  <ShieldCheck className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Transporter Carrier Networks
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Partner Carrier Fleet
                   </p>
-                  <h3 className="text-2xl font-black font-display text-amber-900 mt-2">
-                    <AnimatedCounter value={uniqueTransporters} suffix=" Networks" />
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-blue-900 mt-1 sm:mt-2 truncate">
+                    <AnimatedCounter value={carrierFleetCount} suffix=" Trucks" />
                   </h3>
-                  <p className="text-[11px] text-amber-700 font-semibold mt-1">
-                    SPJ Fleet & Key Logistics Partners
+                  <p className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 truncate">
+                    Transworld, Allcargo
                   </p>
                 </div>
-                <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 shadow-xs">
-                  <User className="w-5 h-5" />
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs shrink-0">
+                  <Navigation className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Carrier Networks
+                  </p>
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-amber-900 mt-1 sm:mt-2 truncate">
+                    <AnimatedCounter value={uniqueTransporters} suffix=" Nets" />
+                  </h3>
+                  <p className="text-[9px] sm:text-[11px] text-amber-700 font-semibold mt-0.5 truncate">
+                    Key Logistics Partners
+                  </p>
+                </div>
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 shadow-xs shrink-0">
+                  <User className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
             </div>

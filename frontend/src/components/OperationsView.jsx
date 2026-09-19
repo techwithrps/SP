@@ -83,10 +83,10 @@ export default function OperationsView({
   const crossStuffingList = (opsData?.crossStuffing || []).filter(filterRecord);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       
-      {/* Operations Quick Counters */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Operations Quick Counters (High Density 2-Col Mobile Grid) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
         {loading ? (
           <>
             <SkeletonKPICard />
@@ -98,118 +98,119 @@ export default function OperationsView({
           </>
         ) : (
           <>
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500">Cargo Gate-Ins</span>
-                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs">
-                  <ArrowDownRight className="w-4 h-4" />
+            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Gate-Ins</span>
+                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs shrink-0">
+                  <ArrowDownRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
                 <AnimatedCounter value={isFiltered ? gateInsList.length : (stats.totalGateIn || 655)} />
               </div>
-              <div className="text-[11px] text-emerald-700 font-semibold mt-1">Vehicles Inward</div>
+              <div className="text-[9px] sm:text-[11px] text-emerald-700 font-semibold mt-0.5 truncate">Inward</div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500">Vehicle Outward</span>
-                <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs">
-                  <ArrowUpRight className="w-4 h-4" />
+            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Vehicle Outward</span>
+                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs shrink-0">
+                  <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
                 <AnimatedCounter value={isFiltered ? gateOutsList.length : (stats.totalGateOut || 806)} />
               </div>
-              <div className="text-[11px] text-blue-700 font-semibold mt-1">Dispatched Fleet</div>
+              <div className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 truncate">Dispatched</div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500">Dispatch Notes</span>
-                <div className="p-2 rounded-xl bg-orange-50 text-[#ff6a00] border border-orange-200 shadow-xs">
-                  <FileCheck className="w-4 h-4" />
+            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Dispatches</span>
+                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-orange-50 text-[#ff6a00] border border-orange-200 shadow-xs shrink-0">
+                  <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
                 <AnimatedCounter value={isFiltered ? dispatchesList.length : (stats.totalDispatches || 427)} />
               </div>
-              <div className="text-[11px] text-orange-700 font-semibold mt-1">Cold Chain Orders</div>
+              <div className="text-[9px] sm:text-[11px] text-orange-700 font-semibold mt-0.5 truncate">Cold Chain</div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500">Picklists</span>
-                <div className="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 shadow-xs">
-                  <Layers className="w-4 h-4" />
+            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Picklists</span>
+                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-purple-50 text-purple-600 border border-purple-200 shadow-xs shrink-0">
+                  <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
                 <AnimatedCounter value={isFiltered ? picklistsList.length : (stats.totalPicklists || 395)} />
               </div>
-              <div className="text-[11px] text-purple-700 font-semibold mt-1">Picked Items Tracked</div>
+              <div className="text-[9px] sm:text-[11px] text-purple-700 font-semibold mt-0.5 truncate">Picked Items</div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500">ASN Notices</span>
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-xs">
-                  <Package className="w-4 h-4" />
+            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">ASN Notices</span>
+                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-xs shrink-0">
+                  <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
                 <AnimatedCounter value={isFiltered ? asnsList.length : (stats.totalASNs || 322)} />
               </div>
-              <div className="text-[11px] text-indigo-700 font-semibold mt-1">Advanced Shipping</div>
+              <div className="text-[9px] sm:text-[11px] text-indigo-700 font-semibold mt-0.5 truncate">Shipping</div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500">Cross Stuffing</span>
-                <div className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 shadow-xs">
-                  <Container className="w-4 h-4" />
+            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Cross Stuffing</span>
+                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 border border-amber-200 shadow-xs shrink-0">
+                  <Container className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="text-2xl font-black font-display text-slate-900 mt-2">
+              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
                 <AnimatedCounter value={isFiltered ? crossStuffingList.length : (stats.totalCrossStuffing || 56)} />
               </div>
-              <div className="text-[11px] text-amber-700 font-semibold mt-1">Transfers Executed</div>
+              <div className="text-[9px] sm:text-[11px] text-amber-700 font-semibold mt-0.5 truncate">Transfers</div>
             </div>
           </>
         )}
       </div>
 
       {/* Sub-tab switcher & Filters */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
         
         {/* Left: Sub-tabs */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full lg:w-auto py-0.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-200/80 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-300">
             {[
-              { key: 'gateIn', label: `Cargo Gate-In (${isFiltered ? gateInsList.length : (stats.totalGateIn || 655)})`, icon: ArrowDownRight },
-              { key: 'dispatch', label: `Dispatches & Temps (${isFiltered ? dispatchesList.length : (stats.totalDispatches || 427)})`, icon: Thermometer },
-              { key: 'gateOut', label: `Vehicle Outward (${isFiltered ? gateOutsList.length : (stats.totalGateOut || 806)})`, icon: ArrowUpRight },
-              { key: 'cross', label: `Cross Stuffing (${isFiltered ? crossStuffingList.length : (stats.totalCrossStuffing || 56)})`, icon: Container },
-              { key: 'asn', label: `ASN Inward (${isFiltered ? asnsList.length : (stats.totalASNs || 322)})`, icon: Package },
+              { key: 'gateIn', label: `Gate-In (${isFiltered ? gateInsList.length : (stats.totalGateIn || 655)})`, icon: ArrowDownRight },
+              { key: 'dispatch', label: `Dispatches (${isFiltered ? dispatchesList.length : (stats.totalDispatches || 427)})`, icon: Thermometer },
+              { key: 'gateOut', label: `Outward (${isFiltered ? gateOutsList.length : (stats.totalGateOut || 806)})`, icon: ArrowUpRight },
+              { key: 'cross', label: `Cross (${isFiltered ? crossStuffingList.length : (stats.totalCrossStuffing || 56)})`, icon: Container },
+              { key: 'asn', label: `ASN (${isFiltered ? asnsList.length : (stats.totalASNs || 322)})`, icon: Package },
             ].map(tab => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.key}
                   onClick={() => setActiveSubTab(tab.key)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                     activeSubTab === tab.key
-                      ? 'bg-[#2b1f55] text-white shadow-sm'
+                      ? 'bg-[#2b1f55] text-white shadow-xs'
                       : 'text-slate-700 hover:text-[#2b1f55] hover:bg-white'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   {tab.label}
                 </button>
               );
             })}
           </div>
         </div>
+
 
         <button
           onClick={fetchOperations}
