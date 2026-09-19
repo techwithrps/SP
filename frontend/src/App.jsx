@@ -80,14 +80,16 @@ export default function App() {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      if (filters.companyId && filters.companyId !== 'all') queryParams.append('companyId', filters.companyId);
-      if (filters.terminalId && filters.terminalId !== 'all') queryParams.append('terminalId', filters.terminalId);
-      if (filters.customerId && filters.customerId !== 'all') queryParams.append('customerId', filters.customerId);
-      if (filters.serviceId && filters.serviceId !== 'all') queryParams.append('serviceId', filters.serviceId);
-      if (filters.tripType && filters.tripType !== 'all') queryParams.append('tripType', filters.tripType);
-      if (filters.contNo) queryParams.append('contNo', filters.contNo);
-      if (filters.blNo) queryParams.append('blNo', filters.blNo);
-      if (filters.search) queryParams.append('search', filters.search);
+      if (filters.companyId && filters.companyId !== 'all' && filters.companyId !== 'ALL') queryParams.append('companyId', filters.companyId);
+      if (filters.terminalId && filters.terminalId !== 'all' && filters.terminalId !== 'ALL') queryParams.append('terminalId', filters.terminalId);
+      if (filters.customerId && filters.customerId !== 'all' && filters.customerId !== 'ALL') queryParams.append('customerId', filters.customerId);
+      if (filters.serviceId && filters.serviceId !== 'all' && filters.serviceId !== 'ALL') queryParams.append('serviceId', filters.serviceId);
+      if (filters.tripType && filters.tripType !== 'all' && filters.tripType !== 'ALL') queryParams.append('tripType', filters.tripType);
+      if (filters.size && filters.size !== 'all' && filters.size !== 'ALL') queryParams.append('size', filters.size);
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') queryParams.append('financialYear', selectedFY);
+      if (filters.contNo && filters.contNo.trim() !== '') queryParams.append('contNo', filters.contNo.trim());
+      if (filters.blNo && filters.blNo.trim() !== '') queryParams.append('blNo', filters.blNo.trim());
+      if (filters.search && filters.search.trim() !== '') queryParams.append('search', filters.search.trim());
 
       const res = await fetch(`/api/cir-report?${queryParams.toString()}`);
       const json = await res.json();
@@ -101,7 +103,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, selectedFY]);
 
   useEffect(() => {
     fetchInitialData();
