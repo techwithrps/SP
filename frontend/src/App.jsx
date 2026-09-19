@@ -241,8 +241,10 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-3 sm:space-y-6">
         
-        {/* SPJ Global Highlight Banner across all pages with animated gradient and floating icons */}
-        <div className="bg-gradient-to-r from-[#180f38] via-[#2b1f55] to-[#3e1e68] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 sm:gap-6 animate-fade-in hover-lift border border-purple-500/20">
+        {/* SPJ Global Highlight Banner (Visible on all tabs on Desktop, but ONLY on 'Branch Wise Analytics' on Mobile) */}
+        <div className={`bg-gradient-to-r from-[#180f38] via-[#2b1f55] to-[#3e1e68] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-card flex-col lg:flex-row items-start lg:items-center justify-between gap-3 sm:gap-6 animate-fade-in hover-lift border border-purple-500/20 ${
+          activeTab === 'analytics' ? 'flex' : 'hidden lg:flex'
+        }`}>
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 animate-float shadow-lg shadow-purple-950/50">
               <Globe2 className="w-4 h-4 sm:w-6 sm:h-6 text-amber-400" />

@@ -83,17 +83,17 @@ export default function LoginPage({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col lg:flex-row bg-slate-950 font-sans selection:bg-[#ff6a00] selection:text-white">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-950 font-sans selection:bg-[#ff6a00] selection:text-white">
       
       {/* Left Hero Brand Panel */}
-      <div className="relative lg:w-[58%] xl:w-[62%] min-h-[180px] sm:min-h-[260px] lg:min-h-screen bg-slate-950 flex flex-col justify-between p-3.5 sm:p-8 lg:p-14 overflow-hidden">
+      <div className="relative lg:w-[56%] xl:w-[60%] shrink-0 bg-slate-950 flex flex-col justify-between p-4 sm:p-8 lg:p-14 overflow-hidden">
         
         {/* Background Port Image with Smooth Rich Gradient */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
           style={{ backgroundImage: "url('/login-bg.jpg')" }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/80 to-[#2b1f55]/60"></div>
+          <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-slate-950/90 via-slate-950/80 to-[#2b1f55]/70"></div>
         </div>
 
         {/* Ambient Subtle Glow */}
@@ -101,11 +101,11 @@ export default function LoginPage({ onLoginSuccess }) {
 
         {/* Top Header on Left Panel */}
         <div className="relative z-10 flex items-center justify-between gap-2">
-          <div className="bg-white/95 backdrop-blur-md px-2.5 py-1 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-lg flex items-center shrink-0">
+          <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-lg flex items-center shrink-0">
             <img 
               src="/logo.png" 
               alt="SPJ Group of Companies" 
-              className="h-6 sm:h-9 lg:h-11 max-w-[100px] sm:max-w-none w-auto object-contain" 
+              className="h-7 sm:h-9 lg:h-11 w-auto object-contain" 
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.style.display = 'none';
@@ -113,12 +113,12 @@ export default function LoginPage({ onLoginSuccess }) {
             />
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[8px] sm:text-xs font-semibold text-purple-200">
-              <ShieldCheck className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-emerald-400" />
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[9px] sm:text-xs font-semibold text-purple-200">
+              <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" />
               256-Bit SSL
             </span>
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[8px] sm:text-xs font-bold">
+            <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[9px] sm:text-xs font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
               LIVE
             </span>
@@ -126,25 +126,25 @@ export default function LoginPage({ onLoginSuccess }) {
         </div>
 
         {/* Middle Value Proposition Hero Content */}
-        <div className="relative z-10 max-w-xl my-auto py-2.5 sm:py-8 space-y-2 sm:space-y-5">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg sm:rounded-xl bg-orange-500/20 border border-orange-500/30 text-[#ff8a3d] text-[10px] sm:text-[11px] font-black tracking-wide uppercase">
+        <div className="relative z-10 max-w-xl my-auto py-4 sm:py-8 space-y-2.5 sm:space-y-5">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1 rounded-lg sm:rounded-xl bg-orange-500/20 border border-orange-500/30 text-[#ff8a3d] text-[10px] sm:text-[11px] font-black tracking-wide uppercase">
             <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             Intelligence & Revenue Dashboard
           </div>
 
-          <h1 className="text-xl sm:text-3xl lg:text-5xl font-black font-display text-white tracking-tight leading-[1.15]">
+          <h1 className="text-xl sm:text-3xl lg:text-5xl font-black font-display text-white tracking-tight leading-tight">
             Global Logistics & Real-time Yard Movement
           </h1>
 
-          <p className="text-[11px] sm:text-sm lg:text-base text-slate-300 font-normal leading-relaxed line-clamp-2 sm:line-clamp-none">
+          <p className="text-xs sm:text-sm lg:text-base text-slate-300 font-normal leading-relaxed">
             Live multimodal container operations, freight invoicing analytics, and fleet intelligence across 39 terminals nationwide.
           </p>
 
           {/* Quick Metrics Grid */}
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-3 pt-1 sm:pt-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-1 sm:pt-3">
             <div className="p-2 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
               <div className="text-sm sm:text-2xl font-black text-white font-display">89,249</div>
-              <div className="text-[8px] sm:text-[11px] font-medium text-slate-300">Active Units</div>
+              <div className="text-[9px] sm:text-[11px] font-medium text-slate-300">Active Units</div>
             </div>
 
             <div className="p-2 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
@@ -154,7 +154,7 @@ export default function LoginPage({ onLoginSuccess }) {
 
             <div className="p-2 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
               <div className="text-sm sm:text-2xl font-black text-white font-display">39</div>
-              <div className="text-[8px] sm:text-[11px] font-medium text-slate-300">Terminals</div>
+              <div className="text-[9px] sm:text-[11px] font-medium text-slate-300">Terminals</div>
             </div>
           </div>
         </div>
@@ -167,8 +167,8 @@ export default function LoginPage({ onLoginSuccess }) {
 
       </div>
 
-      {/* Right Login Form Panel */}
-      <div className="lg:w-[42%] xl:w-[38%] bg-white flex flex-col justify-between p-4 sm:p-8 lg:p-14 rounded-t-2xl sm:rounded-t-3xl lg:rounded-none -mt-3 sm:-mt-6 lg:mt-0 relative z-20 shadow-2xl">
+      {/* Right Login Form Panel - Flex 1 on mobile to cleanly fill entire screen bottom */}
+      <div className="flex-1 lg:w-[44%] xl:w-[40%] bg-white flex flex-col justify-between p-5 sm:p-8 lg:p-14 rounded-t-3xl lg:rounded-none -mt-4 lg:mt-0 relative z-20 shadow-2xl min-h-[420px]">
         
         {/* Top Spacer */}
         <div className="hidden lg:block"></div>
