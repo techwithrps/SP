@@ -11,6 +11,43 @@ import AnalyticsCharts from './components/AnalyticsCharts';
 import OperationsView from './components/OperationsView';
 import InvoiceDetailModal from './components/InvoiceDetailModal';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('App Error caught by ErrorBoundary:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-6">
+          <div className="max-w-md w-full bg-slate-800 p-6 rounded-3xl border border-slate-700 text-center space-y-4">
+            <h3 className="text-lg font-bold text-rose-400">Dashboard View Render Warning</h3>
+            <p className="text-xs text-slate-300">
+              {this.state.error?.message || 'An unexpected rendering state occurred while updating views.'}
+            </p>
+            <button
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                window.location.reload();
+              }}
+              className="px-4 py-2 bg-[#ff6a00] hover:bg-[#e05d00] text-white rounded-xl text-xs font-bold transition-all shadow-md"
+            >
+              Reload Dashboard
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   // Default Initial Page: Branch Wise Analytics
   const [activeTab, setActiveTab] = useState('analytics');
@@ -236,91 +273,94 @@ export default function App() {
           activeTab={activeTab}
         />
 
-        {/* Tab 1: Branch Wise Analytics */}
-        {activeTab === 'analytics' && (
-          <div className="space-y-6">
-            <AnalyticsCharts
-              selectedTerminal={selectedTerminal}
-              setSelectedTerminal={handleSetSelectedTerminal}
-              selectedFY={selectedFY}
-              setSelectedFY={setSelectedFY}
-            />
-          </div>
-        )}
+        {/* Tab Content wrapped in ErrorBoundary */}
+        <ErrorBoundary>
+          {/* Tab 1: Branch Wise Analytics */}
+          {activeTab === 'analytics' && (
+            <div className="space-y-6">
+              <AnalyticsCharts
+                selectedTerminal={selectedTerminal}
+                setSelectedTerminal={handleSetSelectedTerminal}
+                selectedFY={selectedFY}
+                setSelectedFY={setSelectedFY}
+              />
+            </div>
+          )}
 
-        {/* Tab 2: Total Sales */}
-        {activeTab === 'sales' && (
-          <div className="space-y-6">
-            <KPICards kpis={kpis} loading={loading} />
+          {/* Tab 2: Total Sales */}
+          {activeTab === 'sales' && (
+            <div className="space-y-6">
+              <KPICards kpis={kpis} loading={loading} />
 
-            <FilterBar
-              filters={filters}
-              setFilters={setFilters}
-              masters={{
-                ...masters,
-                terminals: allTerminals.length > 0 ? allTerminals : (masters.terminals || [])
-              }}
-              records={records}
-              selectedTerminal={selectedTerminal}
-              setSelectedTerminal={handleSetSelectedTerminal}
-              selectedFY={selectedFY}
-              setSelectedFY={setSelectedFY}
-              financialYears={financialYears}
-              onReset={handleResetFilters}
-              onExport={handleExportExcel}
-              loading={loading}
-              totalRecords={kpis.totalRecords || records.length}
-            />
+              <FilterBar
+                filters={filters}
+                setFilters={setFilters}
+                masters={{
+                  ...masters,
+                  terminals: allTerminals.length > 0 ? allTerminals : (masters.terminals || [])
+                }}
+                records={records}
+                selectedTerminal={selectedTerminal}
+                setSelectedTerminal={handleSetSelectedTerminal}
+                selectedFY={selectedFY}
+                setSelectedFY={setSelectedFY}
+                financialYears={financialYears}
+                onReset={handleResetFilters}
+                onExport={handleExportExcel}
+                loading={loading}
+                totalRecords={kpis.totalRecords || records.length}
+              />
 
-            <CIRTable
-              records={records}
-              loading={loading}
-              onSelectRecord={setSelectedRecord}
-            />
-          </div>
-        )}
+              <CIRTable
+                records={records}
+                loading={loading}
+                onSelectRecord={setSelectedRecord}
+              />
+            </div>
+          )}
 
-        {/* Tab 3: Container / Volumes */}
-        {activeTab === 'containers' && (
-          <div className="space-y-6">
-            <ContainerFleetView
-              selectedTerminal={selectedTerminal}
-              setSelectedTerminal={handleSetSelectedTerminal}
-              selectedFY={selectedFY}
-              setSelectedFY={setSelectedFY}
-              terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
-              financialYears={financialYears}
-            />
-          </div>
-        )}
+          {/* Tab 3: Container / Volumes */}
+          {activeTab === 'containers' && (
+            <div className="space-y-6">
+              <ContainerFleetView
+                selectedTerminal={selectedTerminal}
+                setSelectedTerminal={handleSetSelectedTerminal}
+                selectedFY={selectedFY}
+                setSelectedFY={setSelectedFY}
+                terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+                financialYears={financialYears}
+              />
+            </div>
+          )}
 
-        {/* Tab 4: Fleet */}
-        {activeTab === 'fleet' && (
-          <div className="space-y-6">
-            <FleetView
-              selectedTerminal={selectedTerminal}
-              setSelectedTerminal={handleSetSelectedTerminal}
-              selectedFY={selectedFY}
-              setSelectedFY={setSelectedFY}
-              terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
-              financialYears={financialYears}
-            />
-          </div>
-        )}
+          {/* Tab 4: Fleet */}
+          {activeTab === 'fleet' && (
+            <div className="space-y-6">
+              <FleetView
+                selectedTerminal={selectedTerminal}
+                setSelectedTerminal={handleSetSelectedTerminal}
+                selectedFY={selectedFY}
+                setSelectedFY={setSelectedFY}
+                terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+                financialYears={financialYears}
+              />
+            </div>
+          )}
 
-        {/* Tab 5: Yard Operations */}
-        {activeTab === 'operations' && (
-          <div className="space-y-6">
-            <OperationsView
-              selectedTerminal={selectedTerminal}
-              setSelectedTerminal={handleSetSelectedTerminal}
-              selectedFY={selectedFY}
-              setSelectedFY={setSelectedFY}
-              terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
-              financialYears={financialYears}
-            />
-          </div>
-        )}
+          {/* Tab 5: Yard Operations */}
+          {activeTab === 'operations' && (
+            <div className="space-y-6">
+              <OperationsView
+                selectedTerminal={selectedTerminal}
+                setSelectedTerminal={handleSetSelectedTerminal}
+                selectedFY={selectedFY}
+                setSelectedFY={setSelectedFY}
+                terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+                financialYears={financialYears}
+              />
+            </div>
+          )}
+        </ErrorBoundary>
 
       </main>
 

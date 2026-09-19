@@ -107,8 +107,8 @@ export default function AnalyticsCharts({
 
   // Compute dynamic metrics based on selectedTerminal & selectedFY
   const dynamicMetrics = useMemo(() => {
-    const isAllTerminals = selectedTerminal === 'ALL';
-    const isAllFY = selectedFY === 'ALL';
+    const isAllTerminals = !selectedTerminal || selectedTerminal === 'ALL' || selectedTerminal === 'all';
+    const isAllFY = !selectedFY || selectedFY === 'ALL' || selectedFY === 'all';
 
     // 1. All Terminals + All FYs (Grand Cumulative Enterprise Totals)
     if (isAllTerminals && isAllFY) {
@@ -126,7 +126,7 @@ export default function AnalyticsCharts({
         units20ft: dbTotals.units20ft || 6508,
         teus: dbTotals.totalTeus || 171984,
         ownFleet: dbTotals.activeOwnVehicles || 236,
-        activeTerminals: terminals.filter(t => t.totalContainers > 0).length || 29,
+        activeTerminals: terminals.filter(t => (t.totalContainers || 0) > 0).length || 29,
         totalTerminals: terminals.length || 39
       };
     }
@@ -148,14 +148,17 @@ export default function AnalyticsCharts({
         units20ft: fySum.units20ft || 0,
         teus: fySum.teus || 0,
         ownFleet: dbTotals.activeOwnVehicles || 236,
-        activeTerminals: terminals.filter(t => t.totalContainers > 0).length || 29,
+        activeTerminals: terminals.filter(t => (t.totalContainers || 0) > 0).length || 29,
         totalTerminals: terminals.length || 39
       };
     }
 
     // 3. Specific Terminal + All FYs
-    const tId = Number(selectedTerminal);
-    const termObj = terminals.find(t => t.terminalId === tId) || {};
+    const termObj = terminals.find(t => 
+      String(t.terminalId) === String(selectedTerminal) ||
+      (t.terminalName && String(t.terminalName).toLowerCase() === String(selectedTerminal).toLowerCase())
+    ) || {};
+    const tId = termObj.terminalId || Number(selectedTerminal) || 0;
 
     if (!isAllTerminals && isAllFY) {
       return {
@@ -178,7 +181,10 @@ export default function AnalyticsCharts({
     }
 
     // 4. Specific Terminal + Specific FY (Direct Matrix Lookup)
-    const m = terminalFyMatrix.find(x => x.terminalId === tId && x.fy === selectedFY) || {};
+    const m = terminalFyMatrix.find(x => 
+      (x.terminalId === tId || String(x.terminalId) === String(selectedTerminal)) && 
+      x.fy === selectedFY
+    ) || {};
     return {
       grossSale: m.netRevenue || 0,
       billAmount: m.billAmount || 0,
@@ -192,7 +198,7 @@ export default function AnalyticsCharts({
       units40ft: m.units40ft || 0,
       units20ft: m.units20ft || 0,
       teus: m.teus || 0,
-      ownFleet: tId === 31 ? 168 : (tId === 5 ? 32 : 12),
+      ownFleet: tId === 31 ? 168 : (tId === 5 ? 32 : (tId === 25 ? 18 : 12)),
       activeTerminals: 1,
       totalTerminals: 1
     };
@@ -270,7 +276,7 @@ export default function AnalyticsCharts({
       { fy: 'FY 2026-27', label: '2026-27' },
     ];
     return list.map(item => {
-      const isAll = selectedTerminal === 'ALL';
+      const isAll = !selectedTerminal || selectedTerminal === 'ALL' || selectedTerminal === 'all';
       let gross = 0;
       let bill = 0;
       let cr = 0;
@@ -285,8 +291,15 @@ export default function AnalyticsCharts({
         invCount = sum.invoiceCount || 0;
         net = sum.netRevenue || (gross - cr);
       } else {
-        const tId = Number(selectedTerminal);
-        const m = terminalFyMatrix.find(x => x.terminalId === tId && x.fy === item.fy) || {};
+        const termObj = terminals.find(t => 
+          String(t.terminalId) === String(selectedTerminal) ||
+          (t.terminalName && String(t.terminalName).toLowerCase() === String(selectedTerminal).toLowerCase())
+        ) || {};
+        const tId = termObj.terminalId || Number(selectedTerminal) || 0;
+        const m = terminalFyMatrix.find(x => 
+          (x.terminalId === tId || String(x.terminalId) === String(selectedTerminal)) && 
+          x.fy === item.fy
+        ) || {};
         gross = m.grossSale || 0;
         bill = m.billAmount || 0;
         cr = m.creditAmount || 0;
@@ -302,21 +315,24 @@ export default function AnalyticsCharts({
         invoiceCount: invCount
       };
     });
-  }, [selectedTerminal, fySummaries, terminalFyMatrix]);
+  }, [selectedTerminal, terminals, fySummaries, terminalFyMatrix]);
 
   // Top 8 Terminals Volume & Revenue for Bar Chart (Directly derived from displayTerminals so it updates on FY change!)
   const topTerminalsChart = useMemo(() => {
-    return displayTerminals
+    return (displayTerminals || [])
       .filter(t => (t.displayContainers > 0 || t.netRevenue > 0))
-      .sort((a, b) => b.netRevenue - a.netRevenue)
+      .sort((a, b) => (b.netRevenue || 0) - (a.netRevenue || 0))
       .slice(0, 8)
-      .map(t => ({
-        name: t.terminalName.length > 14 ? t.terminalName.substring(0, 12) + '..' : t.terminalName,
-        fullName: t.terminalName,
-        revenue: t.netRevenue,
-        containers: t.displayContainers,
-        teus: t.displayTeus
-      }));
+      .map(t => {
+        const nameStr = t.terminalName || `Terminal ${t.terminalId}`;
+        return {
+          name: nameStr.length > 14 ? nameStr.substring(0, 12) + '..' : nameStr,
+          fullName: nameStr,
+          revenue: t.netRevenue || 0,
+          containers: t.displayContainers || 0,
+          teus: t.displayTeus || 0
+        };
+      });
   }, [displayTerminals]);
 
   const handleExportExcel = () => {
@@ -351,15 +367,20 @@ export default function AnalyticsCharts({
 
   const CustomChartTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      const first = payload[0] || {};
+      const titleLabel = label || first.payload?.fullName || first.payload?.name || first.name || 'Metrics';
       return (
         <div className="bg-[#2b1f55] text-white p-3 rounded-xl shadow-2xl border border-purple-800 text-xs">
-          <p className="font-bold text-orange-400 mb-1">{label || payload[0].payload?.fullName || payload[0].name}</p>
-          {payload.map((p, idx) => (
-            <p key={idx} className="font-mono text-slate-200">
-              <span className="font-bold" style={{ color: p.color || '#fff' }}>{p.name}: </span>
-              {typeof p.value === 'number' && p.value > 1000 ? formatCurrency(p.value) : formatNumber(p.value)}
-            </p>
-          ))}
+          <p className="font-bold text-orange-400 mb-1">{titleLabel}</p>
+          {payload.map((p, idx) => {
+            const valNum = Number(p.value) || 0;
+            return (
+              <p key={idx} className="font-mono text-slate-200">
+                <span className="font-bold" style={{ color: p.color || '#fff' }}>{p.name}: </span>
+                {valNum > 1000 ? formatCurrency(valNum) : formatNumber(valNum)}
+              </p>
+            );
+          })}
         </div>
       );
     }

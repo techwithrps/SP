@@ -220,13 +220,13 @@ export default function GlobalFilterBar({
           <span className={`inline-flex items-center font-bold px-2.5 py-1 rounded-lg border ${
             selectedTerminal === 'ALL'
               ? 'text-[#2b1f55] bg-purple-100/70 border-purple-200'
-              : (selectedTerminalObj && !hasData(selectedTerminalObj)
+              : (selectedTerminalObj && (selectedTerminalObj.currentStats?.totalContainers === 0 && selectedTerminalObj.currentStats?.netRevenue === 0)
                   ? 'text-rose-700 bg-rose-100/80 border-rose-300'
                   : 'text-[#2b1f55] bg-purple-100/70 border-purple-200')
           }`}>
             {selectedTerminal === 'ALL' 
               ? 'All 39 Terminals & Ports' 
-              : `${selectedTerminalObj && !hasData(selectedTerminalObj) ? '🔴 ' : '🟢 '}${selectedTerminalObj?.terminalName || `Terminal ${selectedTerminal}`}`}
+              : `${selectedTerminalObj && (selectedTerminalObj.currentStats?.totalContainers === 0 && selectedTerminalObj.currentStats?.netRevenue === 0) ? '🔴 ' : '🟢 '}${selectedTerminalObj?.terminalName || `Terminal ${selectedTerminal}`}`}
           </span>
 
           <span className="text-slate-400 font-bold">&bull;</span>
