@@ -252,18 +252,9 @@ export default function FleetView({
       {/* 2. Search & Toolbar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         
-        {/* Left: Compact Terminal & FY Filters (SABSE AAGEY) + Search */}
+        {/* Left: Search Input */}
         <div className="flex flex-wrap items-center gap-3 flex-1">
-          <CompactFilterGroup
-            selectedTerminal={selectedTerminal}
-            setSelectedTerminal={setSelectedTerminal}
-            selectedFY={selectedFY}
-            setSelectedFY={setSelectedFY}
-            terminals={terminals}
-            financialYears={financialYears}
-          />
-
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-[280px]">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"

@@ -41,7 +41,10 @@ export default function ContainerFleetView({
   const fetchContainers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/containers');
+      const queryParams = new URLSearchParams();
+      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') queryParams.append('terminalId', selectedTerminal);
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') queryParams.append('financialYear', selectedFY);
+      const res = await fetch(`/api/containers?${queryParams.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);
@@ -55,7 +58,7 @@ export default function ContainerFleetView({
 
   useEffect(() => {
     fetchContainers();
-  }, []);
+  }, [selectedTerminal, selectedFY]);
 
   const containers = data?.containers || [];
   const baseStats = data?.stats || {};
@@ -139,33 +142,22 @@ export default function ContainerFleetView({
     );
   }, [terminals, selectedTerminal]);
 
-  // Exact Verified Totals
+  // Exact Dynamic Totals
   const displayStats = useMemo(() => {
-    if (activeTerminalMeta) {
-      const totCont = activeTerminalMeta.totalContainers || 0;
-      const u40 = activeTerminalMeta.units40ft || (totCont > 0 ? Math.round(totCont * 0.927) : 0);
-      const u20 = activeTerminalMeta.units20ft || (totCont - u40);
-      const teus = activeTerminalMeta.teus || (u40 * 2 + u20);
-      const jobs = activeTerminalMeta.totalJobs || totCont;
-      return {
-        totalContainers: totCont,
-        units40ft: u40,
-        units20ft: u20,
-        totalTeus: teus,
-        totalJobs: jobs,
-        isTerminalSpecific: true
-      };
-    }
+    const totCont = baseStats.totalDBContainers !== undefined ? baseStats.totalDBContainers : (filteredContainers.length || 0);
+    const u40 = baseStats.units40ft !== undefined ? baseStats.units40ft : Math.round(totCont * 0.927);
+    const u20 = baseStats.units20ft !== undefined ? baseStats.units20ft : (totCont - u40);
+    const teus = baseStats.totalDBTeus !== undefined ? baseStats.totalDBTeus : (u40 * 2 + u20);
+    const jobs = baseStats.totalDBJobs !== undefined ? baseStats.totalDBJobs : totCont;
 
     return {
-      totalContainers: baseStats.totalDBContainers || 89245,
-      units40ft: baseStats.units40ft || 82734,
-      units20ft: baseStats.units20ft || 6508,
-      totalTeus: baseStats.totalDBTeus || 171976,
-      totalJobs: baseStats.totalDBJobs || 88361,
-      isTerminalSpecific: false
+      totalContainers: totCont,
+      units40ft: u40,
+      units20ft: u20,
+      totalTeus: teus,
+      totalJobs: jobs,
     };
-  }, [activeTerminalMeta, baseStats]);
+  }, [baseStats, filteredContainers]);
 
   const totalPages = Math.ceil(filteredContainers.length / pageSize) || 1;
   const paginatedContainers = useMemo(() => {
@@ -184,7 +176,7 @@ export default function ContainerFleetView({
   return (
     <div className="space-y-6">
       
-      {/* Container Fleet KPI Metrics (Exact Oracle SPJLIVE DB Figures) */}
+      {/* Container Fleet KPI Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft">
@@ -273,19 +265,9 @@ export default function ContainerFleetView({
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-soft space-y-4">
         
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-          {/* Left: Compact Terminal & FY Filters (SABSE AAGEY) + Search */}
+          {/* Left: Search Bar */}
           <div className="flex flex-wrap items-center gap-3 flex-1">
-            <CompactFilterGroup
-              selectedTerminal={selectedTerminal}
-              setSelectedTerminal={setSelectedTerminal}
-              selectedFY={selectedFY}
-              setSelectedFY={setSelectedFY}
-              terminals={terminals}
-              financialYears={financialYears}
-            />
-
-            {/* Search */}
-            <div className="relative flex-1 min-w-[220px]">
+            <div className="relative flex-1 min-w-[280px]">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"

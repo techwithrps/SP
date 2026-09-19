@@ -169,17 +169,8 @@ export default function OperationsView({
       {/* Sub-tab switcher & Filters */}
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         
-        {/* Left: Compact Terminal & FY Filters (SABSE AAGEY) + Sub-tabs */}
+        {/* Left: Sub-tabs */}
         <div className="flex flex-wrap items-center gap-3">
-          <CompactFilterGroup
-            selectedTerminal={selectedTerminal}
-            setSelectedTerminal={setSelectedTerminal}
-            selectedFY={selectedFY}
-            setSelectedFY={setSelectedFY}
-            terminals={terminals}
-            financialYears={financialYears}
-          />
-
           <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300">
             {[
               { key: 'gateIn', label: `Cargo Gate-In (${isFiltered ? gateInsList.length : (stats.totalGateIn || 655)})`, icon: ArrowDownRight },

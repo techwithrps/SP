@@ -220,7 +220,7 @@ export default function FilterBar({
         {/* Counter and Action Buttons */}
         <div className="flex items-center gap-3 w-full md:w-auto justify-end">
           <div className="text-xs text-slate-600 font-semibold bg-slate-100 px-3.5 py-2 rounded-xl border border-slate-200">
-            Total Results: <span className="text-[#2b1f55] font-black">{totalRecords}</span>
+            Total Results: <span className="text-[#2b1f55] font-black">{Number(totalRecords || 0).toLocaleString('en-IN')}</span>
           </div>
 
           <button
@@ -243,67 +243,10 @@ export default function FilterBar({
         </div>
       </div>
 
-      {/* Grid of Parameter Filters (Cascading: Terminal -> FY -> Customer -> Service -> Trip -> Container -> Size -> BL) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 pt-3 border-t border-slate-100">
+      {/* Grid of Parameter Filters (6 Columns: Customer -> Service -> Trip -> Container -> Size -> BL) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-3 border-t border-slate-100">
         
-        {/* 1. Branch / Terminal Selection (SABSE AAGEY - Column 1) */}
-        <div>
-          <label className="block text-[11px] font-bold text-[#2b1f55] mb-1 flex items-center gap-1">
-            <Building2 className="w-3 h-3 text-[#2b1f55]" />
-            Terminal / Branch
-          </label>
-          <select
-            value={selectedTerminal !== 'ALL' ? selectedTerminal : (filters.terminalId || 'all')}
-            onChange={(e) => handleTerminalChange(e.target.value)}
-            className="w-full px-2.5 py-2 bg-purple-50/70 border border-purple-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer"
-          >
-            <option value="ALL">🏢 All Terminals ({terminals.length || 39})</option>
-            
-            {/* 🟢 Active Hubs */}
-            <optgroup label="── 🟢 Active Hubs with Data ──">
-              {terminals
-                .filter(t => (t.totalContainers > 0 || t.netRevenue > 0 || t.billAmount > 0 || t.invoiceCount > 0))
-                .map((t) => (
-                  <option key={t.id || t.terminalId} value={String(t.id || t.terminalId)}>
-                    🟢 {t.name || t.terminalName}
-                  </option>
-                ))}
-            </optgroup>
-
-            {/* 🔴 Inactive / Zero Data */}
-            <optgroup label="── 🔴 Inactive / Zero Data ──">
-              {terminals
-                .filter(t => !(t.totalContainers > 0 || t.netRevenue > 0 || t.billAmount > 0 || t.invoiceCount > 0))
-                .map((t) => (
-                  <option key={t.id || t.terminalId} value={String(t.id || t.terminalId)} className="text-rose-600 font-semibold bg-rose-50">
-                    🔴 {t.name || t.terminalName} (No Data)
-                  </option>
-                ))}
-            </optgroup>
-          </select>
-        </div>
-
-        {/* 2. Financial Year Filter (SABSE AAGEY - Column 2) */}
-        <div>
-          <label className="block text-[11px] font-bold text-[#ff6a00] mb-1 flex items-center gap-1">
-            <Calendar className="w-3 h-3 text-[#ff6a00]" />
-            Financial Year
-          </label>
-          <select
-            value={selectedFY}
-            onChange={(e) => handleFYChange(e.target.value)}
-            className="w-full px-2.5 py-2 bg-orange-50/70 border border-orange-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:bg-white focus:border-[#ff6a00] cursor-pointer"
-          >
-            <option value="ALL">📅 All FYs (Cumulative)</option>
-            <option value="FY 2026-27">FY 2026-27</option>
-            <option value="FY 2025-26">FY 2025-26</option>
-            <option value="FY 2024-25">FY 2024-25</option>
-            <option value="FY 2023-24">FY 2023-24</option>
-            <option value="FY 2022-23 & Earlier">FY 2022-23 & Earlier</option>
-          </select>
-        </div>
-
-        {/* 3. Customer / Bill-to (Cascaded with 🟢 Active Indicator and Sales Revenue Amount) */}
+        {/* 1. Customer / Bill-to (Cascaded with 🟢 Active Indicator and Sales Revenue Amount) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Users className="w-3 h-3 text-blue-600" />
@@ -323,7 +266,7 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* 4. Service Type (Cascaded based on Terminal & Customer) */}
+        {/* 2. Service Type (Cascaded based on Terminal & Customer) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Wrench className="w-3 h-3 text-orange-600" />
@@ -343,7 +286,7 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* 5. Trip Type (Cascaded based on earlier selections) */}
+        {/* 3. Trip Type (Cascaded based on earlier selections) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Navigation className="w-3 h-3 text-emerald-600" />
@@ -363,7 +306,7 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* 6. Container Number */}
+        {/* 4. Container Number */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <SlidersHorizontal className="w-3 h-3 text-purple-600" />
@@ -378,7 +321,7 @@ export default function FilterBar({
           />
         </div>
 
-        {/* 7. Container Size (40 FT First, 20 FT Next, 45 FT Removed) */}
+        {/* 5. Container Size (40 FT First, 20 FT Next) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <SlidersHorizontal className="w-3 h-3 text-cyan-600" />
@@ -395,7 +338,7 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* 8. Bill of Lading (BL) */}
+        {/* 6. Bill of Lading (BL) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <FileText className="w-3 h-3 text-indigo-600" />
