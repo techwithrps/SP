@@ -317,11 +317,31 @@ export default function AnalyticsCharts({
     });
   }, [selectedTerminal, terminals, fySummaries, terminalFyMatrix]);
 
-  // Top 8 Terminals Volume & Revenue for Bar Chart (Directly derived from displayTerminals so it updates on FY change!)
-  const topTerminalsChart = useMemo(() => {
+  // Top 8 Terminals by Net Revenue
+  const topRevenueChart = useMemo(() => {
     return (displayTerminals || [])
-      .filter(t => (t.displayContainers > 0 || t.netRevenue > 0))
+      .filter(t => (t.netRevenue || 0) > 0)
       .sort((a, b) => (b.netRevenue || 0) - (a.netRevenue || 0))
+      .slice(0, 8)
+      .map(t => {
+        const nameStr = t.terminalName || `Terminal ${t.terminalId}`;
+        const rev = t.netRevenue || 0;
+        return {
+          name: nameStr.length > 14 ? nameStr.substring(0, 12) + '..' : nameStr,
+          fullName: nameStr,
+          revenue: rev,
+          displayLabel: rev >= 10000000 ? `₹${(rev / 10000000).toFixed(0)}Cr` : `₹${(rev / 100000).toFixed(0)}L`,
+          containers: t.displayContainers || 0,
+          teus: t.displayTeus || 0
+        };
+      });
+  }, [displayTerminals]);
+
+  // Top 8 Terminals by Container TEU Volume (Excludes pure accounting heads like REBATE/MISC with 0 containers)
+  const topVolumeChart = useMemo(() => {
+    return (displayTerminals || [])
+      .filter(t => (t.displayTeus || 0) > 0 || (t.displayContainers || 0) > 0)
+      .sort((a, b) => (b.displayTeus || b.displayContainers || 0) - (a.displayTeus || a.displayContainers || 0))
       .slice(0, 8)
       .map(t => {
         const nameStr = t.terminalName || `Terminal ${t.terminalId}`;
@@ -330,7 +350,8 @@ export default function AnalyticsCharts({
           fullName: nameStr,
           revenue: t.netRevenue || 0,
           containers: t.displayContainers || 0,
-          teus: t.displayTeus || 0
+          teus: t.displayTeus || 0,
+          displayTeuLabel: `${formatNumber(t.displayTeus)} TEU`
         };
       });
   }, [displayTerminals]);
@@ -661,20 +682,25 @@ export default function AnalyticsCharts({
             
             {/* Top Terminals by Net Revenue */}
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
-              <h4 className="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#2b1f55]" /> Top Revenue Generating Terminals ({selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})
-              </h4>
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-[#2b1f55]" /> Top Revenue Generating Terminals ({selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})
+                </h4>
+                <span className="text-[10px] px-2 py-0.5 bg-purple-100 text-[#2b1f55] rounded-full font-bold">
+                  Top 8 by Gross Sale
+                </span>
+              </div>
               <p className="text-xs text-slate-500 mb-4">
-                Branch contribution to overall net sales revenue
+                Branch contribution to overall net sales revenue (INR Crores)
               </p>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topTerminalsChart} margin={{ top: 10, right: 10, left: 10, bottom: 25 }}>
+                  <BarChart data={topRevenueChart} margin={{ top: 10, right: 10, left: 10, bottom: 25 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="name" angle={-25} textAnchor="end" tick={{ fontSize: 10, fill: '#64748b' }} />
                     <YAxis tickFormatter={(val) => `₹${(val/10000000).toFixed(0)}Cr`} tick={{ fontSize: 10, fill: '#64748b' }} />
                     <Tooltip content={<CustomChartTooltip />} />
-                    <Bar dataKey="revenue" name="Net Revenue" fill="#2b1f55" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="revenue" name="Net Revenue (Gross Sale)" fill="#2b1f55" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -682,21 +708,27 @@ export default function AnalyticsCharts({
 
             {/* Top Terminals by Container TEU Volume */}
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
-              <h4 className="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
-                <Container className="w-4 h-4 text-[#ff6a00]" /> Top Terminals by TEU Volume ({selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})
-              </h4>
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <Container className="w-4 h-4 text-[#ff6a00]" /> Top Terminals by TEU Volume ({selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})
+                </h4>
+                <span className="text-[10px] px-2 py-0.5 bg-orange-100 text-[#ff6a00] rounded-full font-bold">
+                  Top 8 by Container Volume
+                </span>
+              </div>
               <p className="text-xs text-slate-500 mb-4">
                 Container physical throughput (40ft = 2 TEUs, 20ft = 1 TEU)
               </p>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topTerminalsChart} margin={{ top: 10, right: 10, left: 10, bottom: 25 }}>
+                  <BarChart data={topVolumeChart} margin={{ top: 10, right: 10, left: 10, bottom: 25 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="name" angle={-25} textAnchor="end" tick={{ fontSize: 10, fill: '#64748b' }} />
                     <YAxis tickFormatter={(val) => formatNumber(val)} tick={{ fontSize: 10, fill: '#64748b' }} />
                     <Tooltip content={<CustomChartTooltip />} />
-                    <Bar dataKey="teus" name="TEUs" fill="#ff6a00" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="containers" name="Total Units" fill="#0284c7" radius={[6, 6, 0, 0]} />
+                    <Legend />
+                    <Bar dataKey="teus" name="TEUs Equivalent" fill="#ff6a00" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="containers" name="Physical Containers" fill="#0284c7" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
