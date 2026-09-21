@@ -25,7 +25,7 @@ AS
                   TO_CHAR(FC.ICD_OUT_DATE,'DD/MM/YYYY') ICD_OUT_DATE,
                 TO_CHAR(FC.ICD_IN_DATE,'DD/MM/YYYY') ICD_IN_DATE,
                 AP.CFS,AP.POL,AP.SB_NO,TO_CHAR(AP.SB_DATE,'DD/MM/YYYY') SB_DATE,
-                LINE.CUSTOMER_CODE LINE,
+                LINE.CUSTOMER_CODE LINE,  
                    
  --ROUND(RF_AMOUNT,2) BILL_AMOUNT,
  CRD.CR_AMOUNT BILL_AMOUNT ,
