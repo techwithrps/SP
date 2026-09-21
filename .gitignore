@@ -4,3 +4,8 @@ dist
 .DS_Store
 *.log
 .vercel
+cutomerspjj/
+scratch/
+node_modules/
+dist/
+.env
