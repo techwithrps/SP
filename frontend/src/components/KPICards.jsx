@@ -9,7 +9,8 @@ import {
   Globe2, 
   Ship, 
   Truck, 
-  Users 
+  Users,
+  Layers
 } from 'lucide-react';
 import AnimatedCounter from './AnimatedCounter';
 import { SkeletonKPICard } from './SkeletonLoader';
