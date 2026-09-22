@@ -186,31 +186,13 @@ export default function AnalyticsCharts({
     const isAllTerminals = (!selectedTerminal || selectedTerminal === 'ALL' || selectedTerminal === 'all') && !searchTerminal;
     const isAllFY = (!selectedFY || selectedFY === 'ALL' || selectedFY === 'all');
 
-    if (isAllTerminals && isAllFY) {
-      return {
-        grossSale: 77072720720.25,
-        billAmount: 65315865017.16,
-        taxAmount: 11756855703.09,
-        invoicedGross: 77072720720.25,
-        invoiceCount: 184888,
-        creditCount: 0,
-        creditAmount: 0,
-        totalJobs: 184888,
-        totalContainers: 83399,
-        units40ft: 75059,
-        units20ft: 8340,
-        teus: 158458,
-        ownFleet: 236,
-        activeTerminals: 39,
-        totalTerminals: 39
-      };
-    }
-
     let totalGross = 0;
     let totalBill = 0;
     let totalTax = 0;
     let totalInvs = 0;
     let totalConts = 0;
+    let totalCredit = 0;
+    let totalCrCount = 0;
 
     displayTerminals.forEach(t => {
       totalGross += Number(t.grossSale || t.netRevenue || 0);
@@ -1176,7 +1158,7 @@ export default function AnalyticsCharts({
               </p>
               <div className="space-y-3">
                 {topCustomers.slice(0, 8).map((c, idx) => {
-                  const share = ((c.grossRevenue / (dbTotals.grandSystemRevenue || 74238770193.79)) * 100).toFixed(1);
+                  const share = ((c.grossRevenue / (dynamicMetrics.grossSale || dbTotals.grandSystemRevenue || 1)) * 100).toFixed(1);
                   return (
                     <div key={idx} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -1268,7 +1250,7 @@ export default function AnalyticsCharts({
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {topCustomers.map((c, idx) => {
-                  const share = ((c.grossRevenue / (dbTotals.grandSystemRevenue || 74238770193.79)) * 100).toFixed(2);
+                  const share = ((c.grossRevenue / (dynamicMetrics.grossSale || dbTotals.grandSystemRevenue || 1)) * 100).toFixed(2);
                   return (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/40 hover:bg-slate-50'}>
                       <td className="py-3 px-4 font-bold text-slate-400">{idx + 1}</td>
