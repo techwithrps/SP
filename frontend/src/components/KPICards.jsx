@@ -31,31 +31,46 @@ export default function KPICards({ kpis = {}, loading = false }) {
     totalGrossAmount = 0,
     totalBillAmount = 0,
     totalTax = 0,
-    invoiceCount = 0,
-    creditNoteCount = 0,
-    containerCount = 0,
-    teuCount = 0,
-    totalRecords = 0,
+    taxableRevenue = totalBillAmount,
+    gstTax = totalTax,
+    grossRevenue = totalGrossAmount,
+    creditNotes = kpis.totalCreditAmount || 0,
+    netRevenue = kpis.netRevenue || (grossRevenue - creditNotes),
+    totalInvoices = kpis.invoiceCount || 0,
+    creditNoteCount = kpis.creditNoteCount || 0,
+    physicalContainers = kpis.containerCount || 0,
+    containerMovements = kpis.containerMovements || kpis.totalRecords || 0,
+    jobOrders = kpis.jobOrders || kpis.totalDBInvoices || totalInvoices,
+    teus = kpis.teuCount || 0,
   } = kpis;
 
   const cards = [
     {
-      title: 'Gross Sale',
-      subtitle: kpis.totalCreditAmount ? `Invoice Amt - Credit (₹ ${formatCurrency(kpis.totalCreditAmount)})` : 'Invoice Amt - Credit Amt',
-      value: formatCurrency(totalGrossAmount),
-      raw: totalGrossAmount,
+      title: 'Net Revenue',
+      subtitle: 'Gross - Credit Adjustments',
+      value: formatCurrency(netRevenue),
       icon: IndianRupee,
-      iconBg: 'bg-orange-50 text-orange-600 border border-orange-200',
-      valueColor: 'text-[#2b1f55]',
-      badge: 'Gross Sale',
+      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
+      valueColor: 'text-emerald-900',
+      badge: 'Net Revenue',
       badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
       isCurrency: true
     },
     {
-      title: 'Net Bill Amount',
+      title: 'Gross Revenue',
+      subtitle: 'Taxable + Statutory GST',
+      value: formatCurrency(grossRevenue),
+      icon: IndianRupee,
+      iconBg: 'bg-purple-50 text-purple-600 border border-purple-200',
+      valueColor: 'text-purple-900',
+      badge: 'Gross Total',
+      badgeColor: 'text-purple-700 bg-purple-50 border-purple-200',
+      isCurrency: true
+    },
+    {
+      title: 'Taxable Revenue',
       subtitle: 'Pre-Tax Freight & Handling',
-      value: formatCurrency(totalBillAmount),
-      raw: totalBillAmount,
+      value: formatCurrency(taxableRevenue),
       icon: Receipt,
       iconBg: 'bg-blue-50 text-blue-600 border border-blue-200',
       valueColor: 'text-blue-900',
@@ -64,49 +79,83 @@ export default function KPICards({ kpis = {}, loading = false }) {
       isCurrency: true
     },
     {
-      title: 'Tax Collected (GST)',
-      subtitle: '18% Standard GST Rate',
-      value: formatCurrency(totalTax),
-      raw: totalTax,
+      title: 'Statutory GST Tax',
+      subtitle: 'Direct from IMP_INVOICE_TAX',
+      value: formatCurrency(gstTax),
       icon: Percent,
-      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
-      valueColor: 'text-emerald-800',
+      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-200',
+      valueColor: 'text-indigo-900',
       badge: 'GST Output',
-      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+      badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200',
       isCurrency: true
     },
     {
-      title: 'Invoice & Credit Count',
-      subtitle: `${invoiceCount} Invoices / ${creditNoteCount} Credit Notes`,
-      value: `${totalRecords} Records`,
-      raw: totalRecords,
+      title: 'Credit Adjustments',
+      subtitle: `${creditNoteCount} Credit Notes`,
+      value: formatCurrency(creditNotes),
+      icon: FileText,
+      iconBg: 'bg-rose-50 text-rose-600 border border-rose-200',
+      valueColor: 'text-rose-900',
+      badge: 'Reversals',
+      badgeColor: 'text-rose-700 bg-rose-50 border-rose-200',
+      isCurrency: true
+    },
+    {
+      title: 'Total Invoices',
+      subtitle: 'Distinct Billed Invoices',
+      value: `${totalInvoices.toLocaleString('en-IN')}`,
       icon: FileText,
       iconBg: 'bg-purple-50 text-purple-600 border border-purple-200',
       valueColor: 'text-purple-900',
-      badge: `${invoiceCount} Invoices`,
-      badgeColor: 'text-purple-700 bg-purple-50 border-purple-200',
-      suffix: ' Records'
+      badge: 'Tax Bills',
+      badgeColor: 'text-purple-700 bg-purple-50 border-purple-200'
     },
     {
-      title: 'Containers Handled',
-      subtitle: `${containerCount} Active Units in Yard`,
-      value: `${containerCount} Containers`,
-      raw: containerCount,
+      title: 'Physical Containers',
+      subtitle: 'COUNT(DISTINCT CONT_NO)',
+      value: `${physicalContainers.toLocaleString('en-IN')}`,
       icon: Container,
       iconBg: 'bg-amber-50 text-amber-600 border border-amber-200',
       valueColor: 'text-amber-900',
-      badge: 'Multi-Modal',
-      badgeColor: 'text-amber-700 bg-amber-50 border-amber-200',
-      suffix: ' Containers'
+      badge: 'Fleet Boxes',
+      badgeColor: 'text-amber-700 bg-amber-50 border-amber-200'
+    },
+    {
+      title: 'Container Movements',
+      subtitle: 'Distinct Job Cycles',
+      value: `${containerMovements.toLocaleString('en-IN')}`,
+      icon: Truck,
+      iconBg: 'bg-teal-50 text-teal-600 border border-teal-200',
+      valueColor: 'text-teal-900',
+      badge: 'Throughput',
+      badgeColor: 'text-teal-700 bg-teal-50 border-teal-200'
+    },
+    {
+      title: 'Job Orders',
+      subtitle: 'Distinct Operations Files',
+      value: `${jobOrders.toLocaleString('en-IN')}`,
+      icon: Layers,
+      iconBg: 'bg-sky-50 text-sky-600 border border-sky-200',
+      valueColor: 'text-sky-900',
+      badge: 'Job Orders',
+      badgeColor: 'text-sky-700 bg-sky-50 border-sky-200'
+    },
+    {
+      title: 'Total TEUs',
+      subtitle: '20ft × 1 + 40ft × 2',
+      value: `${teus.toLocaleString('en-IN')}`,
+      icon: Container,
+      iconBg: 'bg-orange-50 text-orange-600 border border-orange-200',
+      valueColor: 'text-orange-900',
+      badge: 'Standard TEU',
+      badgeColor: 'text-orange-700 bg-orange-50 border-orange-200'
     }
   ];
-
-  const delayClasses = ['delay-1', 'delay-2', 'delay-3', 'delay-4', 'delay-5'];
 
   if (loading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 animate-fade-in">
-        {Array.from({ length: 5 }).map((_, idx) => (
+        {Array.from({ length: 10 }).map((_, idx) => (
           <SkeletonKPICard key={idx} />
         ))}
       </div>
@@ -115,43 +164,41 @@ export default function KPICards({ kpis = {}, loading = false }) {
 
   return (
     <div className="space-y-3 animate-slide-up">
-      {/* High Density KPI Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
+      {/* 10 Verified KPIs Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
         {cards.map((card, idx) => {
           const Icon = card.icon;
-          const delay = delayClasses[idx % delayClasses.length];
-          const isLastSingle = idx === 4; // 5th card spans 2 columns on mobile
           return (
             <div
               key={idx}
-              className={`bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all duration-300 animate-slide-up ${delay} ${isLastSingle ? 'col-span-2 sm:col-span-1 lg:col-span-1' : ''}`}
+              className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all duration-300"
             >
               <div className="flex items-start justify-between gap-1.5">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                  <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
                     {card.title}
                   </p>
-                  <div className="mt-0.5 sm:mt-2">
-                    <h3 className={`text-sm sm:text-2xl font-black font-display tracking-tight truncate ${card.valueColor}`}>
+                  <div className="mt-1">
+                    <h3 className={`text-base sm:text-xl font-black font-display tracking-tight truncate ${card.valueColor}`}>
                       <AnimatedCounter 
                         value={card.value} 
-                        duration={700}
+                        duration={600}
                         decimals={card.isCurrency ? 2 : 0}
                       />
                     </h3>
                   </div>
                 </div>
 
-                <div className={`p-1.5 sm:p-3 rounded-lg sm:rounded-2xl ${card.iconBg} animate-float transition-transform hover:scale-110 shrink-0`}>
-                  <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                <div className={`p-2 rounded-xl ${card.iconBg} shrink-0`}>
+                  <Icon className="w-4 h-4" />
                 </div>
               </div>
 
-              <div className="mt-1.5 pt-1.5 sm:mt-3 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[11px] gap-1">
-                <span className="text-slate-500 font-medium truncate max-w-[80px] sm:max-w-[130px]">
+              <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px] gap-1">
+                <span className="text-slate-500 font-medium truncate">
                   {card.subtitle}
                 </span>
-                <span className={`px-1 py-0.2 sm:px-2 sm:py-0.5 rounded text-[8px] sm:text-[10px] font-bold shrink-0 border ${card.badgeColor}`}>
+                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 border ${card.badgeColor}`}>
                   {card.badge}
                 </span>
               </div>
@@ -159,7 +206,6 @@ export default function KPICards({ kpis = {}, loading = false }) {
           );
         })}
       </div>
-
     </div>
   );
 }
