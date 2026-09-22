@@ -200,11 +200,14 @@ export default function AnalyticsCharts({
       totalTax += Number(t.taxAmount || 0);
       totalInvs += Number(t.invoiceCount || 0);
       totalConts += Number(t.displayContainers || t.totalContainers || 0);
+      totalCredit += Number(t.creditAmount || 0);
+      totalCrCount += Number(t.creditCount || 0);
     });
 
     const u40 = Math.round(totalConts * 0.9);
     const u20 = totalConts - u40;
     const calcTeus = (u20 * 1.0) + (u40 * 2.0);
+    const netRev = Math.round((totalGross - totalCredit) * 100) / 100;
 
     return {
       grossSale: totalGross,
@@ -212,8 +215,9 @@ export default function AnalyticsCharts({
       taxAmount: totalTax,
       invoicedGross: totalGross,
       invoiceCount: totalInvs,
-      creditCount: 0,
-      creditAmount: 0,
+      creditCount: totalCrCount,
+      creditAmount: totalCredit,
+      netRevenue: netRev,
       totalJobs: totalInvs,
       totalContainers: totalConts,
       units40ft: u40,
