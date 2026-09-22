@@ -102,8 +102,8 @@ export default function AnalyticsCharts({
   ], [branchDetailed]);
   const fySummaries = useMemo(() => branchDetailed.fySummaries || {}, [branchDetailed]);
   const terminalFyMatrix = useMemo(() => branchDetailed.terminalFyMatrix || [], [branchDetailed]);
-  const topCustomers = useMemo(() => branchDetailed.topCustomers || [], [branchDetailed]);
-  const topServices = useMemo(() => branchDetailed.topServices || [], [branchDetailed]);
+  const topCustomers = useMemo(() => finData?.topCustomers || finData?.customerAnalytics || branchDetailed.topCustomers || [], [finData, branchDetailed]);
+  const topServices = useMemo(() => finData?.topServices || finData?.serviceAnalytics || branchDetailed.topServices || [], [finData, branchDetailed]);
   const dbTotals = finData?.totals || {};
 
   // 1. Filtered and Sorted Terminal Matrix for Table & Charts
