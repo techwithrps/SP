@@ -34,37 +34,37 @@ function formatSales(amount) {
   return `₹ ${Math.round(val).toLocaleString('en-IN')}`;
 }
 
-// Enterprise Palette matching SPJ Theme
+// Light Enterprise Palette matching SPJ Dashboard Theme
 const NODE_THEMES = {
   company: {
-    stroke: '#6366f1',
-    fill: '#2b1f55',
-    glow: 'rgba(99, 102, 241, 0.45)',
+    stroke: '#3b82f6',
+    fill: '#1e293b',
+    glow: 'rgba(59, 130, 246, 0.25)',
     textColor: '#ffffff',
-    tagBg: 'bg-indigo-950/80 text-indigo-200 border-indigo-500/30'
+    labelColor: '#0f172a'
   },
   customer: {
-    stroke: '#10b981',
-    fill: '#064e3b',
-    glow: 'rgba(16, 185, 129, 0.4)',
-    textColor: '#ecfdf5',
-    tagBg: 'bg-emerald-950/80 text-emerald-200 border-emerald-500/30'
+    stroke: '#059669',
+    fill: '#10b981',
+    glow: 'rgba(16, 185, 129, 0.2)',
+    textColor: '#ffffff',
+    labelColor: '#064e3b'
   },
   terminal: {
-    stroke: '#f59e0b',
-    fill: '#78350f',
-    glow: 'rgba(245, 158, 11, 0.4)',
-    textColor: '#fffbeb',
-    tagBg: 'bg-amber-950/80 text-amber-200 border-amber-500/30'
+    stroke: '#d97706',
+    fill: '#f59e0b',
+    glow: 'rgba(245, 158, 11, 0.2)',
+    textColor: '#ffffff',
+    labelColor: '#78350f'
   }
 };
 
 const COMPANY_COLORS = {
-  'SPJ': { stroke: '#818cf8', fill: '#1e1b4b', glow: 'rgba(129, 140, 248, 0.5)' },
-  'SJ': { stroke: '#38bdf8', fill: '#082f49', glow: 'rgba(56, 189, 248, 0.5)' },
-  'SPJ-MUM': { stroke: '#ec4899', fill: '#500724', glow: 'rgba(236, 72, 153, 0.5)' },
-  'PJ': { stroke: '#f59e0b', fill: '#451a03', glow: 'rgba(245, 158, 11, 0.5)' },
-  'PJ-OLD': { stroke: '#a855f7', fill: '#3b0764', glow: 'rgba(168, 85, 247, 0.5)' }
+  'SPJ': { stroke: '#4f46e5', fill: '#2b1f55', glow: 'rgba(79, 70, 229, 0.3)' },
+  'SJ': { stroke: '#0284c7', fill: '#0369a1', glow: 'rgba(2, 132, 199, 0.3)' },
+  'SPJ-MUM': { stroke: '#db2777', fill: '#be185d', glow: 'rgba(219, 39, 119, 0.3)' },
+  'PJ': { stroke: '#d97706', fill: '#b45309', glow: 'rgba(217, 119, 6, 0.3)' },
+  'PJ-OLD': { stroke: '#7c3aed', fill: '#6d28d9', glow: 'rgba(124, 58, 237, 0.3)' }
 };
 
 export default function ObsidianNetworkGraph({
@@ -82,8 +82,8 @@ export default function ObsidianNetworkGraph({
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Viewport State (Zoom & Pan)
-  const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
+  // Viewport State (Zoom & Pan) - default scale 0.85 for spacious initial overview
+  const [transform, setTransform] = useState({ x: 0, y: 0, k: 0.85 });
   const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [draggedNode, setDraggedNode] = useState(null);
@@ -103,13 +103,21 @@ export default function ObsidianNetworkGraph({
   const animFrameRef = useRef(null);
   const particleTimeRef = useRef(0);
 
-  // 1. Build Graph Structure: Company -> Customer -> Terminal
+  // 1. Build Graph Structure with Spaced-Out Layout
   const rawGraph = useMemo(() => {
     const nodes = [];
     const links = [];
     const nodeMap = new Map();
 
-    // 1.1 Companies (5 Main Enterprise Hubs)
+    // 1.1 Companies with well-separated initial coordinates
+    const companyCoords = {
+      'SPJ': { x: -40, y: -20 },
+      'SJ': { x: 320, y: -120 },
+      'SPJ-MUM': { x: 260, y: 260 },
+      'PJ': { x: -280, y: -220 },
+      'PJ-OLD': { x: -380, y: 160 }
+    };
+
     const defaultCompanies = [
       { id: '2', code: 'SPJ', name: 'SPJ CARGO PVT LTD', sales: 32948600000, invs: 142739 },
       { id: '1', code: 'SJ', name: 'S.J. CARGO MOVERS', sales: 1688500000, invs: 26719 },
@@ -131,9 +139,8 @@ export default function ObsidianNetworkGraph({
         })
       : defaultCompanies;
 
-    companiesSource.forEach((comp, idx) => {
-      const angle = (idx / companiesSource.length) * Math.PI * 2;
-      const radius = 220;
+    companiesSource.forEach((comp) => {
+      const initPos = companyCoords[comp.code] || { x: 0, y: 0 };
       const cNode = {
         id: `comp-${comp.id}`,
         rawId: comp.id,
@@ -143,9 +150,9 @@ export default function ObsidianNetworkGraph({
         type: 'company',
         sales: comp.sales,
         invs: comp.invs,
-        radius: 28,
-        x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius,
+        radius: 30,
+        x: initPos.x,
+        y: initPos.y,
         vx: 0,
         vy: 0,
         color: COMPANY_COLORS[comp.code] || NODE_THEMES.company
@@ -154,81 +161,66 @@ export default function ObsidianNetworkGraph({
       nodeMap.set(cNode.id, cNode);
     });
 
-    // 1.2 Customers & Customer-Terminal Links
-    const custMatrix = masters.customerTerminalMatrix || [];
-    const topCusts = financialData.topCustomers || [];
+    // 1.2 Customer seeds grouped by company with distinct angular orbits
+    const customerSeed = [
+      // SPJ Core Customers (Cluster 1)
+      { name: 'FAIR EXPORTS (INDIA) PVT LTD', comp: 'SPJ', sales: 2736623889.97, invs: 20460, terms: ['DADRI', 'JNPT', 'MUNDRA'], dist: 130, angle: 0.2 },
+      { name: 'IFF INDIA FROZEN FOODS', comp: 'SPJ', sales: 2504888713.08, invs: 14761, terms: ['DADRI', 'KANPUR'], dist: 150, angle: 0.9 },
+      { name: 'MARHABA FROZEN FOODS', comp: 'SPJ', sales: 1874476297.09, invs: 10098, terms: ['DADRI', 'MUNDRA'], dist: 140, angle: 1.6 },
+      { name: 'RUSTAM FOODS PVT.LTD.', comp: 'SPJ', sales: 1854931176.52, invs: 8974, terms: ['KANPUR', 'DADRI'], dist: 160, angle: 2.3 },
+      { name: 'AL AMMAR FROZEN FOOD EXPORTS', comp: 'SPJ', sales: 1766522371.32, invs: 9895, terms: ['DADRI', 'JNPT'], dist: 135, angle: 3.0 },
+      { name: 'AL-NASIR EXPORTS PVT LTD', comp: 'SPJ', sales: 1538360294.34, invs: 11203, terms: ['DADRI', 'KANPUR'], dist: 145, angle: 3.7 },
+      { name: 'MIRHA EXPORTS PVT. LTD.', comp: 'SPJ', sales: 1195561318.42, invs: 7925, terms: ['LUDHIANA', 'MUNDRA'], dist: 155, angle: 4.4 },
+      { name: 'AL SAMEER EXPORTS PVT LTD', comp: 'SPJ', sales: 702739198.00, invs: 4461, terms: ['DADRI', 'MUNDRA'], dist: 130, angle: 5.1 },
+      { name: 'TRANSWORLD TERMINALS DADRI', comp: 'SPJ', sales: 157071296.41, invs: 259, terms: ['DADRI'], dist: 120, angle: 5.8 },
 
-    const topCustomerSeed = [
-      { name: 'FAIR EXPORTS (INDIA) PVT LTD', comp: 'SPJ', sales: 2736623889.97, invs: 20460, terms: ['DADRI', 'JNPT', 'MUNDRA'] },
-      { name: 'IFF INDIA FROZEN FOODS', comp: 'SPJ', sales: 2504888713.08, invs: 14761, terms: ['DADRI', 'KANPUR'] },
-      { name: 'MARHABA FROZEN FOODS', comp: 'SPJ', sales: 1874476297.09, invs: 10098, terms: ['DADRI', 'MUNDRA'] },
-      { name: 'RUSTAM FOODS PVT.LTD.', comp: 'SPJ', sales: 1854931176.52, invs: 8974, terms: ['KANPUR', 'DADRI'] },
-      { name: 'AL AMMAR FROZEN FOOD EXPORTS', comp: 'SPJ', sales: 1766522371.32, invs: 9895, terms: ['DADRI', 'JNPT'] },
-      { name: 'HMA AGRO INDUSTRIES LTD', comp: 'SJ', sales: 1742178313.34, invs: 8608, terms: ['DADRI', 'AGRA', 'MUNDRA'] },
-      { name: 'INTERNATIONAL AGRO FOODS', comp: 'SJ', sales: 1630617882.17, invs: 8231, terms: ['DADRI', 'JNPT'] },
-      { name: 'AL-NASIR EXPORTS PVT LTD', comp: 'SPJ', sales: 1538360294.34, invs: 11203, terms: ['DADRI', 'KANPUR'] },
-      { name: 'JH LOGISTICS PRIVATE LIMITED', comp: 'SPJ-MUM', sales: 1450731383.16, invs: 11286, terms: ['JNPT', 'MUMBAI', 'MUNDRA'] },
-      { name: 'INDIA FROZEN FOODS', comp: 'SJ', sales: 1261952376.61, invs: 8230, terms: ['DADRI', 'KANPUR'] },
-      { name: 'MIRHA EXPORTS PVT. LTD.', comp: 'SPJ', sales: 1195561318.42, invs: 7925, terms: ['LUDHIANA', 'MUNDRA'] },
-      { name: 'MASH AGRO FOODS LTD', comp: 'SJ', sales: 963898358.91, invs: 4026, terms: ['KANPUR', 'DADRI'] },
-      { name: 'AL SAMEER EXPORTS PVT LTD', comp: 'SPJ', sales: 702739198.00, invs: 4461, terms: ['DADRI', 'MUNDRA'] },
-      { name: 'TOURO PRIMEIRO PRIVATE LIMITED', comp: 'SPJ-MUM', sales: 486794013.67, invs: 3876, terms: ['JNPT', 'MUNDRA'] },
-      { name: 'ALM INDUSTRIES LIMITED', comp: 'SJ', sales: 352007379.62, invs: 2888, terms: ['DADRI', 'KANPUR'] },
-      { name: 'ZAKARIYA AGRO PRIVATE LIMITED', comp: 'SPJ', sales: 245290459.75, invs: 1451, terms: ['DADRI', 'KANPUR'] },
-      { name: 'RAYBAN FROZEN FOODS', comp: 'PJ', sales: 232503662.43, invs: 1609, terms: ['DADRI', 'PIYALA'] },
-      { name: 'AL AAYAT FOOD EXPO', comp: 'PJ', sales: 228694861.24, invs: 1139, terms: ['DADRI', 'TUGLAKABAD'] },
-      { name: 'AL-MARZIA AGRO FOODS', comp: 'PJ-OLD', sales: 226558217.21, invs: 1211, terms: ['DADRI', 'KANPUR'] },
-      { name: 'ALM FOOD PRODUCTS', comp: 'PJ-OLD', sales: 197219300.91, invs: 1737, terms: ['LUDHIANA', 'MUNDRA'] },
-      { name: 'TRANSWORLD TERMINALS DADRI', comp: 'SPJ', sales: 157071296.41, invs: 259, terms: ['DADRI'] },
-      { name: 'PURE FOODSTUFF PRIVATE LIMITED', comp: 'SJ', sales: 155677908.66, invs: 919, terms: ['DADRI', 'KANPUR'] },
-      { name: 'RIZWAN ICE & COLD STORAGE', comp: 'SPJ', sales: 150309445.30, invs: 884, terms: ['DADRI', 'JNPT'] },
-      { name: 'AL-SUPER FROZEN FOODS', comp: 'SJ', sales: 145788582.41, invs: 871, terms: ['DADRI', 'KANPUR'] },
-      { name: 'SOHAM EXIM', comp: 'SPJ-MUM', sales: 138458824.43, invs: 1630, terms: ['JNPT', 'MUNDRA'] },
-      { name: 'STANDARD FROZEN FOODS', comp: 'SPJ', sales: 137853837.28, invs: 634, terms: ['KANPUR', 'DADRI'] },
-      { name: 'KESHODWALA FOODS', comp: 'SPJ-MUM', sales: 133737747.42, invs: 509, terms: ['MUNDRA', 'JNPT'] },
-      { name: 'AOV EXPORTS PVT LTD', comp: 'SPJ', sales: 132394026.74, invs: 692, terms: ['DADRI', 'KANPUR'] },
-      { name: 'GAUSIA COLD STORAGE', comp: 'SJ', sales: 117201645.23, invs: 922, terms: ['DADRI', 'KANPUR'] },
-      { name: 'CMA CGM SA', comp: 'SPJ-MUM', sales: 117146760.17, invs: 75, terms: ['JNPT', 'MUNDRA', 'DADRI'] }
+      // SJ Customers (Cluster 2)
+      { name: 'HMA AGRO INDUSTRIES LTD', comp: 'SJ', sales: 1742178313.34, invs: 8608, terms: ['DADRI', 'AGRA', 'MUNDRA'], dist: 130, angle: 0.5 },
+      { name: 'INTERNATIONAL AGRO FOODS', comp: 'SJ', sales: 1630617882.17, invs: 8231, terms: ['DADRI', 'JNPT'], dist: 140, angle: 1.8 },
+      { name: 'INDIA FROZEN FOODS', comp: 'SJ', sales: 1261952376.61, invs: 8230, terms: ['DADRI', 'KANPUR'], dist: 125, angle: 3.1 },
+      { name: 'MASH AGRO FOODS LTD', comp: 'SJ', sales: 963898358.91, invs: 4026, terms: ['KANPUR', 'DADRI'], dist: 135, angle: 4.4 },
+      { name: 'ALM INDUSTRIES LIMITED', comp: 'SJ', sales: 352007379.62, invs: 2888, terms: ['DADRI', 'KANPUR'], dist: 120, angle: 5.6 },
+
+      // SPJ-MUM Customers (Cluster 3)
+      { name: 'JH LOGISTICS PRIVATE LIMITED', comp: 'SPJ-MUM', sales: 1450731383.16, invs: 11286, terms: ['JNPT', 'MUMBAI', 'MUNDRA'], dist: 130, angle: 0.7 },
+      { name: 'TOURO PRIMEIRO PRIVATE LIMITED', comp: 'SPJ-MUM', sales: 486794013.67, invs: 3876, terms: ['JNPT', 'MUNDRA'], dist: 140, angle: 2.2 },
+      { name: 'SOHAM EXIM', comp: 'SPJ-MUM', sales: 138458824.43, invs: 1630, terms: ['JNPT', 'MUNDRA'], dist: 125, angle: 3.7 },
+      { name: 'KESHODWALA FOODS', comp: 'SPJ-MUM', sales: 133737747.42, invs: 509, terms: ['MUNDRA', 'JNPT'], dist: 135, angle: 5.2 },
+
+      // PJ Customers (Cluster 4)
+      { name: 'RAYBAN FROZEN FOODS', comp: 'PJ', sales: 232503662.43, invs: 1609, terms: ['DADRI', 'PIYALA'], dist: 120, angle: 1.0 },
+      { name: 'AL AAYAT FOOD EXPO', comp: 'PJ', sales: 228694861.24, invs: 1139, terms: ['DADRI', 'TUGLAKABAD'], dist: 130, angle: 3.5 },
+
+      // PJ-OLD Customers (Cluster 5)
+      { name: 'AL-MARZIA AGRO FOODS', comp: 'PJ-OLD', sales: 226558217.21, invs: 1211, terms: ['DADRI', 'KANPUR'], dist: 120, angle: 1.5 },
+      { name: 'ALM FOOD PRODUCTS', comp: 'PJ-OLD', sales: 197219300.91, invs: 1737, terms: ['LUDHIANA', 'MUNDRA'], dist: 130, angle: 4.2 }
     ];
 
-    // Combine seeds with dynamic top customers
-    const customerList = topCustomerSeed.map((cs, idx) => ({
-      id: `cust-${idx + 1}`,
-      name: cs.name,
-      compCode: cs.comp,
-      sales: cs.sales,
-      invs: cs.invs,
-      terms: cs.terms
-    }));
-
-    // 1.3 Terminals (Outer Satellite Layer)
+    // 1.3 Terminals placed in an expansive perimeter orbit
     const terminalList = [
-      { code: 'DADRI', name: 'ICD DADRI (CGML/CONCOR)', region: 'North', volume: '72,410 TEU' },
-      { code: 'KANPUR', name: 'ICD KANPUR (PANKI/JUHI)', region: 'North-Central', volume: '34,210 TEU' },
-      { code: 'JNPT', name: 'JNPA NHAVA SHEVA PORT', region: 'West Port', volume: '28,950 TEU' },
-      { code: 'MUNDRA', name: 'MUNDRA ADANI PORT', region: 'West Port', volume: '24,190 TEU' },
-      { code: 'LUDHIANA', name: 'ICD DHANDARI KALAN', region: 'North', volume: '11,400 TEU' },
-      { code: 'TUGLAKABAD', name: 'ICD TKD DELHI', region: 'North', volume: '9,820 TEU' },
-      { code: 'PIYALA', name: 'ICD PIYALA FARIDABAD', region: 'North', volume: '8,210 TEU' },
-      { code: 'JAIPUR', name: 'ICD CONCOR KANAKPURA', region: 'West', volume: '6,450 TEU' },
-      { code: 'MUMBAI', name: 'MUMBAI CFS / DRT', region: 'West', volume: '5,180 TEU' },
-      { code: 'AGRA', name: 'ICD AGRA CFS', region: 'North', volume: '4,220 TEU' }
+      { code: 'DADRI', name: 'ICD DADRI (CGML/CONCOR)', angle: 0.1, radius: 520, volume: '72,410 TEU' },
+      { code: 'KANPUR', name: 'ICD KANPUR (PANKI/JUHI)', angle: 0.8, radius: 540, volume: '34,210 TEU' },
+      { code: 'JNPT', name: 'JNPA NHAVA SHEVA PORT', angle: 1.5, radius: 530, volume: '28,950 TEU' },
+      { code: 'MUNDRA', name: 'MUNDRA ADANI PORT', angle: 2.1, radius: 550, volume: '24,190 TEU' },
+      { code: 'LUDHIANA', name: 'ICD DHANDARI KALAN', angle: 2.8, radius: 520, volume: '11,400 TEU' },
+      { code: 'TUGLAKABAD', name: 'ICD TKD DELHI', angle: 3.4, radius: 540, volume: '9,820 TEU' },
+      { code: 'PIYALA', name: 'ICD PIYALA FARIDABAD', angle: 4.1, radius: 520, volume: '8,210 TEU' },
+      { code: 'JAIPUR', name: 'ICD CONCOR KANAKPURA', angle: 4.7, radius: 530, volume: '6,450 TEU' },
+      { code: 'MUMBAI', name: 'MUMBAI CFS / DRT', angle: 5.4, radius: 520, volume: '5,180 TEU' },
+      { code: 'AGRA', name: 'ICD AGRA CFS', angle: 6.0, radius: 530, volume: '4,220 TEU' }
     ];
 
-    terminalList.forEach((term, idx) => {
-      const angle = (idx / terminalList.length) * Math.PI * 2;
-      const radius = 480;
+    terminalList.forEach((term) => {
       const tNode = {
         id: `term-${term.code}`,
         code: term.code,
         label: term.code,
         fullName: term.name,
         type: 'terminal',
-        region: term.region,
         volume: term.volume,
-        radius: 18,
-        x: Math.cos(angle) * radius + (Math.random() - 0.5) * 40,
-        y: Math.sin(angle) * radius + (Math.random() - 0.5) * 40,
+        radius: 19,
+        x: Math.cos(term.angle) * term.radius,
+        y: Math.sin(term.angle) * term.radius,
         vx: 0,
         vy: 0,
         color: NODE_THEMES.terminal
@@ -237,24 +229,23 @@ export default function ObsidianNetworkGraph({
       nodeMap.set(tNode.id, tNode);
     });
 
-    // Add Customers and build links
-    customerList.forEach((cust, idx) => {
-      // Find parent company node
-      const parentComp = nodes.find(n => n.type === 'company' && n.code === cust.compCode) || nodes[0];
-      const angle = (idx / customerList.length) * Math.PI * 2;
-      const radius = 330;
-      
+    // Add Customers and position relative to their parent company
+    customerSeed.forEach((cust, idx) => {
+      const parentComp = nodes.find(n => n.type === 'company' && n.code === cust.comp) || nodes[0];
+      const cx = parentComp.x + Math.cos(cust.angle) * cust.dist;
+      const cy = parentComp.y + Math.sin(cust.angle) * cust.dist;
+
       const custNode = {
-        id: cust.id,
-        label: cust.name.length > 18 ? `${cust.name.substring(0, 16)}…` : cust.name,
+        id: `cust-${idx + 1}`,
+        label: cust.name.length > 16 ? `${cust.name.substring(0, 14)}…` : cust.name,
         fullName: cust.name,
         type: 'customer',
         sales: cust.sales,
         invs: cust.invs,
         parentCompany: parentComp.code,
-        radius: Math.max(10, Math.min(22, 10 + (cust.sales / 200000000))),
-        x: Math.cos(angle) * radius + (Math.random() - 0.5) * 60,
-        y: Math.sin(angle) * radius + (Math.random() - 0.5) * 60,
+        radius: Math.max(12, Math.min(20, 11 + (cust.sales / 300000000))),
+        x: cx,
+        y: cy,
         vx: 0,
         vy: 0,
         color: NODE_THEMES.customer
@@ -268,8 +259,7 @@ export default function ObsidianNetworkGraph({
         source: parentComp.id,
         target: custNode.id,
         value: cust.sales,
-        type: 'company-customer',
-        color: 'rgba(99, 102, 241, 0.25)'
+        type: 'company-customer'
       });
 
       // Links: Customer -> Terminals
@@ -280,8 +270,7 @@ export default function ObsidianNetworkGraph({
             source: custNode.id,
             target: termNode.id,
             value: cust.sales / cust.terms.length,
-            type: 'customer-terminal',
-            color: 'rgba(16, 185, 129, 0.2)'
+            type: 'customer-terminal'
           });
         }
       });
@@ -298,7 +287,7 @@ export default function ObsidianNetworkGraph({
     };
   }, [rawGraph]);
 
-  // 2. Physics Simulation Loop (60 FPS)
+  // 2. Physics Simulation Loop with Gentle Spring & Ample Spacing
   useEffect(() => {
     let active = true;
 
@@ -311,28 +300,28 @@ export default function ObsidianNetworkGraph({
       const { nodes, links } = graphDataRef.current;
       const nodeMap = new Map(nodes.map(n => [n.id, n]));
 
-      particleTimeRef.current += 0.015;
+      particleTimeRef.current += 0.012;
 
-      // Force A: Center Gravity
-      const kCenter = 0.003;
+      // Force A: Center Gravity (very gentle to allow broad expansion)
+      const kCenter = 0.0008;
       nodes.forEach(node => {
         if (node.isPinned) return;
         node.vx -= node.x * kCenter;
         node.vy -= node.y * kCenter;
       });
 
-      // Force B: Node-Node Repulsion (Charge)
+      // Force B: Node-Node Repulsion (Anti-clump charge)
       for (let i = 0; i < nodes.length; i++) {
         const n1 = nodes[i];
         for (let j = i + 1; j < nodes.length; j++) {
           const n2 = nodes[j];
           const dx = n2.x - n1.x;
           const dy = n2.y - n1.y;
-          const distSq = dx * dx + dy * dy + 100;
+          const distSq = dx * dx + dy * dy + 150;
           const dist = Math.sqrt(distSq);
 
-          // Strong repulsion at close distance
-          const repStrength = (n1.type === 'company' || n2.type === 'company') ? 1800 : 700;
+          // Generous repulsion to keep nodes well-spaced
+          const repStrength = (n1.type === 'company' || n2.type === 'company') ? 3500 : 1600;
           const force = repStrength / distSq;
 
           const fx = (dx / dist) * force;
@@ -359,8 +348,8 @@ export default function ObsidianNetworkGraph({
         const dy = t.y - s.y;
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-        const targetDist = link.type === 'company-customer' ? 140 : 180;
-        const springK = 0.04;
+        const targetDist = link.type === 'company-customer' ? 140 : 240;
+        const springK = 0.018;
         const force = (dist - targetDist) * springK;
 
         const fx = (dx / dist) * force;
@@ -377,7 +366,7 @@ export default function ObsidianNetworkGraph({
       });
 
       // Position Update with Velocity Damping
-      const damping = 0.86;
+      const damping = 0.88;
       nodes.forEach(node => {
         if (node.isPinned) {
           node.vx = 0;
@@ -405,7 +394,7 @@ export default function ObsidianNetworkGraph({
     };
   }, [isPlaying, transform, hoveredNode, selectedNode, showCompanies, showCustomers, showTerminals, searchQuery]);
 
-  // 3. Canvas Draw Function
+  // 3. Canvas Draw Function (White & Light Enterprise Theme)
   const drawGraph = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -413,7 +402,10 @@ export default function ObsidianNetworkGraph({
     if (!ctx) return;
 
     const { width, height } = canvas;
-    ctx.clearRect(0, 0, width, height);
+    
+    // Background: Crisp Pure White
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
 
     ctx.save();
     // Center origin + Apply Zoom/Pan
@@ -423,7 +415,6 @@ export default function ObsidianNetworkGraph({
     const { nodes, links } = graphDataRef.current;
     const nodeMap = new Map(nodes.map(n => [n.id, n]));
 
-    // Filter visible nodes based on toggles
     const isVisibleNode = (node) => {
       if (node.type === 'company' && !showCompanies) return false;
       if (node.type === 'customer' && !showCustomers) return false;
@@ -444,14 +435,14 @@ export default function ObsidianNetworkGraph({
       });
     }
 
-    // 3.1 Draw Grid Dot Background
-    const gridSize = 40;
-    const bound = 900;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+    // 3.1 Draw Subtle Slate Grid Dots
+    const gridSize = 45;
+    const bound = 1100;
+    ctx.fillStyle = '#e2e8f0';
     for (let x = -bound; x <= bound; x += gridSize) {
       for (let y = -bound; y <= bound; y += gridSize) {
         ctx.beginPath();
-        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.arc(x, y, 1.2, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -470,27 +461,24 @@ export default function ObsidianNetworkGraph({
       ctx.lineTo(t.x, t.y);
 
       if (isConnected && activeHover) {
-        ctx.strokeStyle = s.type === 'company' ? 'rgba(129, 140, 248, 0.85)' : 'rgba(52, 211, 153, 0.85)';
-        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = s.type === 'company' ? '#4f46e5' : '#059669';
+        ctx.lineWidth = 2.4;
       } else {
-        ctx.strokeStyle = isDimmed ? 'rgba(148, 163, 184, 0.06)' : (link.type === 'company-customer' ? 'rgba(99, 102, 241, 0.22)' : 'rgba(16, 185, 129, 0.16)');
-        ctx.lineWidth = isDimmed ? 0.6 : 1.2;
+        ctx.strokeStyle = isDimmed ? 'rgba(203, 213, 225, 0.25)' : (link.type === 'company-customer' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(16, 185, 129, 0.2)');
+        ctx.lineWidth = isDimmed ? 0.8 : 1.3;
       }
       ctx.stroke();
 
       // Flowing Pulse Particles along connected lines
       if (!isDimmed && (isConnected || !activeHover)) {
-        const particleOffset = (particleTimeRef.current + lIdx * 0.12) % 1;
+        const particleOffset = (particleTimeRef.current + lIdx * 0.1) % 1;
         const px = s.x + (t.x - s.x) * particleOffset;
         const py = s.y + (t.y - s.y) * particleOffset;
 
         ctx.beginPath();
-        ctx.arc(px, py, 2, 0, Math.PI * 2);
-        ctx.fillStyle = s.type === 'company' ? '#818cf8' : '#34d399';
-        ctx.shadowColor = s.type === 'company' ? '#6366f1' : '#10b981';
-        ctx.shadowBlur = 4;
+        ctx.arc(px, py, 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = s.type === 'company' ? '#6366f1' : '#10b981';
         ctx.fill();
-        ctx.shadowBlur = 0;
       }
     });
 
@@ -506,13 +494,13 @@ export default function ObsidianNetworkGraph({
       const radius = isHovered ? node.radius * 1.25 : node.radius;
 
       ctx.save();
-      ctx.globalAlpha = isDimmed ? 0.25 : 1.0;
+      ctx.globalAlpha = isDimmed ? 0.22 : 1.0;
 
       // Glow Ring
       if (isHovered || isSearchMatch || node.type === 'company') {
         ctx.beginPath();
         ctx.arc(node.x, node.y, radius + (isHovered ? 8 : 4), 0, Math.PI * 2);
-        ctx.fillStyle = node.color.glow || 'rgba(99, 102, 241, 0.3)';
+        ctx.fillStyle = node.color.glow || 'rgba(79, 70, 229, 0.15)';
         ctx.fill();
       }
 
@@ -520,7 +508,7 @@ export default function ObsidianNetworkGraph({
       ctx.beginPath();
       if (node.type === 'terminal') {
         // Diamond Shape for Terminals
-        const d = radius * 1.2;
+        const d = radius * 1.15;
         ctx.moveTo(node.x, node.y - d);
         ctx.lineTo(node.x + d, node.y);
         ctx.lineTo(node.x, node.y + d);
@@ -533,8 +521,8 @@ export default function ObsidianNetworkGraph({
 
       ctx.fillStyle = node.color.fill;
       ctx.fill();
-      ctx.lineWidth = isHovered ? 3 : (node.type === 'company' ? 2.5 : 1.5);
-      ctx.strokeStyle = isHovered ? '#ffffff' : node.color.stroke;
+      ctx.lineWidth = isHovered ? 3 : 2;
+      ctx.strokeStyle = isHovered ? '#0f172a' : node.color.stroke;
       ctx.stroke();
 
       // Node Inner Icon / Text
@@ -547,33 +535,30 @@ export default function ObsidianNetworkGraph({
       }
 
       // 3.4 Obsidian Smart Labels (Level of Detail LOD)
-      // At zoom < 0.6: only company labels
-      // At zoom >= 0.6: customer badges & sales
-      // At zoom >= 1.0: full details
       const shouldShowLabel = 
         node.type === 'company' || 
         isHovered || 
         isSearchMatch || 
-        transform.k >= 0.75 || 
-        (node.type === 'terminal' && transform.k >= 0.6);
+        transform.k >= 0.7 || 
+        (node.type === 'terminal' && transform.k >= 0.55);
 
       if (shouldShowLabel && !isDimmed) {
-        ctx.font = node.type === 'company' ? 'bold 12px Inter, sans-serif' : '500 10px Inter, sans-serif';
+        ctx.font = node.type === 'company' ? 'bold 11px Inter, sans-serif' : '600 10px Inter, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
 
         const labelY = node.y + radius + 4;
         const displayText = node.label || node.code;
 
-        // Label Background Pill
+        // Clean White Label Pill
         const metrics = ctx.measureText(displayText);
         const textWidth = metrics.width;
-        const padX = 5;
-        const padY = 2;
+        const padX = 6;
+        const padY = 2.5;
 
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.strokeStyle = isHovered ? node.color.stroke : 'rgba(255, 255, 255, 0.15)';
-        ctx.lineWidth = 0.8;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+        ctx.strokeStyle = isHovered ? node.color.stroke : '#cbd5e1';
+        ctx.lineWidth = 1;
         
         ctx.beginPath();
         ctx.roundRect(
@@ -581,19 +566,19 @@ export default function ObsidianNetworkGraph({
           labelY - padY,
           textWidth + padX * 2,
           14 + padY * 2,
-          4
+          5
         );
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = isHovered ? '#ffffff' : (node.type === 'terminal' ? '#fbbf24' : '#e2e8f0');
+        ctx.fillStyle = isHovered ? '#0f172a' : (node.type === 'terminal' ? '#92400e' : (node.type === 'company' ? '#1e1b4b' : '#065f46'));
         ctx.fillText(displayText, node.x, labelY + 1);
 
-        // Sales badge under customer if zoomed in
-        if (node.sales && (transform.k >= 1.1 || isHovered)) {
+        // Sales badge under customer on zoom or hover
+        if (node.sales && (transform.k >= 1.0 || isHovered)) {
           const salesText = formatSales(node.sales);
           ctx.font = 'bold 9px monospace';
-          ctx.fillStyle = '#10b981';
+          ctx.fillStyle = '#059669';
           ctx.fillText(salesText, node.x, labelY + 18);
         }
       }
@@ -626,7 +611,7 @@ export default function ObsidianNetworkGraph({
     return () => window.removeEventListener('resize', handleResize);
   }, [drawGraph]);
 
-  // 4. Mouse / Touch Interactions (Zoom & Pan, Drag Node)
+  // 4. Mouse / Touch Interactions
   const getNodeAtPoint = (px, py) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -634,7 +619,6 @@ export default function ObsidianNetworkGraph({
     const mx = px - rect.left;
     const my = py - rect.top;
 
-    // Convert Screen Coords -> Graph Coords
     const graphX = (mx - canvas.clientWidth / 2 - transform.x) / transform.k;
     const graphY = (my - canvas.clientHeight / 2 - transform.y) / transform.k;
 
@@ -707,7 +691,7 @@ export default function ObsidianNetworkGraph({
   };
 
   const handleResetZoom = () => {
-    setTransform({ x: 0, y: 0, k: 0.95 });
+    setTransform({ x: 0, y: 0, k: 0.85 });
   };
 
   const handleZoomIn = () => {
@@ -718,7 +702,6 @@ export default function ObsidianNetworkGraph({
     setTransform(prev => ({ ...prev, k: Math.max(0.3, prev.k * 0.8) }));
   };
 
-  // 5. Total Connected Counts
   const networkStats = useMemo(() => {
     const comps = rawGraph.nodes.filter(n => n.type === 'company').length;
     const custs = rawGraph.nodes.filter(n => n.type === 'customer').length;
@@ -730,28 +713,28 @@ export default function ObsidianNetworkGraph({
   return (
     <div
       ref={containerRef}
-      className={`relative bg-[#0b0f19] rounded-3xl border border-indigo-900/40 shadow-2xl overflow-hidden transition-all duration-300 ${
-        isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[580px] w-full'
+      className={`relative bg-white rounded-3xl border border-slate-200 shadow-soft overflow-hidden transition-all duration-300 ${
+        isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[600px] w-full'
       }`}
     >
-      {/* Top Glass Header & Toolbar */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-[#0b0f19]/90 via-[#0b0f19]/60 to-transparent backdrop-blur-md flex flex-wrap items-center justify-between gap-3 border-b border-white/5">
+      {/* Top Light Header & Toolbar */}
+      <div className="absolute top-0 left-0 right-0 z-10 p-4 bg-white/95 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 shadow-xs">
         
         {/* Title & Badge */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#2b1f55] to-[#4338ca] flex items-center justify-center shadow-md text-white">
             <Network className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-extrabold text-white tracking-wide flex items-center gap-1.5">
+              <h3 className="text-sm font-extrabold text-slate-900 tracking-wide flex items-center gap-1.5">
                 Enterprise Logistics Graph
-                <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-500/30">
+                <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
                   Obsidian Force Engine
                 </span>
               </h3>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
               Interactive Topography: Company Hubs ➔ Customers ➔ Ports & ICD Terminals
             </p>
           </div>
@@ -765,12 +748,12 @@ export default function ObsidianNetworkGraph({
             placeholder="Search Company, Customer, Port..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-7 py-1.5 bg-slate-900/80 border border-slate-700/60 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-medium"
+            className="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#2b1f55] focus:ring-1 focus:ring-[#2b1f55] font-medium transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs font-bold"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
             >
               ×
             </button>
@@ -778,52 +761,52 @@ export default function ObsidianNetworkGraph({
         </div>
 
         {/* Visibility Filter Toggles */}
-        <div className="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
           <button
             onClick={() => setShowCompanies(prev => !prev)}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
-              showCompanies ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              showCompanies ? 'bg-[#2b1f55] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Building2 className="w-3 h-3" />
+            <Building2 className="w-3 h-3 text-indigo-300" />
             Companies ({networkStats.comps})
           </button>
           <button
             onClick={() => setShowCustomers(prev => !prev)}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
-              showCustomers ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              showCustomers ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Users className="w-3 h-3" />
+            <Users className="w-3 h-3 text-emerald-200" />
             Customers ({networkStats.custs})
           </button>
           <button
             onClick={() => setShowTerminals(prev => !prev)}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
-              showTerminals ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              showTerminals ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <MapPin className="w-3 h-3" />
+            <MapPin className="w-3 h-3 text-amber-200" />
             Terminals ({networkStats.terms})
           </button>
         </div>
 
         {/* Actions (Play/Pause, Zoom, Fullscreen) */}
-        <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
           <button
             onClick={() => setIsPlaying(prev => !prev)}
             title={isPlaying ? 'Pause Physics Simulation' : 'Resume Physics'}
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200/80 rounded-lg transition-all"
           >
-            {isPlaying ? <Pause className="w-3.5 h-3.5 text-indigo-400" /> : <Play className="w-3.5 h-3.5 text-emerald-400" />}
+            {isPlaying ? <Pause className="w-3.5 h-3.5 text-indigo-600" /> : <Play className="w-3.5 h-3.5 text-emerald-600" />}
           </button>
 
-          <div className="w-px h-4 bg-slate-700 mx-0.5"></div>
+          <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
 
           <button
             onClick={handleZoomIn}
             title="Zoom In"
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200/80 rounded-lg transition-all"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
@@ -831,7 +814,7 @@ export default function ObsidianNetworkGraph({
           <button
             onClick={handleZoomOut}
             title="Zoom Out"
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200/80 rounded-lg transition-all"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
@@ -839,17 +822,17 @@ export default function ObsidianNetworkGraph({
           <button
             onClick={handleResetZoom}
             title="Reset View"
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200/80 rounded-lg transition-all"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
-          <div className="w-px h-4 bg-slate-700 mx-0.5"></div>
+          <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
 
           <button
             onClick={() => setIsFullscreen(prev => !prev)}
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200/80 rounded-lg transition-all"
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
@@ -870,27 +853,27 @@ export default function ObsidianNetworkGraph({
       />
 
       {/* Bottom Summary Bar */}
-      <div className="absolute bottom-3 left-4 right-4 pointer-events-none flex items-center justify-between gap-3 text-[11px] font-mono font-semibold text-slate-400">
-        <div className="bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5 pointer-events-auto flex items-center gap-3 shadow-lg">
-          <span className="flex items-center gap-1.5 text-indigo-400">
-            <Sparkles className="w-3.5 h-3.5" />
+      <div className="absolute bottom-3 left-4 right-4 pointer-events-none flex items-center justify-between gap-3 text-[11px] font-mono font-semibold text-slate-600">
+        <div className="bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-slate-200 pointer-events-auto flex items-center gap-3 shadow-md">
+          <span className="flex items-center gap-1.5 text-[#2b1f55] font-bold">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
             Obsidian Zoom: {(transform.k * 100).toFixed(0)}%
           </span>
-          <span className="text-slate-600">•</span>
+          <span className="text-slate-300">•</span>
           <span>{networkStats.totalLinks} Active Logistics Vectors</span>
-          <span className="text-slate-600">•</span>
-          <span className="text-emerald-400">Flow: {formatSales(totalSales)}</span>
+          <span className="text-slate-300">•</span>
+          <span className="text-emerald-700 font-bold">Flow: {formatSales(totalSales)}</span>
         </div>
 
-        <div className="bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5 pointer-events-auto text-slate-400 hidden sm:block">
-          💡 Drag nodes to rearrange • Scroll to zoom in for customer detail
+        <div className="bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-slate-200 pointer-events-auto text-slate-500 shadow-md hidden sm:block">
+          💡 Drag nodes to reposition • Scroll to zoom for customer names & sales
         </div>
       </div>
 
       {/* Node Inspector Modal / Popover */}
       {selectedNode && (
-        <div className="absolute bottom-4 right-4 z-20 w-80 bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-indigo-500/40 p-4 shadow-2xl text-white animate-scale-in">
-          <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-3">
+        <div className="absolute bottom-4 right-4 z-20 w-80 bg-white/98 backdrop-blur-xl rounded-2xl border border-indigo-200 p-4 shadow-2xl text-slate-900 animate-scale-in">
+          <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
               <span
                 className="w-3.5 h-3.5 rounded-full"
@@ -900,14 +883,14 @@ export default function ObsidianNetworkGraph({
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                   {selectedNode.type} Node
                 </span>
-                <h4 className="text-xs font-black text-white truncate max-w-[200px]" title={selectedNode.fullName}>
+                <h4 className="text-xs font-black text-slate-900 truncate max-w-[200px]" title={selectedNode.fullName}>
                   {selectedNode.fullName || selectedNode.code}
                 </h4>
               </div>
             </div>
             <button
               onClick={() => setSelectedNode(null)}
-              className="p-1 text-slate-400 hover:text-white rounded-lg"
+              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
             >
               <X className="w-4 h-4" />
             </button>
@@ -915,40 +898,40 @@ export default function ObsidianNetworkGraph({
 
           <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
             {selectedNode.sales && (
-              <div className="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
-                <span className="text-[10px] text-slate-400 block">Sales Volume</span>
-                <span className="font-mono font-bold text-emerald-400">
+              <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <span className="text-[10px] text-slate-500 block font-medium">Sales Volume</span>
+                <span className="font-mono font-bold text-emerald-700">
                   {formatSales(selectedNode.sales)}
                 </span>
               </div>
             )}
             {selectedNode.invs && (
-              <div className="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
-                <span className="text-[10px] text-slate-400 block">Total Invoices</span>
-                <span className="font-mono font-bold text-indigo-300">
+              <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <span className="text-[10px] text-slate-500 block font-medium">Total Invoices</span>
+                <span className="font-mono font-bold text-indigo-900">
                   {Number(selectedNode.invs).toLocaleString('en-IN')}
                 </span>
               </div>
             )}
             {selectedNode.volume && (
-              <div className="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
-                <span className="text-[10px] text-slate-400 block">Throughput</span>
-                <span className="font-mono font-bold text-amber-300">
+              <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <span className="text-[10px] text-slate-500 block font-medium">Throughput</span>
+                <span className="font-mono font-bold text-amber-700">
                   {selectedNode.volume}
                 </span>
               </div>
             )}
             {selectedNode.parentCompany && (
-              <div className="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
-                <span className="text-[10px] text-slate-400 block">Parent Hub</span>
-                <span className="font-bold text-purple-300">
+              <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <span className="text-[10px] text-slate-500 block font-medium">Parent Hub</span>
+                <span className="font-bold text-purple-900">
                   {selectedNode.parentCompany}
                 </span>
               </div>
             )}
           </div>
 
-          <div className="mt-3 pt-2 border-t border-slate-800 flex justify-end">
+          <div className="mt-3 pt-2 border-t border-slate-100 flex justify-end">
             <button
               onClick={() => {
                 if (selectedNode.type === 'company' && onSelectCompany) {
@@ -960,7 +943,7 @@ export default function ObsidianNetworkGraph({
                 }
                 setSelectedNode(null);
               }}
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white text-xs font-bold rounded-xl shadow-md transition-all"
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 bg-gradient-to-r from-[#2b1f55] to-[#4338ca] hover:opacity-95 text-white text-xs font-bold rounded-xl shadow-md transition-all"
             >
               <span>Filter View to this {selectedNode.type}</span>
               <ArrowRight className="w-3.5 h-3.5" />
