@@ -374,6 +374,7 @@ export default function App() {
               fetchCIRData();
               fetchInitialData();
             }}
+            onExport={handleExportExcel}
             loading={loading}
             activeTab={activeTab}
           />

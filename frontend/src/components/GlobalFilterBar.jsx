@@ -53,6 +53,7 @@ export default function GlobalFilterBar({
   ],
   terminalFyMatrix = [],
   onRefresh,
+  onExport,
   loading = false,
   activeTab = 'analytics'
 }) {
@@ -305,6 +306,26 @@ export default function GlobalFilterBar({
         }
       }
     }
+  };
+
+  const handleQuickExport = () => {
+    if (onExport) {
+      onExport();
+      return;
+    }
+    const wb = XLSX.utils.book_new();
+    const dataToExport = (availableTerminals || []).map(t => ({
+      'Terminal ID': t.terminalId,
+      'Terminal / Branch': t.terminalName,
+      'Fiscal Year': selectedFY === 'ALL' ? 'Cumulative (All Years)' : selectedFY,
+      'Status': (t.totalContainers > 0 || t.netRevenue > 0 || t.invoiceCount > 0) ? 'Active with Data' : 'Zero Data / Inactive',
+      'Invoices': t.invoiceCount || 0,
+      'Containers': t.totalContainers || 0,
+      'Net Revenue (Gross Sale INR)': t.netRevenue || 0
+    }));
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    XLSX.utils.book_append_sheet(wb, ws, 'Branch_Overview');
+    XLSX.writeFile(wb, `SPJ_Enterprise_Overview_${selectedFY.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
