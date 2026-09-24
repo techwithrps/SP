@@ -746,18 +746,18 @@ export default function App() {
                   onReset={handleResetFilters}
                   onExport={handleExportExcel}
                   loading={loading}
-                  totalRecords={kpis.totalRecords || cirPagination.totalRecords || records.length}
+                  totalRecords={activeSalesKPIs.totalRecords || activeSalesKPIs.invoiceCount || kpis.totalRecords || cirPagination.totalRecords || records.length}
                 />
 
                 <CIRTable
                   records={records}
                   loading={loading}
                   onSelectRecord={setSelectedRecord}
-                  kpis={kpis}
+                  kpis={activeSalesKPIs}
                   page={cirPage}
                   pageSize={cirLimit}
-                  totalRecords={cirPagination.totalRecords}
-                  totalPages={cirPagination.totalPages}
+                  totalRecords={activeSalesKPIs.totalRecords || activeSalesKPIs.invoiceCount || kpis.totalRecords || cirPagination.totalRecords || records.length}
+                  totalPages={Math.ceil((activeSalesKPIs.totalRecords || activeSalesKPIs.invoiceCount || cirPagination.totalRecords || 1) / cirLimit)}
                   onPageChange={setCirPage}
                   onPageSizeChange={(newLimit) => {
                     setCirLimit(newLimit);

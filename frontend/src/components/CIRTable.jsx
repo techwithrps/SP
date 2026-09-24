@@ -97,7 +97,7 @@ export default function CIRTable({
             Container Invoice & Sales Ledger (CIR Data Grid)
           </h4>
           <span className="text-xs text-slate-500 font-semibold ml-2">
-            Showing {paginatedRecords.length} of {activeTotalRecords} records
+            Showing {paginatedRecords.length > 0 ? `${((currentPage - 1) * activePageSize) + 1} - ${Math.min(currentPage * activePageSize, activeTotalRecords)}` : '0'} of {activeTotalRecords.toLocaleString('en-IN')} records
           </span>
         </div>
 
