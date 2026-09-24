@@ -43,7 +43,7 @@ export default function KPICards({ kpis = {}, loading = false }) {
   const cards = [
     {
       title: 'Net Sales',
-      subtitle: 'Gross - Credit Adjustments',
+      subtitle: 'Net Billed Realization',
       value: formatCurrency(netRevenue),
       icon: IndianRupee,
       iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
@@ -83,17 +83,6 @@ export default function KPICards({ kpis = {}, loading = false }) {
       valueColor: 'text-indigo-900',
       badge: 'GST Output',
       badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200',
-      isCurrency: true
-    },
-    {
-      title: 'Credit Adjustments',
-      subtitle: `${creditNoteCount} Credit Notes`,
-      value: formatCurrency(creditNotes),
-      icon: FileText,
-      iconBg: 'bg-rose-50 text-rose-600 border border-rose-200',
-      valueColor: 'text-rose-900',
-      badge: 'Reversals',
-      badgeColor: 'text-rose-700 bg-rose-50 border-rose-200',
       isCurrency: true
     },
     {
@@ -150,8 +139,8 @@ export default function KPICards({ kpis = {}, loading = false }) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 animate-fade-in">
-        {Array.from({ length: 10 }).map((_, idx) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 animate-fade-in">
+        {Array.from({ length: 9 }).map((_, idx) => (
           <SkeletonKPICard key={idx} />
         ))}
       </div>
@@ -160,8 +149,8 @@ export default function KPICards({ kpis = {}, loading = false }) {
 
   return (
     <div className="space-y-3 animate-slide-up">
-      {/* 10 Verified KPIs Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
+      {/* 9 Verified KPIs Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-4">
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (
