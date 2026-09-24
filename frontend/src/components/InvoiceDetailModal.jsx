@@ -5,13 +5,23 @@ import {
   Container, 
   Building2, 
   Printer, 
-  CheckCircle2 
+  CheckCircle2,
+  FileText,
+  Ship,
+  Calendar,
+  UserCheck
 } from 'lucide-react';
 
 export default function InvoiceDetailModal({ record, onClose }) {
   if (!record) return null;
 
-  const isCreditNote = record.INVOICE_TYPE === 'Credit Note' || Number(record.AMOUNT) < 0;
+  const isCreditNote = record.INVOICE_TYPE === 'Credit Note' || Number(record.AMOUNT || record.INVOICE_AMOUNT) < 0;
+  const billAmt = Number(record.BILL_AMOUNT || 0);
+  const taxAmt = Number(record.TAX_AMOUNT || record.TAX || 0);
+  const totalAmt = Number(record.INVOICE_AMOUNT || record.AMOUNT || (billAmt + taxAmt));
+  const igst = Number(record.IGST || 0);
+  const cgst = Number(record.CGST || 0);
+  const sgst = Number(record.SGST || 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
@@ -23,12 +33,12 @@ export default function InvoiceDetailModal({ record, onClose }) {
         <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`p-3 rounded-2xl ${
-              isCreditNote ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-orange-50 text-orange-600 border border-orange-200'
+              isCreditNote ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-purple-50 text-[#2b1f55] border border-purple-200'
             }`}>
               <Receipt className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-lg font-bold font-display text-[#2b1f55]">
                   {record.INVOICE_REF_NO || record.INVOICE_NO || 'Invoice Details'}
                 </h3>
@@ -39,9 +49,14 @@ export default function InvoiceDetailModal({ record, onClose }) {
                 }`}>
                   {isCreditNote ? 'Credit Note' : 'Tax Invoice'}
                 </span>
+                {record.SERVICE_TYPE && (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    {record.SERVICE_TYPE}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-500 font-mono mt-0.5 font-medium">
-                Date: {record.INVOICE_DATE || '-'} | Job: {record.JOB_NO || '-'}
+                Date: {record.INVOICE_DATE || '-'} &bull; Actual Inv No: {record.INVOICE_NO || record.INVOICE_REF_NO} &bull; Job: {record.JOB_NO || '-'}
               </p>
             </div>
           </div>
@@ -65,89 +80,117 @@ export default function InvoiceDetailModal({ record, onClose }) {
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-6 text-xs">
+        <div className="p-6 overflow-y-auto space-y-5 text-xs">
           
-          {/* Section 1: Customer & Logistics Info */}
+          {/* Section 1: Customer & Logistics Routing */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2.5">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#ff6a00] flex items-center gap-1.5">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#ff6a00] flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
                 <Building2 className="w-3.5 h-3.5" /> Billed Account & Party
               </div>
-              <div>
-                <div className="text-slate-500 font-medium">Customer Name:</div>
-                <div className="font-bold text-slate-900 text-sm mt-0.5">{record.CUSTOMER_NAME}</div>
-              </div>
-              <div>
-                <div className="text-slate-500 font-medium">Service Category:</div>
-                <div className="font-bold text-[#2b1f55]">{record.SERVICE_NAME || 'Standard Logistics'}</div>
-              </div>
-              <div>
-                <div className="text-slate-500 font-medium">Trip Classification:</div>
-                <div className="font-bold text-emerald-700">{record.TRIP_TYPE || 'Export'}</div>
+              <div className="space-y-1.5">
+                <div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Customer / Merchant</div>
+                  <div className="font-bold text-slate-900 text-sm">{record.CUSTOMER_NAME}</div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <div className="text-[10px] text-slate-400 font-bold uppercase">Party Inv No</div>
+                    <div className="font-mono font-semibold text-slate-800">{record.PARTY_INV_NO || record.INVOICE_REF_NO}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-400 font-bold uppercase">BL / Bilty No</div>
+                    <div className="font-mono font-semibold text-blue-700">{record.BL_NO || '-'}</div>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Service Description</div>
+                  <div className="font-bold text-[#2b1f55] mt-0.5">{record.SERVICE_NAME || record.SERVICE_CHARGE || 'Standard Logistics'}</div>
+                </div>
               </div>
             </div>
 
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2.5">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
                 <Container className="w-3.5 h-3.5" /> Container & Port Routing
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <div className="text-slate-500 font-medium">Container No:</div>
-                  <div className="font-mono font-bold text-slate-900">{record.CONT_NO || 'N/A (LCL/Direct)'}</div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Container No</div>
+                  <div className="font-mono font-bold text-slate-900">{record.CONT_NO || record.CONTAINER_NO || 'N/A (LCL/Direct)'}</div>
                 </div>
                 <div>
-                  <div className="text-slate-500 font-medium">Size & Type:</div>
-                  <div className="font-mono text-slate-700 font-medium">{record.CONT_SIZE ? `${record.CONT_SIZE}ft ${record.CONT_TYPE || ''}` : '-'}</div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Size & Quantity</div>
+                  <div className="font-mono text-slate-700 font-semibold">{record.CONTAINER_SIZE || record.SIZE ? `${record.CONTAINER_SIZE || record.SIZE} FT` : '-'} (Qty: {record.BILL_QNTY || 1})</div>
                 </div>
                 <div>
-                  <div className="text-slate-500 font-medium">Port / ICD:</div>
-                  <div className="text-slate-800 font-medium">{record.PORT || 'SPJ ICD Dadri'}</div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Port / Discharge</div>
+                  <div className="text-slate-800 font-semibold">{record.PORT || 'ICD DADRI'}</div>
                 </div>
                 <div>
-                  <div className="text-slate-500 font-medium">Shipping Line:</div>
-                  <div className="text-slate-800 font-medium">{record.LINE || 'SPJ Express'}</div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Terminal / Branch</div>
+                  <div className="text-slate-800 font-semibold">{record.TERMINAL_NAME || 'TRANSWORLD-DADRI'}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Trip Movement</div>
+                  <div className="font-bold text-emerald-700">{record.TRIP_TYPE || 'Export'}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Line Handover Date</div>
+                  <div className="font-mono text-slate-700">{record.LINE_HANDOVER_DATE || record.INVOICE_DATE || '-'}</div>
                 </div>
               </div>
             </div>
 
           </div>
 
-          {/* Section 2: Financial & Tax Ledger */}
-          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
-              <Receipt className="w-3.5 h-3.5" /> Financial & GST Computation
+          {/* Section 2: Financial & GST Tax Computation (Direct from Oracle Tables) */}
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 flex items-center justify-between border-b border-slate-200 pb-1.5">
+              <span className="flex items-center gap-1.5">
+                <Receipt className="w-3.5 h-3.5" /> Oracle GST Tax & Billing Ledger
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono font-normal">
+                Billed By: {record.CREATED_BY || 'SPJ_ORACLE'}
+              </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 pt-2">
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                <div className="text-slate-500 text-[11px] font-medium">Base Bill Amount:</div>
-                <div className="text-base font-bold font-mono text-slate-900 mt-1">
-                  ₹ {Number(record.BILL_AMOUNT || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+                <div className="text-slate-500 text-[10px] font-bold uppercase">Pre-Tax Base Amount</div>
+                <div className="text-sm font-bold font-mono text-slate-900 mt-1">
+                  ₹ {billAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                <div className="text-slate-500 text-[11px] font-medium">GST / Output Tax:</div>
-                <div className="text-base font-bold font-mono text-emerald-700 mt-1">
-                  ₹ {Number(record.TAX || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+                <div className="text-slate-500 text-[10px] font-bold uppercase">IGST (Head 5)</div>
+                <div className="text-sm font-bold font-mono text-emerald-700 mt-1">
+                  ₹ {igst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                <div className="text-slate-500 text-[11px] font-medium">Gross Total Amount:</div>
-                <div className={`text-base font-black font-mono mt-1 ${
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+                <div className="text-slate-500 text-[10px] font-bold uppercase">CGST (Head 6) + SGST (Head 7)</div>
+                <div className="text-sm font-bold font-mono text-teal-700 mt-1">
+                  ₹ {(cgst + sgst).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 shadow-xs">
+                <div className="text-[#2b1f55] text-[10px] font-bold uppercase">Total Invoiced Amount</div>
+                <div className={`text-sm font-black font-mono mt-1 ${
                   isCreditNote ? 'text-rose-600' : 'text-[#2b1f55]'
                 }`}>
-                  ₹ {Number(record.AMOUNT || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ₹ {totalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
             </div>
 
             {record.INVOICE_NOTE && (
-              <div className="mt-3 p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm">
-                <span className="text-slate-500 font-bold block mb-1">Invoice Notes & Billing Remarks:</span>
+              <div className="p-3 bg-white rounded-xl border border-slate-200">
+                <span className="text-slate-400 font-bold text-[10px] uppercase block mb-0.5">Billing Remarks / Notes:</span>
                 <p className="text-slate-800 text-xs leading-relaxed font-sans">{record.INVOICE_NOTE}</p>
               </div>
             )}
@@ -159,11 +202,11 @@ export default function InvoiceDetailModal({ record, onClose }) {
         <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs">
           <div className="text-slate-600 font-medium flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            Official Verified SPJ Invoice & Container Record
+            Oracle Verified SPJLIVE Bill & Container Item Record
           </div>
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-[#2b1f55] hover:bg-[#3b2a74] text-white font-bold rounded-xl transition-colors shadow-sm"
+            className="px-5 py-2 bg-[#2b1f55] hover:bg-[#3b2a74] text-white font-bold rounded-xl transition-colors shadow-sm cursor-pointer"
           >
             Close
           </button>

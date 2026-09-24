@@ -218,11 +218,11 @@ export default function CIRTable({
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
-              <th className="p-3.5 text-center w-12 text-slate-500">#</th>
+              <th className="p-3 text-center w-10 text-slate-500">#</th>
               
               <th 
                 onClick={() => handleSort('INVOICE_REF_NO')}
-                className="p-3.5 cursor-pointer hover:text-[#2b1f55] transition-colors"
+                className="p-3 cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center gap-1">
                   Invoice Ref No
@@ -232,7 +232,7 @@ export default function CIRTable({
 
               <th 
                 onClick={() => handleSort('INVOICE_DATE')}
-                className="p-3.5 cursor-pointer hover:text-[#2b1f55] transition-colors"
+                className="p-3 cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center gap-1">
                   Date
@@ -242,7 +242,7 @@ export default function CIRTable({
 
               <th 
                 onClick={() => handleSort('CUSTOMER_NAME')}
-                className="p-3.5 cursor-pointer hover:text-[#2b1f55] transition-colors"
+                className="p-3 cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center gap-1">
                   Customer / Billed To
@@ -252,7 +252,7 @@ export default function CIRTable({
 
               <th 
                 onClick={() => handleSort('SERVICE_NAME')}
-                className="p-3.5 cursor-pointer hover:text-[#2b1f55] transition-colors"
+                className="p-3 cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center gap-1">
                   Service Charge
@@ -260,21 +260,31 @@ export default function CIRTable({
                 </div>
               </th>
 
-              <th className="p-3.5">Container No</th>
+              <th 
+                onClick={() => handleSort('BL_NO')}
+                className="p-3 cursor-pointer hover:text-[#2b1f55] transition-colors"
+              >
+                <div className="flex items-center gap-1">
+                  BL / Bilty No
+                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                </div>
+              </th>
+
+              <th className="p-3">Container No</th>
 
               <th 
                 onClick={() => handleSort('TRIP_TYPE')}
-                className="p-3.5 cursor-pointer hover:text-[#2b1f55] transition-colors"
+                className="p-3 cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center gap-1">
-                  Trip Type
+                  Trip / Port
                   <ArrowUpDown className="w-3 h-3 text-slate-400" />
                 </div>
               </th>
 
               <th 
                 onClick={() => handleSort('BILL_AMOUNT')}
-                className="p-3.5 text-right cursor-pointer hover:text-[#2b1f55] transition-colors"
+                className="p-3 text-right cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center justify-end gap-1">
                   Bill Amount (₹)
@@ -284,7 +294,7 @@ export default function CIRTable({
 
               <th 
                 onClick={() => handleSort('TAX')}
-                className="p-3.5 text-right cursor-pointer hover:text-[#2b1f55] transition-colors"
+                className="p-3 text-right cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center justify-end gap-1">
                   Tax (₹)
@@ -294,7 +304,7 @@ export default function CIRTable({
 
               <th 
                 onClick={() => handleSort('AMOUNT')}
-                className="p-3.5 text-right cursor-pointer hover:text-[#2b1f55] transition-colors"
+                className="p-3 text-right cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center justify-end gap-1">
                   Total Amount (₹)
@@ -302,15 +312,15 @@ export default function CIRTable({
                 </div>
               </th>
 
-              <th className="p-3.5 text-center">Type</th>
-              <th className="p-3.5 text-center">Action</th>
+              <th className="p-3 text-center">Type</th>
+              <th className="p-3 text-center">Action</th>
             </tr>
           </thead>
 
           <tbody className="divide-y divide-slate-200">
             {loading ? (
               <tr>
-                <td colSpan={12} className="p-12 text-center text-slate-500">
+                <td colSpan={13} className="p-12 text-center text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <div className="w-8 h-8 border-3 border-[#2b1f55] border-t-transparent rounded-full animate-spin" />
                     <span className="text-xs font-semibold text-slate-600">Loading Live Data...</span>
@@ -319,7 +329,7 @@ export default function CIRTable({
               </tr>
             ) : paginatedRecords.length === 0 ? (
               <tr>
-                <td colSpan={12} className="p-12 text-center text-slate-500">
+                <td colSpan={13} className="p-12 text-center text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <AlertCircle className="w-8 h-8 text-amber-500" />
                     <span className="text-sm font-bold text-slate-800">No Matching Records Found</span>
@@ -329,8 +339,14 @@ export default function CIRTable({
               </tr>
             ) : (
               paginatedRecords.map((row, idx) => {
-                const isCreditNote = row.INVOICE_TYPE === 'Credit Note' || Number(row.AMOUNT) < 0;
+                const isCreditNote = row.INVOICE_TYPE === 'Credit Note' || Number(row.AMOUNT || row.INVOICE_AMOUNT) < 0;
                 const indexNum = (currentPage - 1) * pageSize + idx + 1;
+                const billAmt = Number(row.BILL_AMOUNT || 0);
+                const taxAmt = Number(row.TAX_AMOUNT || row.TAX || 0);
+                const totalAmt = Number(row.INVOICE_AMOUNT || row.AMOUNT || (billAmt + taxAmt));
+                const igst = Number(row.IGST || 0);
+                const cgst = Number(row.CGST || 0);
+                const sgst = Number(row.SGST || 0);
 
                 return (
                   <tr
@@ -338,107 +354,146 @@ export default function CIRTable({
                     onClick={() => onSelectRecord(row)}
                     className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                   >
-                    <td className="p-3.5 text-center font-mono text-xs text-slate-400 font-medium">
+                    <td className="p-3 text-center font-mono text-xs text-slate-400 font-medium">
                       {indexNum}
                     </td>
 
-                    {/* Invoice Ref */}
-                    <td className="p-3.5 font-bold text-[#2b1f55] group-hover:text-blue-700 transition-colors">
-                      <div className="flex items-center gap-1.5">
-                        <span>{row.INVOICE_REF_NO || row.INVOICE_NO || '-'}</span>
+                    {/* Invoice Ref & Actual Invoice No */}
+                    <td className="p-3 font-bold text-[#2b1f55] group-hover:text-blue-700 transition-colors">
+                      <div className="font-mono text-xs text-[#2b1f55]">
+                        {row.INVOICE_REF_NO || row.INVOICE_NO || '-'}
                       </div>
-                      {row.JOB_NO && (
-                        <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                          Job: {row.JOB_NO}
+                      {row.INVOICE_NO && row.INVOICE_NO !== row.INVOICE_REF_NO && (
+                        <div className="text-[10px] text-slate-400 font-mono font-normal">
+                          Inv: {row.INVOICE_NO}
+                        </div>
+                      )}
+                      {row.PARTY_INV_NO && row.PARTY_INV_NO !== row.INVOICE_REF_NO && (
+                        <div className="text-[10px] text-slate-400 font-mono font-normal">
+                          Party: {row.PARTY_INV_NO}
                         </div>
                       )}
                     </td>
 
                     {/* Date */}
-                    <td className="p-3.5 text-slate-600 font-mono text-xs whitespace-nowrap font-medium">
-                      {row.INVOICE_DATE || '-'}
+                    <td className="p-3 text-slate-600 font-mono text-xs whitespace-nowrap font-medium">
+                      <div>{row.INVOICE_DATE || '-'}</div>
+                      {row.LINE_HANDOVER_DATE && row.LINE_HANDOVER_DATE !== row.INVOICE_DATE && (
+                        <div className="text-[10px] text-slate-400">HO: {row.LINE_HANDOVER_DATE}</div>
+                      )}
                     </td>
 
                     {/* Customer */}
-                    <td className="p-3.5 max-w-[220px]">
+                    <td className="p-3 max-w-[200px]">
                       <div className="font-bold text-slate-900 truncate" title={row.CUSTOMER_NAME}>
                         {row.CUSTOMER_NAME || 'SPJ Account Party'}
                       </div>
                       {row.INVOICE_NOTE && (
-                        <div className="text-[11px] text-slate-500 truncate mt-0.5" title={row.INVOICE_NOTE}>
+                        <div className="text-[10px] text-slate-500 truncate mt-0.5" title={row.INVOICE_NOTE}>
                           {row.INVOICE_NOTE}
                         </div>
                       )}
                     </td>
 
-                    {/* Service */}
-                    <td className="p-3.5 max-w-[180px]">
-                      <span className="px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold truncate block" title={row.SERVICE_NAME}>
-                        {row.SERVICE_NAME || 'Logistics'}
+                    {/* Service Charge & Type */}
+                    <td className="p-3 max-w-[180px]">
+                      <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold truncate block" title={row.SERVICE_NAME || row.SERVICE_CHARGE}>
+                        {row.SERVICE_NAME || row.SERVICE_CHARGE || 'Logistics Service'}
                       </span>
+                      {row.SERVICE_TYPE && (
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
+                          {row.SERVICE_TYPE}
+                        </span>
+                      )}
+                    </td>
+
+                    {/* BL / Bilty No */}
+                    <td className="p-3 font-mono text-xs text-slate-700 whitespace-nowrap">
+                      {row.BL_NO ? (
+                        <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-medium">
+                          {row.BL_NO}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">-</span>
+                      )}
                     </td>
 
                     {/* Container */}
-                    <td className="p-3.5 font-mono text-xs">
-                      {row.CONT_NO ? (
+                    <td className="p-3 font-mono text-xs whitespace-nowrap">
+                      {row.CONT_NO || row.CONTAINER_NO ? (
                         <div className="flex items-center gap-1 text-slate-800 font-bold">
                           <Container className="w-3.5 h-3.5 text-blue-600" />
-                          <span>{row.CONT_NO}</span>
+                          <span>{row.CONT_NO || row.CONTAINER_NO}</span>
+                          {(row.CONTAINER_SIZE || row.SIZE) && (
+                            <span className="text-[10px] text-slate-500 font-normal">
+                              ({row.CONTAINER_SIZE || row.SIZE}ft)
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-slate-400 font-sans">-</span>
                       )}
                     </td>
 
-                    {/* Trip Type */}
-                    <td className="p-3.5">
+                    {/* Trip Type & Port */}
+                    <td className="p-3 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        row.TRIP_TYPE === 'Export' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                        row.TRIP_TYPE === 'Import' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                        row.TRIP_TYPE === 'REBATE' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
+                        String(row.TRIP_TYPE).toUpperCase().includes('EXP') ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                        String(row.TRIP_TYPE).toUpperCase().includes('IMP') ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                        String(row.TRIP_TYPE).toUpperCase().includes('REB') ? 'bg-purple-50 text-purple-700 border border-purple-200' :
                         'bg-amber-50 text-amber-700 border border-amber-200'
                       }`}>
                         {row.TRIP_TYPE || 'Standard'}
                       </span>
+                      {row.PORT && (
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5 truncate max-w-[120px]" title={row.PORT}>
+                          {row.PORT}
+                        </div>
+                      )}
                     </td>
 
                     {/* Bill Amount */}
-                    <td className="p-3.5 text-right font-mono font-semibold text-slate-700">
-                      ₹ {Number(row.BILL_AMOUNT || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <td className="p-3 text-right font-mono font-semibold text-slate-700 whitespace-nowrap">
+                      ₹ {billAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
 
-                    {/* Tax */}
-                    <td className="p-3.5 text-right font-mono font-medium text-emerald-700">
-                      ₹ {Number(row.TAX || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {/* Tax with Head Split tooltip */}
+                    <td className="p-3 text-right font-mono font-medium text-emerald-700 whitespace-nowrap" title={igst > 0 ? `IGST: ₹${igst}` : `CGST: ₹${cgst} | SGST: ₹${sgst}`}>
+                      <div>₹ {taxAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                      {igst > 0 ? (
+                        <span className="text-[9px] text-slate-400 font-sans">IGST</span>
+                      ) : cgst > 0 ? (
+                        <span className="text-[9px] text-slate-400 font-sans">C+S GST</span>
+                      ) : null}
                     </td>
 
                     {/* Total Amount */}
-                    <td className={`p-3.5 text-right font-mono font-black ${
+                    <td className={`p-3 text-right font-mono font-black whitespace-nowrap ${
                       isCreditNote ? 'text-rose-600' : 'text-[#2b1f55]'
                     }`}>
-                      ₹ {Number(row.AMOUNT || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ₹ {totalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
 
                     {/* Type Badge */}
-                    <td className="p-3.5 text-center">
+                    <td className="p-3 text-center whitespace-nowrap">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
                         isCreditNote
                           ? 'bg-rose-50 text-rose-700 border border-rose-200'
                           : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       }`}>
-                        {isCreditNote ? 'Credit Note' : 'Invoice'}
+                        {isCreditNote ? 'Credit Note' : 'Tax Invoice'}
                       </span>
                     </td>
 
                     {/* View Button */}
-                    <td className="p-3.5 text-center">
+                    <td className="p-3 text-center">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectRecord(row);
                         }}
                         className="p-1.5 rounded-lg bg-slate-100 hover:bg-[#2b1f55] hover:text-white text-slate-600 transition-colors"
-                        title="View Details"
+                        title="View Full Oracle Bill Details"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
