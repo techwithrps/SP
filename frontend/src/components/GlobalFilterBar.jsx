@@ -38,6 +38,7 @@ export default function GlobalFilterBar({
   companies = [],
   customers = [],
   topCustomers = [],
+  customerTerminalMatrix = [],
   terminals = [],
   financialYears = [
     'All Financial Years', 
@@ -65,22 +66,52 @@ export default function GlobalFilterBar({
     if (setSelectedFY) setSelectedFY('ALL');
   };
 
-  // Companies List fallback
+  // 5 Official SPJ Group Companies
   const companyList = useMemo(() => {
     if (companies && companies.length > 0) return companies;
     return [
-      { id: 1, name: 'SPJ CARGO LOGISTICS PVT LTD', code: 'SPJ' },
-      { id: 2, name: 'SPJ COLD STORAGE PVT LTD', code: 'SPJ-CS' }
+      { id: 1, code: 'SPJ', name: 'SPJ CARGO PVT LTD', gstin: '07AAOCS1758E1Z5', director: 'Mr. Puran Joshi' },
+      { id: 2, code: 'SPJ-MUM', name: 'SPJ CARGO PVT LTD-MUMBAI', gstin: '27AAOCS1758E1Z3', director: 'Mr. Puran Joshi' },
+      { id: 3, code: 'SJ', name: 'S.J. CARGO MOVERS', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
+      { id: 4, code: 'PJ', name: 'PURAN JOSHI', gstin: '07ADGPJ3166M2Z9', director: 'Mr. Puran Joshi' },
+      { id: 5, code: 'PJ-OLD', name: 'PURAN JOSHI OLD', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' }
     ];
   }, [companies]);
 
-  // Customers segmented into Top Active and Registered
+  // Look up customer's detailed branch presence in customerTerminalMatrix
+  const customerMatrixEntry = useMemo(() => {
+    if (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') return null;
+    const sLower = String(selectedCustomer).toLowerCase().trim();
+    return (customerTerminalMatrix || []).find(c => 
+      String(c.customerId).toLowerCase() === sLower ||
+      String(c.customerName).toLowerCase() === sLower ||
+      String(c.customerName).toLowerCase().includes(sLower) ||
+      sLower.includes(String(c.customerName).toLowerCase())
+    ) || null;
+  }, [selectedCustomer, customerTerminalMatrix]);
+
+  // Customers segmented into Top Active and Registered, optionally filtered by selectedCompany
+  const availableMatrixCustomers = useMemo(() => {
+    let list = customerTerminalMatrix || [];
+    if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') {
+      const compStr = String(selectedCompany).toLowerCase();
+      const matchComp = companyList.find(c => String(c.id).toLowerCase() === compStr || c.code.toLowerCase() === compStr);
+      if (matchComp) {
+        list = list.filter(c => String(c.companyId) === String(matchComp.id) || String(c.companyId) === String(matchComp.code));
+      }
+    }
+    return list;
+  }, [customerTerminalMatrix, selectedCompany, companyList]);
+
   const activeCustomers = useMemo(() => {
+    if (availableMatrixCustomers && availableMatrixCustomers.length > 0) {
+      return availableMatrixCustomers;
+    }
     if (topCustomers && topCustomers.length > 0) {
       return topCustomers.slice(0, 60);
     }
     return [];
-  }, [topCustomers]);
+  }, [availableMatrixCustomers, topCustomers]);
 
   const otherCustomers = useMemo(() => {
     const activeNames = new Set(activeCustomers.map(c => (c.customerName || c.name || '').toLowerCase().trim()));
@@ -89,8 +120,9 @@ export default function GlobalFilterBar({
       .slice(0, 200);
   }, [customers, activeCustomers]);
 
-  const selectedCompanyObj = companyList.find(c => String(c.id) === String(selectedCompany));
+  const selectedCompanyObj = companyList.find(c => String(c.id) === String(selectedCompany) || String(c.code) === String(selectedCompany));
   const selectedCustomerObj = 
+    customerMatrixEntry ||
     activeCustomers.find(c => String(c.customerId || c.id || c.customerName) === String(selectedCustomer)) ||
     (customers || []).find(c => String(c.id || c.name) === String(selectedCustomer));
 
@@ -164,13 +196,15 @@ export default function GlobalFilterBar({
               <div className="relative">
                 <select
                   value={selectedCompany}
-                  onChange={(e) => setSelectedCompany && setSelectedCompany(e.target.value)}
+                  onChange={(e) => {
+                    if (setSelectedCompany) setSelectedCompany(e.target.value);
+                  }}
                   className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-all cursor-pointer shadow-xs truncate"
                 >
-                  <option value="ALL">🏛️ All Companies / Entities</option>
+                  <option value="ALL">🏛️ All Companies (5 Group Entities)</option>
                   {companyList.map(comp => (
-                    <option key={comp.id} value={String(comp.id)}>
-                      🏢 {comp.name}
+                    <option key={comp.id || comp.code} value={String(comp.id || comp.code)}>
+                      🏢 {comp.name} ({comp.code})
                     </option>
                   ))}
                 </select>
@@ -186,24 +220,31 @@ export default function GlobalFilterBar({
               <div className="relative">
                 <select
                   value={selectedCustomer}
-                  onChange={(e) => setSelectedCustomer && setSelectedCustomer(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (setSelectedCustomer) setSelectedCustomer(val);
+                  }}
                   className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer shadow-xs truncate"
                 >
                   <option value="ALL">👥 All Customers ({customers.length || 'All'} Total)</option>
+                  
+                  {/* Top Active Customers with branch count */}
                   {activeCustomers.length > 0 && (
-                    <optgroup label="── 🟢 Top Active Customers (by Volume) ──">
+                    <optgroup label="── 🟢 Active Customers with Branch Coverage ──">
                       {activeCustomers.map(c => {
                         const val = c.customerId || c.id || c.customerName;
                         const name = c.customerName || c.name;
-                        const bills = c.invoiceCount ? ` (${formatNumber(c.invoiceCount)} Bills)` : '';
+                        const branches = c.terminalCount ? ` (${c.terminalCount} Branches)` : '';
+                        const bills = c.invoiceCount ? ` [${formatNumber(c.invoiceCount)} Bills]` : '';
                         return (
                           <option key={val} value={String(val)}>
-                            🟢 {name}{bills}
+                            🟢 {name}{branches}{bills}
                           </option>
                         );
                       })}
                     </optgroup>
                   )}
+
                   {otherCustomers.length > 0 && (
                     <optgroup label="── All Registered Customers ──">
                       {otherCustomers.map(c => (
@@ -217,11 +258,16 @@ export default function GlobalFilterBar({
               </div>
             </div>
 
-            {/* 3. Branch / Terminal Selection */}
+            {/* 3. Branch / Terminal Selection (Cascaded: Highlights customer's specific branches if customer selected) */}
             <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-[#2b1f55]" />
                 Branch / Terminal Selection
+                {customerMatrixEntry && (
+                  <span className="text-[9px] font-normal text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded-full">
+                    {customerMatrixEntry.terminalCount} Hubs
+                  </span>
+                )}
               </label>
               <div className="relative">
                 <select
@@ -231,24 +277,48 @@ export default function GlobalFilterBar({
                 >
                   <option value="ALL">🏢 All Terminals & Hubs ({terminals.length || 39} Total)</option>
                   
-                  {/* 🟢 Active Operational Hubs in selected FY */}
-                  <optgroup label={selectedFY === 'ALL' ? "── 🟢 Active Hubs with Data ──" : `── 🟢 Active Hubs in ${selectedFY} ──`}>
-                    {activeTerminals.map(t => (
-                      <option key={t.terminalId} value={String(t.terminalId)}>
-                        🟢 {t.terminalName} ({formatNumber(t.currentStats.totalContainers)} Cont | {formatCurrency(t.currentStats.netRevenue)})
-                      </option>
-                    ))}
-                  </optgroup>
+                  {/* If a customer is selected, highlight their exact active branches */}
+                  {customerMatrixEntry && customerMatrixEntry.terminals?.length > 0 ? (
+                    <>
+                      <optgroup label={`── 🟢 Active Branches for ${customerMatrixEntry.customerName} (${customerMatrixEntry.terminalCount} Hubs) ──`}>
+                        {customerMatrixEntry.terminals.map(t => (
+                          <option key={t.terminalId} value={String(t.terminalId)}>
+                            🟢 {t.terminalName} ({formatNumber(t.totalContainers)} Cont | {formatCurrency(t.netRevenue)})
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label={`── Other Terminals (No Activity for ${customerMatrixEntry.customerName}) ──`}>
+                        {terminalsWithStats
+                          .filter(t => !customerMatrixEntry.terminals.some(ct => String(ct.terminalId) === String(t.terminalId)))
+                          .map(t => (
+                            <option key={t.terminalId} value={String(t.terminalId)} className="text-slate-400">
+                              ⚪ {t.terminalName} (0 Activity)
+                            </option>
+                          ))}
+                      </optgroup>
+                    </>
+                  ) : (
+                    <>
+                      {/* 🟢 Active Operational Hubs in selected FY */}
+                      <optgroup label={selectedFY === 'ALL' ? "── 🟢 Active Hubs with Data ──" : `── 🟢 Active Hubs in ${selectedFY} ──`}>
+                        {activeTerminals.map(t => (
+                          <option key={t.terminalId} value={String(t.terminalId)}>
+                            🟢 {t.terminalName} ({formatNumber(t.currentStats.totalContainers)} Cont | {formatCurrency(t.currentStats.netRevenue)})
+                          </option>
+                        ))}
+                      </optgroup>
 
-                  {/* 🔴 Inactive / Zero Data Terminals in selected FY */}
-                  {inactiveTerminals.length > 0 && (
-                    <optgroup label={selectedFY === 'ALL' ? "── 🔴 Inactive / Zero Data Terminals ──" : `── 🔴 No Activity in ${selectedFY} ──`}>
-                      {inactiveTerminals.map(t => (
-                        <option key={t.terminalId} value={String(t.terminalId)} className="text-rose-600 font-semibold bg-rose-50/50">
-                          🔴 {t.terminalName} (0 Cont | Inactive)
-                        </option>
-                      ))}
-                    </optgroup>
+                      {/* 🔴 Inactive / Zero Data Terminals in selected FY */}
+                      {inactiveTerminals.length > 0 && (
+                        <optgroup label={selectedFY === 'ALL' ? "── 🔴 Inactive / Zero Data Terminals ──" : `── 🔴 No Activity in ${selectedFY} ──`}>
+                          {inactiveTerminals.map(t => (
+                            <option key={t.terminalId} value={String(t.terminalId)} className="text-rose-600 font-semibold bg-rose-50/50">
+                              🔴 {t.terminalName} (0 Cont | Inactive)
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </>
                   )}
                 </select>
               </div>
@@ -267,11 +337,34 @@ export default function GlobalFilterBar({
                   className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-xs truncate"
                 >
                   <option value="ALL">📅 All Financial Years (Cumulative)</option>
-                  <option value="FY 2026-27">FY 2026-27 (Current Fiscal)</option>
-                  <option value="FY 2025-26">FY 2025-26 (Past Year 1)</option>
-                  <option value="FY 2024-25">FY 2024-25 (Past Year 2)</option>
-                  <option value="FY 2023-24">FY 2023-24 (Past Year 3)</option>
-                  <option value="FY 2022-23 & Earlier">FY 2022-23 & Earlier (Historical)</option>
+                  
+                  {/* Highlight customer's available FYs if customer selected */}
+                  {customerMatrixEntry && customerMatrixEntry.financialYears?.length > 0 ? (
+                    <>
+                      <optgroup label={`── 🟢 Active FYs for ${customerMatrixEntry.customerName} ──`}>
+                        {customerMatrixEntry.financialYears.map(fy => (
+                          <option key={fy} value={fy}>
+                            🟢 {fy} (Active Activity)
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="── All Financial Years ──">
+                        {financialYears.filter(fy => fy !== 'All Financial Years' && !customerMatrixEntry.financialYears.includes(fy)).map(fy => (
+                          <option key={fy} value={fy} className="text-slate-400">
+                            ⚪ {fy}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </>
+                  ) : (
+                    <>
+                      <option value="FY 2026-27">FY 2026-27 (Current Fiscal)</option>
+                      <option value="FY 2025-26">FY 2025-26 (Past Year 1)</option>
+                      <option value="FY 2024-25">FY 2024-25 (Past Year 2)</option>
+                      <option value="FY 2023-24">FY 2023-24 (Past Year 3)</option>
+                      <option value="FY 2022-23 & Earlier">FY 2022-23 & Earlier (Historical)</option>
+                    </>
+                  )}
                 </select>
               </div>
             </div>
@@ -333,16 +426,19 @@ export default function GlobalFilterBar({
             </>
           )}
 
-          {/* Customer Scope Pill */}
+          {/* Customer Scope Pill with Branch count */}
           {selectedCustomer !== 'ALL' && (
             <>
-              <span className="inline-flex items-center font-bold text-blue-800 bg-blue-100/80 border border-blue-200 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg truncate max-w-[200px]" title={String(selectedCustomer)}>
-                👥 {selectedCustomerObj?.customerName || selectedCustomerObj?.name || `Customer: ${selectedCustomer}`}
+              <span className="inline-flex items-center font-bold text-blue-800 bg-blue-100/80 border border-blue-200 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg truncate max-w-[280px]" title={String(selectedCustomer)}>
+                👥 {customerMatrixEntry 
+                  ? `${customerMatrixEntry.customerName} (${customerMatrixEntry.terminalCount} Branches: ${customerMatrixEntry.terminals.map(t=>t.terminalName).join(', ')})`
+                  : (selectedCustomerObj?.customerName || selectedCustomerObj?.name || `Customer: ${selectedCustomer}`)}
               </span>
               <span className="text-slate-400 font-bold">&bull;</span>
             </>
           )}
 
+          {/* Terminal Scope Pill */}
           <span className={`inline-flex items-center font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border ${
             selectedTerminal === 'ALL'
               ? 'text-[#2b1f55] bg-purple-100/70 border-purple-200'
@@ -357,6 +453,7 @@ export default function GlobalFilterBar({
 
           <span className="text-slate-400 font-bold">&bull;</span>
 
+          {/* FY Scope Pill */}
           <span className="inline-flex items-center font-bold text-[#ea580c] bg-orange-100/70 border border-orange-200 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg">
             {selectedFY === 'ALL' ? 'All FYs' : selectedFY}
           </span>

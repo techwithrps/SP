@@ -20,6 +20,7 @@ export default function CIRTable({
   totalPages = 1,
   onPageChange,
   onPageSizeChange,
+  kpis = {}
 }) {
   const [localPage, setLocalPage] = useState(1);
   const [localPageSize, setLocalPageSize] = useState(25);
@@ -447,6 +448,35 @@ export default function CIRTable({
               })
             )}
           </tbody>
+
+          {/* Verified Grand Total All Row */}
+          {!loading && records.length > 0 && (
+            <tfoot className="bg-gradient-to-r from-[#180f38] via-[#2b1f55] to-[#3e1e68] text-white border-t-2 border-[#ff6a00] shadow-lg sticky bottom-0 z-10">
+              <tr>
+                <td colSpan={7} className="p-3.5 text-left text-xs uppercase tracking-wider font-display font-extrabold">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="text-amber-300">ALL TOTAL (Grand Total in Current Scope):</span>
+                    <span className="text-purple-200 font-normal lowercase text-[11px]">
+                      ({Number(kpis.invoiceCount || activeTotalRecords).toLocaleString('en-IN')} Invoices &bull; {Number(kpis.containerCount || kpis.totalRecords || 0).toLocaleString('en-IN')} Containers)
+                    </span>
+                  </div>
+                </td>
+                <td className="p-3.5 text-right font-mono text-xs font-bold text-blue-200">
+                  ₹ {Number(kpis.totalBillAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td className="p-3.5 text-right font-mono text-xs font-bold text-emerald-300">
+                  ₹ {Number(kpis.totalTax || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td className="p-3.5 text-right font-mono text-sm font-black text-amber-300">
+                  ₹ {Number(kpis.grossRevenue || kpis.totalGrossAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td colSpan={2} className="p-3.5 text-center text-xs font-bold text-emerald-300">
+                  Verified Ledger Total
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
 

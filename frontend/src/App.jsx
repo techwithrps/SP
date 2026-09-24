@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Globe2, Ship, Truck, Users } from 'lucide-react';
 import Navbar from './components/Navbar';
 import GlobalFilterBar from './components/GlobalFilterBar';
+import FilterBar from './components/FilterBar';
+import CustomerWiseSalesSummary from './components/CustomerWiseSalesSummary';
 import KPICards from './components/KPICards';
 import CIRTable from './components/CIRTable';
 import InvoiceDetailModal from './components/InvoiceDetailModal';
@@ -364,6 +366,7 @@ export default function App() {
             terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
             financialYears={financialYears}
             terminalFyMatrix={terminalFyMatrix}
+            customerTerminalMatrix={masters.customerTerminalMatrix || []}
             onRefresh={() => {
               fetchCIRData();
               fetchInitialData();
@@ -463,6 +466,14 @@ export default function App() {
               <div className="space-y-6 animate-fade-in">
                 <KPICards kpis={kpis} loading={loading} />
 
+                {/* Customer Wise Sales & Terminal Breakdown Ledger */}
+                <CustomerWiseSalesSummary
+                  customerWise={kpis.customerWise || []}
+                  selectedCustomer={selectedCustomer}
+                  onSelectCustomer={handleSetSelectedCustomer}
+                  kpis={kpis}
+                />
+
                 <FilterBar
                   filters={filters}
                   setFilters={setFilters}
@@ -486,6 +497,7 @@ export default function App() {
                   records={records}
                   loading={loading}
                   onSelectRecord={setSelectedRecord}
+                  kpis={kpis}
                   page={cirPage}
                   pageSize={cirLimit}
                   totalRecords={cirPagination.totalRecords}

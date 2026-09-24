@@ -28,22 +28,17 @@ function formatCurrency(amount) {
 }
 
 export default function KPICards({ kpis = {}, loading = false }) {
-  const {
-    totalGrossAmount = 0,
-    totalBillAmount = 0,
-    totalTax = 0,
-    taxableRevenue = totalBillAmount,
-    gstTax = totalTax,
-    grossRevenue = totalGrossAmount,
-    creditNotes = kpis.totalCreditAmount || 0,
-    netRevenue = kpis.netRevenue || (grossRevenue - creditNotes),
-    totalInvoices = kpis.invoiceCount || 0,
-    creditNoteCount = kpis.creditNoteCount || 0,
-    physicalContainers = kpis.containerCount || 0,
-    containerMovements = kpis.containerMovements || kpis.totalRecords || 0,
-    jobOrders = kpis.jobOrders || kpis.totalDBInvoices || totalInvoices,
-    teus = kpis.teuCount || 0,
-  } = kpis;
+  const grossRevenue = Number(kpis.grossRevenue || kpis.totalInvoiceAmount || kpis.totalGrossAmount || 0);
+  const creditNotes = Number(kpis.totalCreditAmount || kpis.creditNotes || 0);
+  const netRevenue = Number(kpis.netRevenue !== undefined ? kpis.netRevenue : (grossRevenue - creditNotes));
+  const taxableRevenue = Number(kpis.totalBillAmount || kpis.taxableRevenue || 0);
+  const gstTax = Number(kpis.totalTax || kpis.gstTax || 0);
+  const totalInvoices = Number(kpis.invoiceCount || 0);
+  const creditNoteCount = Number(kpis.creditNoteCount || 0);
+  const physicalContainers = Number(kpis.containerCount || 0);
+  const containerMovements = Number(kpis.containerMovements || kpis.totalRecords || 0);
+  const jobOrders = Number(kpis.jobOrders || kpis.totalDBInvoices || totalInvoices);
+  const teus = Number(kpis.teuCount || 0);
 
   const cards = [
     {
