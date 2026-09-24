@@ -14,8 +14,7 @@ import {
   Pause,
   X,
   ArrowRight,
-  Sparkles,
-  Layers
+  Sparkles
 } from 'lucide-react';
 
 // Format Indian Currency
@@ -28,31 +27,25 @@ function formatSales(amount) {
   return `₹ ${Math.round(val).toLocaleString('en-IN')}`;
 }
 
-// Enterprise Light Color Palette matching SPJ Dashboard
+// Enterprise Light Color Palette
 const THEMES = {
   company: {
     stroke: '#4338ca',
     fill: '#2b1f55',
     glow: 'rgba(67, 56, 202, 0.25)',
-    textColor: '#ffffff',
-    pillBorder: '#4338ca',
-    pillText: '#1e1b4b'
+    textColor: '#ffffff'
   },
   customer: {
     stroke: '#059669',
     fill: '#10b981',
     glow: 'rgba(16, 185, 129, 0.25)',
-    textColor: '#ffffff',
-    pillBorder: '#10b981',
-    pillText: '#064e3b'
+    textColor: '#ffffff'
   },
   terminal: {
     stroke: '#d97706',
     fill: '#f59e0b',
     glow: 'rgba(245, 158, 11, 0.25)',
-    textColor: '#ffffff',
-    pillBorder: '#f59e0b',
-    pillText: '#78350f'
+    textColor: '#ffffff'
   }
 };
 
@@ -79,8 +72,8 @@ export default function ObsidianNetworkGraph({
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Viewport State (Zoom & Pan) - balanced default zoom 0.95
-  const [transform, setTransform] = useState({ x: 0, y: 0, k: 0.95 });
+  // Viewport State (Zoom & Pan) - 1.0 default zoom centered
+  const [transform, setTransform] = useState({ x: 0, y: 0, k: 1.0 });
   const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [draggedNode, setDraggedNode] = useState(null);
@@ -122,19 +115,19 @@ export default function ObsidianNetworkGraph({
     return String(selectedTerminal).toUpperCase().trim();
   }, [selectedTerminal]);
 
-  // 1. Build Proportional, Well-Bounded Graph Structure
+  // 1. Build Proportional, Centered Graph Structure (Fits within 800x500 box)
   const rawGraph = useMemo(() => {
     const nodes = [];
     const links = [];
     const nodeMap = new Map();
 
-    // 1.1 Well-Proportioned Company Coordinates (Radius ~200px - 280px)
+    // 1.1 Five Company Hubs
     const companyDefs = [
-      { id: '2', code: 'SPJ', name: 'SPJ CARGO PVT LTD', sales: 32948600000, invs: 142739, x: -20, y: -20 },
-      { id: '1', code: 'SJ', name: 'S.J. CARGO MOVERS', sales: 1688500000, invs: 26719, x: 280, y: -140 },
-      { id: '4', code: 'SPJ-MUM', name: 'SPJ CARGO (MUMBAI)', sales: 3650000000, invs: 15200, x: 230, y: 190 },
-      { id: '5', code: 'PJ', name: 'POORAN JI 1986', sales: 188700000, invs: 255, x: -240, y: -190 },
-      { id: '3', code: 'PJ-OLD', name: 'POORAN JI (OLD)', sales: 60563736, invs: 72, x: -290, y: 150 }
+      { id: '2', code: 'SPJ', name: 'SPJ CARGO PVT LTD', sales: 32948600000, invs: 142739, x: 0, y: -10 },
+      { id: '1', code: 'SJ', name: 'S.J. CARGO MOVERS', sales: 1688500000, invs: 26719, x: 230, y: -100 },
+      { id: '4', code: 'SPJ-MUM', name: 'SPJ CARGO (MUMBAI)', sales: 3650000000, invs: 15200, x: 190, y: 160 },
+      { id: '5', code: 'PJ', name: 'POORAN JI 1986', sales: 188700000, invs: 255, x: -200, y: -150 },
+      { id: '3', code: 'PJ-OLD', name: 'POORAN JI (OLD)', sales: 60563736, invs: 72, x: -230, y: 120 }
     ];
 
     companyDefs.forEach((comp) => {
@@ -147,7 +140,7 @@ export default function ObsidianNetworkGraph({
         type: 'company',
         sales: comp.sales,
         invs: comp.invs,
-        radius: 28,
+        radius: 26,
         x: comp.x,
         y: comp.y,
         vx: 0,
@@ -158,52 +151,52 @@ export default function ObsidianNetworkGraph({
       nodeMap.set(cNode.id, cNode);
     });
 
-    // 1.2 Customer Seeds Grouped cleanly around parent companies
+    // 1.2 Customer Seeds Grouped around parent companies
     const customerSeeds = [
       // SPJ Customers
-      { name: 'FAIR EXPORTS (INDIA) PVT LTD', comp: 'SPJ', sales: 2736623889.97, invs: 20460, terms: ['DADRI', 'JNPT', 'MUNDRA'], dist: 110, angle: 0.1 },
-      { name: 'IFF INDIA FROZEN FOODS', comp: 'SPJ', sales: 2504888713.08, invs: 14761, terms: ['DADRI', 'KANPUR'], dist: 130, angle: 0.9 },
-      { name: 'MARHABA FROZEN FOODS', comp: 'SPJ', sales: 1874476297.09, invs: 10098, terms: ['DADRI', 'MUNDRA'], dist: 115, angle: 1.7 },
-      { name: 'RUSTAM FOODS PVT.LTD.', comp: 'SPJ', sales: 1854931176.52, invs: 8974, terms: ['KANPUR', 'DADRI'], dist: 135, angle: 2.5 },
-      { name: 'AL AMMAR FROZEN FOOD EXPORTS', comp: 'SPJ', sales: 1766522371.32, invs: 9895, terms: ['DADRI', 'JNPT'], dist: 110, angle: 3.3 },
-      { name: 'AL-NASIR EXPORTS PVT LTD', comp: 'SPJ', sales: 1538360294.34, invs: 11203, terms: ['DADRI', 'KANPUR'], dist: 125, angle: 4.1 },
-      { name: 'MIRHA EXPORTS PVT. LTD.', comp: 'SPJ', sales: 1195561318.42, invs: 7925, terms: ['LUDHIANA', 'MUNDRA'], dist: 130, angle: 4.9 },
-      { name: 'AL SAMEER EXPORTS PVT LTD', comp: 'SPJ', sales: 702739198.00, invs: 4461, terms: ['DADRI', 'MUNDRA'], dist: 115, angle: 5.7 },
+      { name: 'FAIR EXPORTS (INDIA) PVT LTD', comp: 'SPJ', sales: 2736623889.97, invs: 20460, terms: ['DADRI', 'JNPT', 'MUNDRA'], dist: 95, angle: 0.1 },
+      { name: 'IFF INDIA FROZEN FOODS', comp: 'SPJ', sales: 2504888713.08, invs: 14761, terms: ['DADRI', 'KANPUR'], dist: 115, angle: 0.9 },
+      { name: 'MARHABA FROZEN FOODS', comp: 'SPJ', sales: 1874476297.09, invs: 10098, terms: ['DADRI', 'MUNDRA'], dist: 100, angle: 1.7 },
+      { name: 'RUSTAM FOODS PVT.LTD.', comp: 'SPJ', sales: 1854931176.52, invs: 8974, terms: ['KANPUR', 'DADRI'], dist: 120, angle: 2.5 },
+      { name: 'AL AMMAR FROZEN FOOD EXPORTS', comp: 'SPJ', sales: 1766522371.32, invs: 9895, terms: ['DADRI', 'JNPT'], dist: 95, angle: 3.3 },
+      { name: 'AL-NASIR EXPORTS PVT LTD', comp: 'SPJ', sales: 1538360294.34, invs: 11203, terms: ['DADRI', 'KANPUR'], dist: 110, angle: 4.1 },
+      { name: 'MIRHA EXPORTS PVT. LTD.', comp: 'SPJ', sales: 1195561318.42, invs: 7925, terms: ['LUDHIANA', 'MUNDRA'], dist: 115, angle: 4.9 },
+      { name: 'AL SAMEER EXPORTS PVT LTD', comp: 'SPJ', sales: 702739198.00, invs: 4461, terms: ['DADRI', 'MUNDRA'], dist: 100, angle: 5.7 },
 
       // SJ Customers
-      { name: 'HMA AGRO INDUSTRIES LTD', comp: 'SJ', sales: 1742178313.34, invs: 8608, terms: ['DADRI', 'AGRA', 'MUNDRA'], dist: 105, angle: 0.3 },
-      { name: 'INTERNATIONAL AGRO FOODS', comp: 'SJ', sales: 1630617882.17, invs: 8231, terms: ['DADRI', 'JNPT'], dist: 120, angle: 1.6 },
-      { name: 'INDIA FROZEN FOODS', comp: 'SJ', sales: 1261952376.61, invs: 8230, terms: ['DADRI', 'KANPUR'], dist: 110, angle: 2.9 },
-      { name: 'MASH AGRO FOODS LTD', comp: 'SJ', sales: 963898358.91, invs: 4026, terms: ['KANPUR', 'DADRI'], dist: 125, angle: 4.2 },
-      { name: 'ALM INDUSTRIES LIMITED', comp: 'SJ', sales: 352007379.62, invs: 2888, terms: ['DADRI', 'KANPUR'], dist: 105, angle: 5.4 },
+      { name: 'HMA AGRO INDUSTRIES LTD', comp: 'SJ', sales: 1742178313.34, invs: 8608, terms: ['DADRI', 'AGRA', 'MUNDRA'], dist: 90, angle: 0.3 },
+      { name: 'INTERNATIONAL AGRO FOODS', comp: 'SJ', sales: 1630617882.17, invs: 8231, terms: ['DADRI', 'JNPT'], dist: 105, angle: 1.6 },
+      { name: 'INDIA FROZEN FOODS', comp: 'SJ', sales: 1261952376.61, invs: 8230, terms: ['DADRI', 'KANPUR'], dist: 95, angle: 2.9 },
+      { name: 'MASH AGRO FOODS LTD', comp: 'SJ', sales: 963898358.91, invs: 4026, terms: ['KANPUR', 'DADRI'], dist: 110, angle: 4.2 },
+      { name: 'ALM INDUSTRIES LIMITED', comp: 'SJ', sales: 352007379.62, invs: 2888, terms: ['DADRI', 'KANPUR'], dist: 90, angle: 5.4 },
 
       // SPJ-MUM Customers
-      { name: 'JH LOGISTICS PRIVATE LIMITED', comp: 'SPJ-MUM', sales: 1450731383.16, invs: 11286, terms: ['JNPT', 'MUMBAI', 'MUNDRA'], dist: 110, angle: 0.6 },
-      { name: 'TOURO PRIMEIRO PRIVATE LIMITED', comp: 'SPJ-MUM', sales: 486794013.67, invs: 3876, terms: ['JNPT', 'MUNDRA'], dist: 125, angle: 2.1 },
-      { name: 'SOHAM EXIM', comp: 'SPJ-MUM', sales: 138458824.43, invs: 1630, terms: ['JNPT', 'MUNDRA'], dist: 110, angle: 3.6 },
-      { name: 'KESHODWALA FOODS', comp: 'SPJ-MUM', sales: 133737747.42, invs: 509, terms: ['MUNDRA', 'JNPT'], dist: 120, angle: 5.1 },
+      { name: 'JH LOGISTICS PRIVATE LIMITED', comp: 'SPJ-MUM', sales: 1450731383.16, invs: 11286, terms: ['JNPT', 'MUMBAI', 'MUNDRA'], dist: 95, angle: 0.6 },
+      { name: 'TOURO PRIMEIRO PRIVATE LIMITED', comp: 'SPJ-MUM', sales: 486794013.67, invs: 3876, terms: ['JNPT', 'MUNDRA'], dist: 110, angle: 2.1 },
+      { name: 'SOHAM EXIM', comp: 'SPJ-MUM', sales: 138458824.43, invs: 1630, terms: ['JNPT', 'MUNDRA'], dist: 95, angle: 3.6 },
+      { name: 'KESHODWALA FOODS', comp: 'SPJ-MUM', sales: 133737747.42, invs: 509, terms: ['MUNDRA', 'JNPT'], dist: 105, angle: 5.1 },
 
       // PJ Customers
-      { name: 'RAYBAN FROZEN FOODS', comp: 'PJ', sales: 232503662.43, invs: 1609, terms: ['DADRI', 'PIYALA'], dist: 105, angle: 1.2 },
-      { name: 'AL AAYAT FOOD EXPO', comp: 'PJ', sales: 228694861.24, invs: 1139, terms: ['DADRI', 'TUGLAKABAD'], dist: 115, angle: 3.8 },
+      { name: 'RAYBAN FROZEN FOODS', comp: 'PJ', sales: 232503662.43, invs: 1609, terms: ['DADRI', 'PIYALA'], dist: 90, angle: 1.2 },
+      { name: 'AL AAYAT FOOD EXPO', comp: 'PJ', sales: 228694861.24, invs: 1139, terms: ['DADRI', 'TUGLAKABAD'], dist: 100, angle: 3.8 },
 
       // PJ-OLD Customers
-      { name: 'AL-MARZIA AGRO FOODS', comp: 'PJ-OLD', sales: 226558217.21, invs: 1211, terms: ['DADRI', 'KANPUR'], dist: 105, angle: 1.6 },
-      { name: 'ALM FOOD PRODUCTS', comp: 'PJ-OLD', sales: 197219300.91, invs: 1737, terms: ['LUDHIANA', 'MUNDRA'], dist: 115, angle: 4.4 }
+      { name: 'AL-MARZIA AGRO FOODS', comp: 'PJ-OLD', sales: 226558217.21, invs: 1211, terms: ['DADRI', 'KANPUR'], dist: 90, angle: 1.6 },
+      { name: 'ALM FOOD PRODUCTS', comp: 'PJ-OLD', sales: 197219300.91, invs: 1737, terms: ['LUDHIANA', 'MUNDRA'], dist: 100, angle: 4.4 }
     ];
 
-    // 1.3 Terminals Outer Perimeter (Radius ~380px - 440px)
+    // 1.3 Terminals Outer Orbit (Radius ~320px - 360px)
     const terminalDefs = [
-      { code: 'DADRI', name: 'ICD DADRI', angle: 0.1, radius: 400, volume: '72,410 TEU' },
-      { code: 'KANPUR', name: 'ICD KANPUR', angle: 0.75, radius: 410, volume: '34,210 TEU' },
-      { code: 'JNPT', name: 'JNPA PORT', angle: 1.4, radius: 390, volume: '28,950 TEU' },
-      { code: 'MUNDRA', name: 'MUNDRA PORT', angle: 2.05, radius: 420, volume: '24,190 TEU' },
-      { code: 'LUDHIANA', name: 'ICD LUDHIANA', angle: 2.7, radius: 395, volume: '11,400 TEU' },
-      { code: 'TUGLAKABAD', name: 'ICD TKD', angle: 3.35, radius: 415, volume: '9,820 TEU' },
-      { code: 'PIYALA', name: 'ICD PIYALA', angle: 4.0, radius: 390, volume: '8,210 TEU' },
-      { code: 'JAIPUR', name: 'ICD JAIPUR', angle: 4.65, radius: 410, volume: '6,450 TEU' },
-      { code: 'MUMBAI', name: 'MUMBAI CFS', angle: 5.3, radius: 395, volume: '5,180 TEU' },
-      { code: 'AGRA', name: 'ICD AGRA', angle: 5.95, radius: 410, volume: '4,220 TEU' }
+      { code: 'DADRI', name: 'ICD DADRI', angle: 0.1, radius: 340, volume: '72,410 TEU' },
+      { code: 'KANPUR', name: 'ICD KANPUR', angle: 0.75, radius: 350, volume: '34,210 TEU' },
+      { code: 'JNPT', name: 'JNPA PORT', angle: 1.4, radius: 330, volume: '28,950 TEU' },
+      { code: 'MUNDRA', name: 'MUNDRA PORT', angle: 2.05, radius: 360, volume: '24,190 TEU' },
+      { code: 'LUDHIANA', name: 'ICD LUDHIANA', angle: 2.7, radius: 335, volume: '11,400 TEU' },
+      { code: 'TUGLAKABAD', name: 'ICD TKD', angle: 3.35, radius: 355, volume: '9,820 TEU' },
+      { code: 'PIYALA', name: 'ICD PIYALA', angle: 4.0, radius: 330, volume: '8,210 TEU' },
+      { code: 'JAIPUR', name: 'ICD JAIPUR', angle: 4.65, radius: 350, volume: '6,450 TEU' },
+      { code: 'MUMBAI', name: 'MUMBAI CFS', angle: 5.3, radius: 335, volume: '5,180 TEU' },
+      { code: 'AGRA', name: 'ICD AGRA', angle: 5.95, radius: 350, volume: '4,220 TEU' }
     ];
 
     terminalDefs.forEach((term) => {
@@ -214,9 +207,9 @@ export default function ObsidianNetworkGraph({
         fullName: term.name,
         type: 'terminal',
         volume: term.volume,
-        radius: 17,
+        radius: 15,
         x: Math.cos(term.angle) * term.radius,
-        y: Math.sin(term.angle) * (term.radius * 0.75), // Oval shape fits screen aspect ratio
+        y: Math.sin(term.angle) * (term.radius * 0.72),
         vx: 0,
         vy: 0,
         color: THEMES.terminal
@@ -229,17 +222,17 @@ export default function ObsidianNetworkGraph({
     customerSeeds.forEach((cust, idx) => {
       const parentComp = nodes.find(n => n.type === 'company' && n.code === cust.comp) || nodes[0];
       const cx = parentComp.x + Math.cos(cust.angle) * cust.dist;
-      const cy = parentComp.y + Math.sin(cust.angle) * (cust.dist * 0.85);
+      const cy = parentComp.y + Math.sin(cust.angle) * (cust.dist * 0.82);
 
       const custNode = {
         id: `cust-${idx + 1}`,
-        label: cust.name.length > 15 ? `${cust.name.substring(0, 13)}…` : cust.name,
+        label: cust.name.length > 14 ? `${cust.name.substring(0, 12)}…` : cust.name,
         fullName: cust.name,
         type: 'customer',
         sales: cust.sales,
         invs: cust.invs,
         parentCompany: cust.comp,
-        radius: Math.max(12, Math.min(18, 11 + (cust.sales / 350000000))),
+        radius: Math.max(11, Math.min(16, 10 + (cust.sales / 400000000))),
         x: cx,
         y: cy,
         vx: 0,
@@ -293,18 +286,18 @@ export default function ObsidianNetworkGraph({
       const compNode = nodes.find(n => n.type === 'company' && n.code === normalizedCompanyCode);
       if (compNode) {
         setTransform({
-          x: -compNode.x * 1.1,
-          y: -compNode.y * 1.1,
-          k: 1.1
+          x: -compNode.x * 1.0,
+          y: -compNode.y * 1.0,
+          k: 1.15
         });
       }
     } else if (normalizedCustomer) {
       const custNode = nodes.find(n => n.type === 'customer' && n.fullName?.toLowerCase().includes(normalizedCustomer));
       if (custNode) {
         setTransform({
-          x: -custNode.x * 1.3,
-          y: -custNode.y * 1.3,
-          k: 1.3
+          x: -custNode.x * 1.1,
+          y: -custNode.y * 1.1,
+          k: 1.25
         });
         setClickedNode(custNode);
       }
@@ -312,18 +305,18 @@ export default function ObsidianNetworkGraph({
       const termNode = nodes.find(n => n.type === 'terminal' && n.code === normalizedTerminal);
       if (termNode) {
         setTransform({
-          x: -termNode.x * 1.1,
-          y: -termNode.y * 1.1,
+          x: -termNode.x * 1.0,
+          y: -termNode.y * 1.0,
           k: 1.1
         });
         setClickedNode(termNode);
       }
     } else {
-      setTransform({ x: 0, y: 0, k: 0.95 });
+      setTransform({ x: 0, y: 0, k: 1.0 });
     }
   }, [normalizedCompanyCode, normalizedCustomer, normalizedTerminal]);
 
-  // 3. Stable Physics Simulation (Soft Springs + Velocity Clamping)
+  // 3. Stable Physics Simulation
   useEffect(() => {
     let active = true;
 
@@ -346,18 +339,18 @@ export default function ObsidianNetworkGraph({
         node.vy -= node.y * kCenter;
       });
 
-      // Force B: Node Repulsion with distance threshold
+      // Force B: Node Repulsion with threshold
       for (let i = 0; i < nodes.length; i++) {
         const n1 = nodes[i];
         for (let j = i + 1; j < nodes.length; j++) {
           const n2 = nodes[j];
           const dx = n2.x - n1.x;
           const dy = n2.y - n1.y;
-          const distSq = dx * dx + dy * dy + 80;
-          if (distSq > 160000) continue; // Skip distant pairs
+          const distSq = dx * dx + dy * dy + 60;
+          if (distSq > 100000) continue;
 
           const dist = Math.sqrt(distSq);
-          const repStrength = (n1.type === 'company' || n2.type === 'company') ? 800 : 400;
+          const repStrength = (n1.type === 'company' || n2.type === 'company') ? 600 : 300;
           const force = repStrength / distSq;
 
           const fx = (dx / dist) * force;
@@ -384,8 +377,8 @@ export default function ObsidianNetworkGraph({
         const dy = t.y - s.y;
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-        const targetDist = link.type === 'company-customer' ? 100 : 160;
-        const springK = 0.025;
+        const targetDist = link.type === 'company-customer' ? 85 : 130;
+        const springK = 0.03;
         const force = (dist - targetDist) * springK;
 
         const fx = (dx / dist) * force;
@@ -401,11 +394,11 @@ export default function ObsidianNetworkGraph({
         }
       });
 
-      // Update positions with Velocity Clamping & Coordinate Bounds
-      const maxSpeed = 3.5;
-      const boundX = 460;
-      const boundY = 340;
-      const damping = 0.78;
+      // Position update with damping & bounding box
+      const maxSpeed = 3.0;
+      const boundX = 380;
+      const boundY = 260;
+      const damping = 0.76;
 
       nodes.forEach(node => {
         if (node.isPinned) {
@@ -414,7 +407,6 @@ export default function ObsidianNetworkGraph({
           return;
         }
 
-        // Clamp speed
         const speed = Math.sqrt(node.vx * node.vx + node.vy * node.vy);
         if (speed > maxSpeed) {
           node.vx = (node.vx / speed) * maxSpeed;
@@ -427,7 +419,6 @@ export default function ObsidianNetworkGraph({
         node.x += node.vx;
         node.y += node.vy;
 
-        // Bounded within canvas box
         node.x = Math.max(-boundX, Math.min(boundX, node.x));
         node.y = Math.max(-boundY, Math.min(boundY, node.y));
       });
@@ -447,22 +438,36 @@ export default function ObsidianNetworkGraph({
     };
   }, [isPlaying, transform, hoveredNode, clickedNode, showCompanies, showCustomers, showTerminals, searchQuery, normalizedCompanyCode, normalizedCustomer, normalizedTerminal]);
 
-  // 4. Canvas Draw Function (White & Active Filter Path Highlighting)
+  // 4. Reliable Canvas Draw Function (DPR & Origin Centered)
   const drawGraph = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { width, height } = canvas;
-    
-    // Background: Clean Pure White
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = rect.width || 800;
+    const h = rect.height || 540;
+
+    // Synchronize internal resolution with DPR
+    const targetW = Math.round(w * dpr);
+    const targetH = Math.round(h * dpr);
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW;
+      canvas.height = targetH;
+    }
 
     ctx.save();
-    // Center origin + Apply Zoom/Pan
-    ctx.translate(width / 2 + transform.x, height / 2 + transform.y);
+    // Reset transform matrix for clean DPR scaling
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Clear and fill pure white
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, w, h);
+
+    // Center coordinates at (w / 2, h / 2) + Apply Pan/Zoom
+    ctx.translate(w / 2 + transform.x, h / 2 + transform.y);
     ctx.scale(transform.k, transform.k);
 
     const { nodes, links } = graphDataRef.current;
@@ -478,7 +483,7 @@ export default function ObsidianNetworkGraph({
     const activeHover = hoveredNode || clickedNode;
     const activeSearch = searchQuery.toLowerCase().trim();
 
-    // 4.1 Determine Active Filter Path (Company -> Customer -> Terminal)
+    // 4.1 Filter Path Highlights
     const filterPathNodeIds = new Set();
     const filterPathLinkIds = new Set();
     let hasActiveFilter = false;
@@ -542,9 +547,9 @@ export default function ObsidianNetworkGraph({
       });
     }
 
-    // 4.2 Draw Subtle Slate Dot Grid
+    // 4.2 Dot Grid Background
     const gridSize = 40;
-    const bound = 800;
+    const bound = 650;
     ctx.fillStyle = '#e2e8f0';
     for (let x = -bound; x <= bound; x += gridSize) {
       for (let y = -bound; y <= bound; y += gridSize) {
@@ -554,7 +559,7 @@ export default function ObsidianNetworkGraph({
       }
     }
 
-    // 4.3 Draw Links (Connecting Lines)
+    // 4.3 Draw Connecting Links
     links.forEach((link, lIdx) => {
       const s = nodeMap.get(link.source);
       const t = nodeMap.get(link.target);
@@ -577,7 +582,7 @@ export default function ObsidianNetworkGraph({
       }
       ctx.stroke();
 
-      // Flowing Pulse Particles along active paths
+      // Flowing Pulse Particles
       if (!isDimmed || isFilterActiveLink) {
         const speed = isFilterActiveLink ? 0.15 : 0.1;
         const particleOffset = (particleTimeRef.current + lIdx * speed) % 1;
@@ -609,15 +614,14 @@ export default function ObsidianNetworkGraph({
       // Glow Ring
       if (isHovered || isFilterActiveNode || isSearchMatch || node.type === 'company') {
         ctx.beginPath();
-        ctx.arc(node.x, node.y, radius + (isHovered ? 8 : 4), 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, radius + (isHovered ? 7 : 4), 0, Math.PI * 2);
         ctx.fillStyle = node.color.glow || 'rgba(79, 70, 229, 0.2)';
         ctx.fill();
       }
 
-      // Main Node Shape
+      // Main Shape
       ctx.beginPath();
       if (node.type === 'terminal') {
-        // Diamond Shape for Terminals
         const d = radius * 1.15;
         ctx.moveTo(node.x, node.y - d);
         ctx.lineTo(node.x + d, node.y);
@@ -625,7 +629,6 @@ export default function ObsidianNetworkGraph({
         ctx.lineTo(node.x - d, node.y);
         ctx.closePath();
       } else {
-        // Circle for Company & Customer
         ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
       }
 
@@ -635,7 +638,7 @@ export default function ObsidianNetworkGraph({
       ctx.strokeStyle = isHovered ? '#0f172a' : (isFilterActiveNode ? '#ffffff' : node.color.stroke);
       ctx.stroke();
 
-      // Node Inner Text (Company Codes)
+      // Company code text inside node
       if (node.type === 'company') {
         ctx.font = 'bold 11px Inter, sans-serif';
         ctx.fillStyle = '#ffffff';
@@ -661,7 +664,6 @@ export default function ObsidianNetworkGraph({
         const labelY = node.y + radius + 4;
         const displayText = node.label || node.code;
 
-        // Clean White Label Pill
         const metrics = ctx.measureText(displayText);
         const textWidth = metrics.width;
         const padX = 6;
@@ -685,7 +687,7 @@ export default function ObsidianNetworkGraph({
         ctx.fillStyle = isHovered ? '#0f172a' : (node.type === 'terminal' ? '#92400e' : (node.type === 'company' ? '#1e1b4b' : '#065f46'));
         ctx.fillText(displayText, node.x, labelY + 1);
 
-        // Sales badge under customer on zoom or hover
+        // Sales badge under customer
         if (node.sales && (transform.k >= 0.9 || isHovered || isFilterActiveNode)) {
           const salesText = formatSales(node.sales);
           ctx.font = 'bold 9px monospace';
@@ -709,13 +711,11 @@ export default function ObsidianNetworkGraph({
     const rect = container.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
 
-    const ctx = canvas.getContext('2d');
-    if (ctx) ctx.scale(dpr, dpr);
     drawGraph();
   }, [drawGraph]);
 
@@ -755,9 +755,11 @@ export default function ObsidianNetworkGraph({
     const rect = canvas.getBoundingClientRect();
     const mx = px - rect.left;
     const my = py - rect.top;
+    const w = rect.width;
+    const h = rect.height;
 
-    const graphX = (mx - canvas.clientWidth / 2 - transform.x) / transform.k;
-    const graphY = (my - canvas.clientHeight / 2 - transform.y) / transform.k;
+    const graphX = (mx - w / 2 - transform.x) / transform.k;
+    const graphY = (my - h / 2 - transform.y) / transform.k;
 
     const { nodes } = graphDataRef.current;
     for (let i = nodes.length - 1; i >= 0; i--) {
@@ -788,9 +790,11 @@ export default function ObsidianNetworkGraph({
       const rect = canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
+      const w = rect.width;
+      const h = rect.height;
 
-      draggedNode.x = (mx - canvas.clientWidth / 2 - transform.x) / transform.k;
-      draggedNode.y = (my - canvas.clientHeight / 2 - transform.y) / transform.k;
+      draggedNode.x = (mx - w / 2 - transform.x) / transform.k;
+      draggedNode.y = (my - h / 2 - transform.y) / transform.k;
       draggedNode.vx = 0;
       draggedNode.vy = 0;
     } else if (isDraggingCanvas) {
@@ -830,7 +834,7 @@ export default function ObsidianNetworkGraph({
   };
 
   const handleResetZoom = () => {
-    setTransform({ x: 0, y: 0, k: 0.95 });
+    setTransform({ x: 0, y: 0, k: 1.0 });
     setClickedNode(null);
   };
 
@@ -854,7 +858,7 @@ export default function ObsidianNetworkGraph({
     <div
       ref={containerRef}
       className={`relative bg-white rounded-3xl border border-slate-200 shadow-soft overflow-hidden transition-all duration-300 ${
-        isFullscreen ? 'fixed inset-0 z-[9999] rounded-none w-screen h-screen' : 'h-[580px] w-full'
+        isFullscreen ? 'fixed inset-0 z-[9999] rounded-none w-screen h-screen' : 'h-[560px] w-full'
       }`}
     >
       {/* Top Light Header & Toolbar */}
