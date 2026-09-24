@@ -251,6 +251,16 @@ export default function CIRTable({
               </th>
 
               <th 
+                onClick={() => handleSort('PARTY_INV_NO')}
+                className="p-3 cursor-pointer hover:text-[#2b1f55] transition-colors"
+              >
+                <div className="flex items-center gap-1">
+                  Customer Inv No
+                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                </div>
+              </th>
+
+              <th 
                 onClick={() => handleSort('SERVICE_NAME')}
                 className="p-3 cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
@@ -320,7 +330,7 @@ export default function CIRTable({
           <tbody className="divide-y divide-slate-200">
             {loading ? (
               <tr>
-                <td colSpan={13} className="p-12 text-center text-slate-500">
+                <td colSpan={14} className="p-12 text-center text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <div className="w-8 h-8 border-3 border-[#2b1f55] border-t-transparent rounded-full animate-spin" />
                     <span className="text-xs font-semibold text-slate-600">Loading Live Data...</span>
@@ -329,7 +339,7 @@ export default function CIRTable({
               </tr>
             ) : paginatedRecords.length === 0 ? (
               <tr>
-                <td colSpan={13} className="p-12 text-center text-slate-500">
+                <td colSpan={14} className="p-12 text-center text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <AlertCircle className="w-8 h-8 text-amber-500" />
                     <span className="text-sm font-bold text-slate-800">No Matching Records Found</span>
@@ -392,6 +402,17 @@ export default function CIRTable({
                         <div className="text-[10px] text-slate-500 truncate mt-0.5" title={row.INVOICE_NOTE}>
                           {row.INVOICE_NOTE}
                         </div>
+                      )}
+                    </td>
+
+                    {/* Customer Invoice No */}
+                    <td className="p-3 font-mono text-xs whitespace-nowrap">
+                      {(row.PARTY_INV_NO || row.CLIENT_INVOICE_NO) ? (
+                        <span className="bg-purple-50 text-[#2b1f55] px-2 py-0.5 rounded border border-purple-200 font-bold">
+                          {row.PARTY_INV_NO || row.CLIENT_INVOICE_NO}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">-</span>
                       )}
                     </td>
 

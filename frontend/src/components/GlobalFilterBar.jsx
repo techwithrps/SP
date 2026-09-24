@@ -395,9 +395,54 @@ export default function GlobalFilterBar({
       <div className="p-3 sm:p-5">
         <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-3 sm:gap-4">
           
-          {/* Controls Group: 1. Company -> 2. Customer -> 3. Terminal -> 4. Financial Year */}
+          {/* Controls Group: 1. Financial Year -> 2. Company -> 3. Branch -> 4. Customer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 w-full lg:w-auto flex-1">
             
+            {/* 4. Financial Year Filter */}
+            <div className="flex flex-col min-w-0">
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" />
+                Financial Year Filter
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedFY}
+                  onChange={(e) => setSelectedFY(e.target.value)}
+                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-xs truncate"
+                >
+                  <option value="ALL">📅 All Financial Years (Cumulative)</option>
+                  
+                  {/* Highlight customer's available FYs if customer selected */}
+                  {customerMatrixEntry && customerMatrixEntry.financialYears?.length > 0 ? (
+                    <>
+                      <optgroup label={`── 🟢 Active FYs for ${customerMatrixEntry.customerName} ──`}>
+                        {customerMatrixEntry.financialYears.map(fy => (
+                          <option key={fy} value={fy}>
+                            🟢 {fy} (Active Activity)
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="── All Financial Years ──">
+                        {financialYears.filter(fy => fy !== 'All Financial Years' && !customerMatrixEntry.financialYears.includes(fy)).map(fy => (
+                          <option key={fy} value={fy} className="text-slate-400">
+                            ⚪ {fy}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </>
+                  ) : (
+                    <>
+                      <option value="FY 2026-27">FY 2026-27 (Current Fiscal)</option>
+                      <option value="FY 2025-26">FY 2025-26 (Past Year 1)</option>
+                      <option value="FY 2024-25">FY 2024-25 (Past Year 2)</option>
+                      <option value="FY 2023-24">FY 2023-24 (Past Year 3)</option>
+                      <option value="FY 2022-23 & Earlier">FY 2022-23 & Earlier (Historical)</option>
+                    </>
+                  )}
+                </select>
+              </div>
+            </div>
+
             {/* 1. Company Selection */}
             <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
@@ -420,48 +465,6 @@ export default function GlobalFilterBar({
                       </option>
                     );
                   })}
-                </select>
-              </div>
-            </div>
-
-            {/* 2. Customer Selection (Strictly filtered by selectedCompany) */}
-            <div className="flex flex-col min-w-0">
-              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-blue-600" />
-                Customer Selection
-                {selectedCompanyObj && (
-                  <span className="text-[9px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded-full border border-indigo-200">
-                    {selectedCompanyObj.code}
-                  </span>
-                )}
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedCustomer}
-                  onChange={(e) => handleCustomerChange(e.target.value)}
-                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer shadow-xs truncate"
-                >
-                  <option value="ALL">
-                    👥 {selectedCompanyObj ? `All Customers in ${selectedCompanyObj.code} (${availableCustomers.length} Total)` : `All Customers (${availableCustomers.length} Total)`}
-                  </option>
-                  
-                  {availableCustomers.length > 0 ? (
-                    <optgroup label={selectedCompanyObj ? `── 🏢 Customers of ${selectedCompanyObj.name} (${availableCustomers.length}) ──` : `── 🟢 Active Customers with Branch Coverage ──`}>
-                      {availableCustomers.map(c => {
-                        const val = c.customerId || c.id || c.customerName || c.name;
-                        const name = c.customerName || c.name;
-                        const branches = c.terminalCount ? ` (${c.terminalCount} Hubs)` : '';
-                        const bills = c.invoiceCount ? ` [${formatNumber(c.invoiceCount)} Invoices]` : '';
-                        return (
-                          <option key={val} value={String(val)}>
-                            🟢 {name}{branches}{bills}
-                          </option>
-                        );
-                      })}
-                    </optgroup>
-                  ) : (
-                    <option value="" disabled>No registered clients for this entity</option>
-                  )}
                 </select>
               </div>
             </div>
@@ -539,46 +542,43 @@ export default function GlobalFilterBar({
               </div>
             </div>
 
-            {/* 4. Financial Year Filter */}
+            {/* 2. Customer Selection (Strictly filtered by selectedCompany) */}
             <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" />
-                Financial Year Filter
+                <Users className="w-3.5 h-3.5 text-blue-600" />
+                Customer Selection
+                {selectedCompanyObj && (
+                  <span className="text-[9px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded-full border border-indigo-200">
+                    {selectedCompanyObj.code}
+                  </span>
+                )}
               </label>
               <div className="relative">
                 <select
-                  value={selectedFY}
-                  onChange={(e) => setSelectedFY(e.target.value)}
-                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-xs truncate"
+                  value={selectedCustomer}
+                  onChange={(e) => handleCustomerChange(e.target.value)}
+                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer shadow-xs truncate"
                 >
-                  <option value="ALL">📅 All Financial Years (Cumulative)</option>
+                  <option value="ALL">
+                    👥 {selectedCompanyObj ? `All Customers in ${selectedCompanyObj.code} (${availableCustomers.length} Total)` : `All Customers (${availableCustomers.length} Total)`}
+                  </option>
                   
-                  {/* Highlight customer's available FYs if customer selected */}
-                  {customerMatrixEntry && customerMatrixEntry.financialYears?.length > 0 ? (
-                    <>
-                      <optgroup label={`── 🟢 Active FYs for ${customerMatrixEntry.customerName} ──`}>
-                        {customerMatrixEntry.financialYears.map(fy => (
-                          <option key={fy} value={fy}>
-                            🟢 {fy} (Active Activity)
+                  {availableCustomers.length > 0 ? (
+                    <optgroup label={selectedCompanyObj ? `── 🏢 Customers of ${selectedCompanyObj.name} (${availableCustomers.length}) ──` : `── 🟢 Active Customers with Branch Coverage ──`}>
+                      {availableCustomers.map(c => {
+                        const val = c.customerId || c.id || c.customerName || c.name;
+                        const name = c.customerName || c.name;
+                        const branches = c.terminalCount ? ` (${c.terminalCount} Hubs)` : '';
+                        const bills = c.invoiceCount ? ` [${formatNumber(c.invoiceCount)} Invoices]` : '';
+                        return (
+                          <option key={val} value={String(val)}>
+                            🟢 {name}{branches}{bills}
                           </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="── All Financial Years ──">
-                        {financialYears.filter(fy => fy !== 'All Financial Years' && !customerMatrixEntry.financialYears.includes(fy)).map(fy => (
-                          <option key={fy} value={fy} className="text-slate-400">
-                            ⚪ {fy}
-                          </option>
-                        ))}
-                      </optgroup>
-                    </>
+                        );
+                      })}
+                    </optgroup>
                   ) : (
-                    <>
-                      <option value="FY 2026-27">FY 2026-27 (Current Fiscal)</option>
-                      <option value="FY 2025-26">FY 2025-26 (Past Year 1)</option>
-                      <option value="FY 2024-25">FY 2024-25 (Past Year 2)</option>
-                      <option value="FY 2023-24">FY 2023-24 (Past Year 3)</option>
-                      <option value="FY 2022-23 & Earlier">FY 2022-23 & Earlier (Historical)</option>
-                    </>
+                    <option value="" disabled>No registered clients for this entity</option>
                   )}
                 </select>
               </div>

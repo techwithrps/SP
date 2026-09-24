@@ -191,7 +191,7 @@ export default function AnalyticsCharts({
   const topCustomers = useMemo(() => {
     // 1. If single customer selected
     if (customerEntry) {
-      const gross = customerEntry.totalRevenue || 0;
+      const gross = Number(customerEntry.totalRevenue || 0);
       const bill = Math.round((gross / 1.18) * 100) / 100;
       const tax = Math.round((gross - bill) * 100) / 100;
       return [{
@@ -209,13 +209,13 @@ export default function AnalyticsCharts({
 
     // 2. If company selected
     if (activeCompId && companyCustomers[activeCompId] && companyCustomers[activeCompId].length > 0) {
-      return companyCustomers[activeCompId].slice(0, 100).map(c => {
+      return companyCustomers[activeCompId].map(c => {
         const gross = Number(c.totalAmount || c.grossRevenue || 0);
         const bill = Math.round((gross / 1.18) * 100) / 100;
         const tax = Math.round((gross - bill) * 100) / 100;
         return {
-          name: c.name,
-          customerName: c.name,
+          name: c.name || c.customerName,
+          customerName: c.name || c.customerName,
           grossRevenue: gross,
           totalRevenue: gross,
           billAmount: bill,
@@ -223,10 +223,31 @@ export default function AnalyticsCharts({
           invoiceCount: c.invoiceCount || 0,
           city: c.city || ''
         };
-      });
+      }).sort((a, b) => b.grossRevenue - a.grossRevenue);
     }
 
-    // 3. Global All Entities View: Use deduplicated customerTerminalMatrix or rawTopCustomers
+    // 3. Primary Data Warehouse / Audited Live Customer Analytics
+    if (rawTopCustomers && rawTopCustomers.length > 0) {
+      return rawTopCustomers.map(c => {
+        const gross = Number(c.grossRevenue || c.totalRevenue || c.totalAmount || 0);
+        const bill = Number(c.billAmount || c.baseAmount || (gross / 1.18));
+        const tax = Number(c.taxAmount || (gross - bill));
+        const invs = Number(c.invoiceCount || 0);
+        return {
+          name: c.customerName || c.name,
+          customerName: c.customerName || c.name,
+          grossRevenue: Math.round(gross * 100) / 100,
+          totalRevenue: Math.round(gross * 100) / 100,
+          billAmount: Math.round(bill * 100) / 100,
+          taxAmount: Math.round(tax * 100) / 100,
+          invoiceCount: invs,
+          terminalCount: c.terminalCount || 1,
+          city: c.city || ''
+        };
+      }).sort((a, b) => b.grossRevenue - a.grossRevenue);
+    }
+
+    // 4. Fallback from customerTerminalMatrix
     if (customerTerminalMatrix && customerTerminalMatrix.length > 0) {
       const dedupMap = {};
       customerTerminalMatrix.forEach(c => {
@@ -261,19 +282,8 @@ export default function AnalyticsCharts({
       }).sort((a, b) => b.grossRevenue - a.grossRevenue);
     }
 
-    return (rawTopCustomers || []).map(c => {
-      const gross = Number(c.grossRevenue || c.totalRevenue || c.totalAmount || 0);
-      const bill = Number(c.billAmount || (gross / 1.18));
-      const tax = Number(c.taxAmount || (gross - bill));
-      return {
-        ...c,
-        grossRevenue: gross,
-        totalRevenue: gross,
-        billAmount: bill,
-        taxAmount: tax
-      };
-    });
-  }, [customerEntry, activeCompId, companyCustomers, customerTerminalMatrix, rawTopCustomers]);
+    return [];
+  }, [customerEntry, activeCompId, companyCustomers, rawTopCustomers, customerTerminalMatrix]);
 
   // Factor calculator for selected Financial Year
   const getFyFactors = (terminalId, targetFY) => {
@@ -967,8 +977,11 @@ export default function AnalyticsCharts({
         <ExecutiveDecisionBI
           topCustomers={topCustomers}
           topServices={topServices}
+          displayTerminals={displayTerminals}
           dynamicMetrics={dynamicMetrics}
           dbTotals={dbTotals}
+          selectedFY={selectedFY}
+          activeCompanyName={activeCompanyName}
         />
       )}
 
