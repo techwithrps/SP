@@ -249,7 +249,7 @@ export default function ContainerFleetView({
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
             <button
               onClick={handleExport}
-              disabled={filteredContainers.length === 0}
+              disabled={paginatedContainers.length === 0}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#ff6a00] hover:bg-[#e65c00] text-white font-bold text-xs shadow-md transition-all disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
