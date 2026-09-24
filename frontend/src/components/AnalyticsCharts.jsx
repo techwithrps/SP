@@ -765,6 +765,8 @@ export default function AnalyticsCharts({
           topRevenueChart={topRevenueChart}
           topVolumeChart={topVolumeChart}
           displayTerminals={displayTerminals}
+          topCustomers={topCustomers}
+          dynamicMetrics={dynamicMetrics}
           selectedFY={selectedFY}
           selectedTerminal={selectedTerminal}
           setSelectedTerminal={setSelectedTerminal}

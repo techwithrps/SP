@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search, BarChart3, Container } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Search, BarChart3, Container, Building2, Users, Award, TrendingUp, Sparkles, Receipt } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { formatCurrency, formatNumber, CustomChartTooltip } from './analyticsUtils';
 
@@ -7,6 +7,8 @@ export default function BranchPerformanceTable({
   topRevenueChart = [],
   topVolumeChart = [],
   displayTerminals = [],
+  topCustomers = [],
+  dynamicMetrics = {},
   selectedFY = 'ALL',
   selectedTerminal = 'ALL',
   setSelectedTerminal,
@@ -21,69 +23,206 @@ export default function BranchPerformanceTable({
   customerName = null,
   companyName = null,
 }) {
+  const totalGross = useMemo(() => {
+    return dynamicMetrics?.grossSale || displayTerminals.reduce((s, t) => s + Number(t.grossSale || t.netRevenue || 0), 0) || 1;
+  }, [dynamicMetrics, displayTerminals]);
+
+  const top10Branches = useMemo(() => {
+    return [...displayTerminals]
+      .sort((a, b) => (Number(b.grossSale || b.netRevenue || 0) - Number(a.grossSale || a.netRevenue || 0)))
+      .slice(0, 10);
+  }, [displayTerminals]);
+
+  const top10Customers = useMemo(() => {
+    return [...(topCustomers || [])]
+      .sort((a, b) => (Number(b.grossRevenue || 0) - Number(a.grossRevenue || 0)))
+      .slice(0, 10);
+  }, [topCustomers]);
+
   return (
     <div className="space-y-6">
-      {/* Top Visual Chart: Branch Sales & TEU Comparison (Reacts to FY changes!) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Terminals by Net Sales */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
-          <div className="flex items-center justify-between mb-1">
-            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 truncate">
-              <BarChart3 className="w-4 h-4 text-[#2b1f55] shrink-0" /> 
-              {customerName 
-                ? `Active Branches for ${customerName} (${topRevenueChart.length} Hubs)`
-                : companyName
-                ? `Operating Branches of ${companyName} (${topRevenueChart.length} Hubs)`
-                : `Top Terminals — ${topRevenueChart.length} Active (${selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})`}
-            </h4>
-            <span className="text-[10px] px-2 py-0.5 bg-purple-100 text-[#2b1f55] rounded-full font-bold shrink-0">
-              {topRevenueChart.length} Active Branches
-            </span>
+      {/* 1. TOP EXECUTIVE HIGHLIGHTS PODIUM (Top 3 Clients & Top 3 Hubs) */}
+      <div className="bg-gradient-to-r from-slate-900 via-[#2b1f55] to-slate-900 p-4 sm:p-5 rounded-3xl text-white shadow-soft border border-purple-900/40">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3.5 mb-3.5 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center border border-amber-400/30">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-black font-display tracking-tight text-white flex items-center gap-2">
+                Executive Sales Leaders & Strategic Realization
+              </h3>
+              <p className="text-[11px] text-purple-200/80">
+                Top enterprise revenue generators & high-volume terminal hubs ({selectedFY === 'ALL' ? 'Cumulative All-Time' : selectedFY})
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-slate-500 mb-4">
-            {customerName ? `Net sales generated across ${topRevenueChart.length} operating branch terminals` : 'Branch contribution to overall net sales (INR Crores)'}
-          </p>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topRevenueChart} margin={{ top: 10, right: 10, left: 10, bottom: 25 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" angle={-25} textAnchor="end" tick={{ fontSize: 10, fill: '#64748b' }} />
-                <YAxis tickFormatter={(val) => `₹${(val/10000000).toFixed(0)}Cr`} tick={{ fontSize: 10, fill: '#64748b' }} />
-                <Tooltip content={<CustomChartTooltip />} />
-                <Bar dataKey="revenue" name="Net Sales (Gross Sale)" fill="#2b1f55" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-[10px] px-3 py-1 rounded-full bg-white/10 border border-white/15 text-purple-200 font-bold flex items-center gap-1.5">
+              <Award className="w-3 h-3 text-amber-400" />
+              Realized: {formatCurrency(totalGross)}
+            </span>
           </div>
         </div>
 
-        {/* Top Terminals by Container TEU Volume */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {/* Top 3 Customers Ribbon */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 border border-white/10 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-bold text-purple-200">
+              <span className="flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-purple-300" /> Top Client Exporters
+              </span>
+              <span className="text-[10px] text-purple-300/80">{top10Customers.length} Top Billed</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {top10Customers.slice(0, 3).map((c, idx) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const gross = Number(c.grossRevenue || 0);
+                return (
+                  <div key={idx} className="bg-white/10 hover:bg-white/15 transition-colors p-2.5 rounded-xl border border-white/10 flex flex-col justify-between">
+                    <div className="flex items-center gap-1 mb-1">
+                      <span className="text-xs">{medals[idx]}</span>
+                      <p className="text-[10px] font-bold text-white truncate" title={c.customerName || c.name}>
+                        {c.customerName || c.name}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-xs sm:text-sm font-black text-amber-300">
+                        {formatCurrency(gross)}
+                      </p>
+                      <p className="text-[9px] text-purple-200/70 truncate">
+                        {formatNumber(c.invoiceCount)} Invoices
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Top 3 Branches Ribbon */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 border border-white/10 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-bold text-purple-200">
+              <span className="flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-orange-300" /> Top Terminal Hubs
+              </span>
+              <span className="text-[10px] text-purple-300/80">{top10Branches.length} Operating Hubs</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {top10Branches.slice(0, 3).map((t, idx) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const gross = Number(t.grossSale || t.netRevenue || 0);
+                return (
+                  <div key={idx} className="bg-white/10 hover:bg-white/15 transition-colors p-2.5 rounded-xl border border-white/10 flex flex-col justify-between">
+                    <div className="flex items-center gap-1 mb-1">
+                      <span className="text-xs">{medals[idx]}</span>
+                      <p className="text-[10px] font-bold text-white truncate" title={t.terminalName}>
+                        {t.terminalName}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-xs sm:text-sm font-black text-emerald-300">
+                        {formatCurrency(gross)}
+                      </p>
+                      <p className="text-[9px] text-purple-200/70 truncate">
+                        {formatNumber(t.displayContainers || t.totalContainers || 0)} Containers
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. DUAL EXECUTIVE LEADERBOARDS: LEFT = BRANCHES, RIGHT = CUSTOMERS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* LEFT COLUMN: Top 10 Branches by Sales */}
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
           <div className="flex items-center justify-between mb-1">
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 truncate">
-              <Container className="w-4 h-4 text-[#ff6a00] shrink-0" /> 
-              {customerName 
-                ? `TEU Volume Throughput — ${customerName}`
-                : `Top Terminals by TEU Volume — ${topVolumeChart.length} Active (${selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})`}
+              <Building2 className="w-4 h-4 text-[#2b1f55] shrink-0" />
+              Top 10 Branches by Sales
             </h4>
-            <span className="text-[10px] px-2 py-0.5 bg-orange-100 text-[#ff6a00] rounded-full font-bold shrink-0">
-              {topVolumeChart.length} Active Branches
+            <span className="text-[10px] px-2.5 py-0.5 bg-purple-100 text-[#2b1f55] rounded-full font-bold shrink-0">
+              {displayTerminals.length} Active Branches
             </span>
           </div>
           <p className="text-xs text-slate-500 mb-4">
-            Container physical throughput (40ft = 2 TEUs, 20ft = 1 TEU)
+            Key railhead hubs, container freight stations, and ICD terminals
           </p>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topVolumeChart} margin={{ top: 10, right: 10, left: 10, bottom: 25 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" angle={-25} textAnchor="end" tick={{ fontSize: 10, fill: '#64748b' }} />
-                <YAxis tickFormatter={(val) => formatNumber(val)} tick={{ fontSize: 10, fill: '#64748b' }} />
-                <Tooltip content={<CustomChartTooltip />} />
-                <Legend />
-                <Bar dataKey="teus" name="TEUs Equivalent" fill="#ff6a00" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="containers" name="Physical Containers" fill="#0284c7" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="space-y-2.5">
+            {top10Branches.map((b, idx) => {
+              const gross = Number(b.grossSale || b.netRevenue || 0);
+              const share = ((gross / totalGross) * 100).toFixed(1);
+              const containers = Number(b.displayContainers || b.totalContainers || 0);
+              const invoices = Number(b.invoiceCount || 0);
+              return (
+                <div key={idx} className="p-3 bg-slate-50 hover:bg-purple-50/40 rounded-2xl border border-slate-100 transition-colors flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="w-6 h-6 rounded-full bg-[#2b1f55] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-900 text-xs truncate uppercase" title={b.terminalName}>
+                        {b.terminalName}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        {formatNumber(containers)} Containers · {formatNumber(invoices)} Invoices
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-mono font-bold text-slate-900 text-xs">{formatCurrency(gross)}</p>
+                    <p className="text-[10px] text-emerald-600 font-semibold">{share}% Share</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Top 10 Enterprise Clients by Sales */}
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
+          <div className="flex items-center justify-between mb-1">
+            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 truncate">
+              <Users className="w-4 h-4 text-[#ff6a00] shrink-0" />
+              Top 10 Enterprise Clients by Sales
+            </h4>
+            <span className="text-[10px] px-2.5 py-0.5 bg-orange-100 text-[#ff6a00] rounded-full font-bold shrink-0">
+              {topCustomers.length} Active Clients
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mb-4">
+            Key frozen food exporters, freight forwarders, and liner accounts
+          </p>
+          <div className="space-y-2.5">
+            {top10Customers.map((c, idx) => {
+              const gross = Number(c.grossRevenue || 0);
+              const share = ((gross / totalGross) * 100).toFixed(1);
+              return (
+                <div key={idx} className="p-3 bg-slate-50 hover:bg-orange-50/40 rounded-2xl border border-slate-100 transition-colors flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="w-6 h-6 rounded-full bg-[#ff6a00] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-900 text-xs truncate uppercase" title={c.customerName || c.name}>
+                        {c.customerName || c.name}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        {formatNumber(c.invoiceCount)} Invoices Audited
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-mono font-bold text-slate-900 text-xs">{formatCurrency(gross)}</p>
+                    <p className="text-[10px] text-emerald-600 font-semibold">{share}% Share</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
