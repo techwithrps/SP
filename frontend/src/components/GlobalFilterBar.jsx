@@ -382,7 +382,7 @@ export default function GlobalFilterBar({
       'Status': (t.totalContainers > 0 || t.netRevenue > 0 || t.invoiceCount > 0) ? 'Active with Data' : 'Zero Data / Inactive',
       'Invoices': t.invoiceCount || 0,
       'Containers': t.totalContainers || 0,
-      'Net Revenue (Gross Sale INR)': t.netRevenue || 0
+      'Net Sales (Gross Sale INR)': t.netRevenue || 0
     }));
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     XLSX.utils.book_append_sheet(wb, ws, 'Branch_Overview');

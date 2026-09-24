@@ -142,11 +142,11 @@ export default function SalesRevenueDonutSection({
     ];
 
     return baseCategories.map((cat, idx) => {
-      const catRevenue = Math.round(total * cat.share * 100) / 100;
+      const catSales = Math.round(total * cat.share * 100) / 100;
       return {
         ...cat,
-        value: catRevenue,
-        revenueFormatted: formatCurrency(catRevenue),
+        value: catSales,
+        salesFormatted: formatCurrency(catSales),
         color: COLORS[idx % COLORS.length]
       };
     });
@@ -164,7 +164,7 @@ export default function SalesRevenueDonutSection({
         <div>
           <h3 className="font-display font-extrabold text-base sm:text-lg text-slate-900 flex items-center gap-2">
             <PieIcon className="w-5 h-5 text-[#b91c1c]" />
-            <span>Sum of Net_Revenue_INR</span>
+            <span>Sum of Net_Sales_INR</span>
             <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
               by Product_Category
             </span>
@@ -174,7 +174,7 @@ export default function SalesRevenueDonutSection({
               ? `Category breakdown for ${customerName} (${selectedFY === 'ALL' ? 'All Fiscal Years' : selectedFY})`
               : companyName
               ? `Category distribution for ${companyName} (${selectedFY === 'ALL' ? 'All Fiscal Years' : selectedFY})`
-              : `Consolidated logistics service line revenue distribution (${selectedFY === 'ALL' ? 'All FYs Cumulative' : selectedFY})`}
+              : `Consolidated logistics service line sales distribution (${selectedFY === 'ALL' ? 'All FYs Cumulative' : selectedFY})`}
           </p>
         </div>
 
@@ -240,7 +240,7 @@ export default function SalesRevenueDonutSection({
               {totalValueBn}
             </span>
             <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Total Revenue
+              TOTAL SALES
             </span>
           </div>
         </div>
@@ -278,7 +278,7 @@ export default function SalesRevenueDonutSection({
                     </div>
                     <div className="text-right shrink-0">
                       <span className="text-xs font-mono font-black text-slate-900">
-                        {cat.revenueFormatted}
+                        {cat.salesFormatted || cat.revenueFormatted}
                       </span>
                     </div>
                   </div>

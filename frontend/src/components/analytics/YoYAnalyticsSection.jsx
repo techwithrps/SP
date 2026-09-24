@@ -16,7 +16,7 @@ export default function YoYAnalyticsSection({
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft">
         <h4 className="text-base font-bold text-slate-800 mb-1 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-[#2b1f55]" /> Fiscal Year Growth & Invoiced Revenue Trajectory
+          <Calendar className="w-5 h-5 text-[#2b1f55]" /> Fiscal Year Growth & Invoiced Sales Trajectory
         </h4>
         <p className="text-xs text-slate-500 mb-6">
           Multi-year financial trend comparison for {terminalName}
@@ -41,7 +41,7 @@ export default function YoYAnalyticsSection({
               <YAxis tickFormatter={(val) => `₹${(val/10000000).toFixed(0)}Cr`} tick={{ fontSize: 11, fill: '#64748b' }} />
               <Tooltip content={<CustomChartTooltip />} />
               <Legend />
-              <Area type="monotone" dataKey="grossRevenue" name="Gross Invoiced Revenue" stroke="#2b1f55" strokeWidth={3} fillOpacity={1} fill="url(#grossGrad)" />
+              <Area type="monotone" dataKey="grossRevenue" name="Gross Invoiced Sales" stroke="#2b1f55" strokeWidth={3} fillOpacity={1} fill="url(#grossGrad)" />
               <Area type="monotone" dataKey="billAmount" name="Net Billed Amount" stroke="#ff6a00" strokeWidth={3} fillOpacity={1} fill="url(#billGrad)" />
             </AreaChart>
           </ResponsiveContainer>

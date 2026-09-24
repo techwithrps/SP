@@ -23,9 +23,9 @@ export default function BranchPerformanceTable({
 }) {
   return (
     <div className="space-y-6">
-      {/* Top Visual Chart: Branch Revenue & TEU Comparison (Reacts to FY changes!) */}
+      {/* Top Visual Chart: Branch Sales & TEU Comparison (Reacts to FY changes!) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Terminals by Net Revenue */}
+        {/* Top Terminals by Net Sales */}
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
           <div className="flex items-center justify-between mb-1">
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 truncate">
@@ -41,7 +41,7 @@ export default function BranchPerformanceTable({
             </span>
           </div>
           <p className="text-xs text-slate-500 mb-4">
-            {customerName ? `Net revenue generated across ${topRevenueChart.length} operating branch terminals` : 'Branch contribution to overall net sales revenue (INR Crores)'}
+            {customerName ? `Net sales generated across ${topRevenueChart.length} operating branch terminals` : 'Branch contribution to overall net sales (INR Crores)'}
           </p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -50,7 +50,7 @@ export default function BranchPerformanceTable({
                 <XAxis dataKey="name" angle={-25} textAnchor="end" tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis tickFormatter={(val) => `₹${(val/10000000).toFixed(0)}Cr`} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <Tooltip content={<CustomChartTooltip />} />
-                <Bar dataKey="revenue" name="Net Revenue (Gross Sale)" fill="#2b1f55" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="revenue" name="Net Sales (Gross Sale)" fill="#2b1f55" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -111,7 +111,7 @@ export default function BranchPerformanceTable({
               onChange={(e) => setSortBy(e.target.value)}
               className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
             >
-              <option value="netRevenue">Net Revenue (Gross Sale)</option>
+              <option value="netRevenue">Net Sales (Gross Sale)</option>
               <option value="displayTeus">TEU Volume</option>
               <option value="displayContainers">Total Containers</option>
               <option value="displayJobs">Job Orders</option>
@@ -182,7 +182,7 @@ export default function BranchPerformanceTable({
                   onClick={() => handleSortHeader('netRevenue')}
                   className="py-3 px-3.5 text-right font-black text-[#2b1f55] cursor-pointer hover:bg-slate-200/80 transition-colors group"
                 >
-                  Net Revenue (Gross Sale) <SortIcon field="netRevenue" />
+                  Net Sales (Gross Sale) <SortIcon field="netRevenue" />
                 </th>
                 <th className="py-3 px-3 text-center">Action</th>
               </tr>
@@ -327,7 +327,7 @@ export default function BranchPerformanceTable({
 
                   <div className="grid grid-cols-2 gap-1.5 text-[11px] mb-2.5">
                     <div className="bg-purple-50/60 p-2 rounded-xl border border-purple-100/80">
-                      <div className="text-[9px] text-slate-500 font-medium">Gross Revenue</div>
+                      <div className="text-[9px] text-slate-500 font-medium">Gross Sales</div>
                       <div className="font-extrabold text-xs text-[#2b1f55] truncate">
                         {hasData ? formatCurrency(t.netRevenue) : '₹ 0'}
                       </div>

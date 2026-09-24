@@ -646,7 +646,7 @@ export default function AnalyticsCharts({
     const wsTerm = XLSX.utils.json_to_sheet(displayTerminals);
     XLSX.utils.book_append_sheet(wb, wsTerm, 'Branch_Performance');
     const wsCust = XLSX.utils.json_to_sheet(topCustomers);
-    XLSX.utils.book_append_sheet(wb, wsCust, 'Top_Revenue_Customers');
+    XLSX.utils.book_append_sheet(wb, wsCust, 'Top_Sales_Customers');
     const wsSvc = XLSX.utils.json_to_sheet(topServices);
     XLSX.utils.book_append_sheet(wb, wsSvc, 'Top_Logistics_Services');
     const wsYoY = XLSX.utils.json_to_sheet(yoyChartData);

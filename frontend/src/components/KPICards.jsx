@@ -42,18 +42,18 @@ export default function KPICards({ kpis = {}, loading = false }) {
 
   const cards = [
     {
-      title: 'Net Revenue',
+      title: 'Net Sales',
       subtitle: 'Gross - Credit Adjustments',
       value: formatCurrency(netRevenue),
       icon: IndianRupee,
       iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
       valueColor: 'text-emerald-900',
-      badge: 'Net Revenue',
+      badge: 'Net Sales',
       badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
       isCurrency: true
     },
     {
-      title: 'Gross Revenue',
+      title: 'Gross Sales',
       subtitle: 'Taxable + Statutory GST',
       value: formatCurrency(grossRevenue),
       icon: IndianRupee,
@@ -64,13 +64,13 @@ export default function KPICards({ kpis = {}, loading = false }) {
       isCurrency: true
     },
     {
-      title: 'Taxable Revenue',
+      title: 'Taxable Sales',
       subtitle: 'Pre-Tax Freight & Handling',
       value: formatCurrency(taxableRevenue),
       icon: Receipt,
       iconBg: 'bg-blue-50 text-blue-600 border border-blue-200',
       valueColor: 'text-blue-900',
-      badge: 'Base Revenue',
+      badge: 'Base Sales',
       badgeColor: 'text-blue-700 bg-blue-50 border-blue-200',
       isCurrency: true
     },

@@ -15,7 +15,7 @@ export function CustomerLeaderboardTable({
             <Users className="w-4 h-4 text-[#2b1f55]" /> Enterprise Customer Leaderboard
           </h4>
           <p className="text-xs text-slate-500">
-            Highest gross revenue generating accounts across all CFS terminals
+            Highest gross sales generating accounts across all CFS terminals
           </p>
         </div>
         <span className="text-xs font-mono font-bold text-purple-900 bg-purple-50 px-3 py-1 rounded-xl border border-purple-200">
@@ -32,7 +32,7 @@ export function CustomerLeaderboardTable({
               <th className="py-3 px-4 text-right">Invoices</th>
               <th className="py-3 px-4 text-right">Net Billed Amount</th>
               <th className="py-3 px-4 text-right">GST (18%)</th>
-              <th className="py-3 px-4 text-right font-black text-[#2b1f55]">Gross Revenue</th>
+              <th className="py-3 px-4 text-right font-black text-[#2b1f55]">Gross Sales</th>
               <th className="py-3 px-4 text-right">Contribution</th>
             </tr>
           </thead>
@@ -86,7 +86,7 @@ export function ServiceCatalogTable({
               <th className="py-3 px-4 text-right">Line Items Billed</th>
               <th className="py-3 px-4 text-right">Net Billed Amount</th>
               <th className="py-3 px-4 text-right">GST (18%)</th>
-              <th className="py-3 px-4 text-right font-black text-[#ff6a00]">Gross Revenue</th>
+              <th className="py-3 px-4 text-right font-black text-[#ff6a00]">Gross Sales</th>
               <th className="py-3 px-4 text-right">Avg / Line Item</th>
             </tr>
           </thead>

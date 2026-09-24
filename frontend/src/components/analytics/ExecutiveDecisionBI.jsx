@@ -16,7 +16,7 @@ export default function ExecutiveDecisionBI({
           <div className="p-2 sm:p-3 bg-white/10 rounded-xl sm:rounded-2xl w-fit mb-2 sm:mb-4">
             <Award className="w-4 h-4 sm:w-6 sm:h-6 text-orange-400" />
           </div>
-          <h4 className="text-sm sm:text-lg font-bold mb-1 sm:mb-2">Key Revenue Driver: Dadri CFS</h4>
+          <h4 className="text-sm sm:text-lg font-bold mb-1 sm:mb-2">Key Sales Driver: Dadri CFS</h4>
           <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed">
             TRANSWORLD-DADRI represents <span className="text-orange-300 font-bold">66.2%</span> of total enterprise gross sales (₹ 4,969 Cr) with 49,412 container movements, making it the central engine of cold storage and reefer logistics.
           </p>
@@ -45,10 +45,10 @@ export default function ExecutiveDecisionBI({
 
       {/* Top Customers & Top Services Side-by-Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Revenue Contributing Customers */}
+        {/* Top Sales Contributing Customers */}
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
           <h4 className="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#2b1f55]" /> Top 10 Enterprise Clients by Revenue
+            <Users className="w-4 h-4 text-[#2b1f55]" /> Top 10 Enterprise Clients by Sales
           </h4>
           <p className="text-xs text-slate-500 mb-4">
             Key frozen food exporters, freight forwarders, and liner accounts
@@ -83,7 +83,7 @@ export default function ExecutiveDecisionBI({
             <Layers className="w-4 h-4 text-[#ff6a00]" /> Top Logistics Tariff & Service Categories
           </h4>
           <p className="text-xs text-slate-500 mb-4">
-            Core billing service heads and operational revenue streams
+            Core billing service heads and operational sales streams
           </p>
           <div className="space-y-3">
             {topServices.slice(0, 8).map((s, idx) => {

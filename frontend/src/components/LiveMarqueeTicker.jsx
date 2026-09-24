@@ -13,30 +13,30 @@ import {
 
 export default function LiveMarqueeTicker({ stats = {} }) {
   const tickerItems = [
-    // 1. REVENUE & ENTERPRISE HIGHLIGHTS
+    // 1. SALES & ENTERPRISE HIGHLIGHTS
     {
-      category: 'REVENUE',
+      category: 'SALES',
       badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
       icon: TrendingUp,
       iconColor: 'text-emerald-400',
       label: 'Gross Sales',
-      value: '₹ 7,423.88 Cr'
+      value: '₹ 3,853.64 Cr'
     },
     {
-      category: 'REVENUE',
+      category: 'SALES',
       badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
       icon: Building2,
       iconColor: 'text-purple-400',
-      label: '39 Terminals',
+      label: '29 Terminals',
       value: '100% Active'
     },
     {
-      category: 'REVENUE',
+      category: 'SALES',
       badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
       icon: Container,
       iconColor: 'text-emerald-400',
       label: 'Containers Handled',
-      value: '89,249 Units (1,71,976 TEUs)'
+      value: '85,313 Units (1,62,095 TEUs)'
     },
 
     // 2. TOP CLIENTS & BILLING

@@ -3,7 +3,6 @@ import { Globe2, Ship, Truck, Users } from 'lucide-react';
 import Navbar from './components/Navbar';
 import GlobalFilterBar from './components/GlobalFilterBar';
 import FilterBar from './components/FilterBar';
-import CustomerWiseSalesSummary from './components/CustomerWiseSalesSummary';
 import SalesRevenueDonutSection from './components/SalesRevenueDonutSection';
 import KPICards from './components/KPICards';
 import CIRTable from './components/CIRTable';
@@ -726,14 +725,6 @@ export default function App() {
                   topServices={financialData?.topServices || []}
                   companyName={selectedCompany !== 'ALL' ? (masters.companies?.find(c => String(c.id) === String(selectedCompany) || c.code === selectedCompany)?.name || selectedCompany) : null}
                   customerName={selectedCustomer !== 'ALL' ? (masters.customerTerminalMatrix?.find(c => String(c.customerId) === String(selectedCustomer) || c.customerName === selectedCustomer)?.customerName || selectedCustomer) : null}
-                />
-
-                {/* Customer Wise Sales & Terminal Breakdown Ledger */}
-                <CustomerWiseSalesSummary
-                  customerWise={activeSalesKPIs.customerWise || []}
-                  selectedCustomer={selectedCustomer}
-                  onSelectCustomer={handleSetSelectedCustomer}
-                  kpis={activeSalesKPIs}
                 />
 
                 <FilterBar
