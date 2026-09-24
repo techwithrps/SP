@@ -367,6 +367,9 @@ export default function App() {
             financialYears={financialYears}
             terminalFyMatrix={terminalFyMatrix}
             customerTerminalMatrix={masters.customerTerminalMatrix || []}
+            companyCustomers={masters.companyCustomers || {}}
+            companyTerminals={masters.companyTerminals || {}}
+            triMatrix={masters.triMatrix || []}
             onRefresh={() => {
               fetchCIRData();
               fetchInitialData();

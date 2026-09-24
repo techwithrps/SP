@@ -39,6 +39,9 @@ export default function GlobalFilterBar({
   customers = [],
   topCustomers = [],
   customerTerminalMatrix = [],
+  companyCustomers = {},
+  companyTerminals = {},
+  triMatrix = [],
   terminals = [],
   financialYears = [
     'All Financial Years', 
@@ -66,65 +69,125 @@ export default function GlobalFilterBar({
     if (setSelectedFY) setSelectedFY('ALL');
   };
 
-  // 5 Official SPJ Group Companies
+  // 5 Official SPJ Group Companies in exact user requested order
   const companyList = useMemo(() => {
     if (companies && companies.length > 0) return companies;
     return [
-      { id: 1, code: 'SPJ', name: 'SPJ CARGO PVT LTD', gstin: '07AAOCS1758E1Z5', director: 'Mr. Puran Joshi' },
-      { id: 2, code: 'SPJ-MUM', name: 'SPJ CARGO PVT LTD-MUMBAI', gstin: '27AAOCS1758E1Z3', director: 'Mr. Puran Joshi' },
-      { id: 3, code: 'SJ', name: 'S.J. CARGO MOVERS', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
-      { id: 4, code: 'PJ', name: 'PURAN JOSHI', gstin: '07ADGPJ3166M2Z9', director: 'Mr. Puran Joshi' },
-      { id: 5, code: 'PJ-OLD', name: 'PURAN JOSHI OLD', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' }
+      { id: 3, companyId: 3, code: 'PJ-OLD', name: 'PURAN JOSHI OLD', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
+      { id: 2, companyId: 2, code: 'SPJ', name: 'SPJ CARGO PVT LTD', gstin: '07AAOCS1758E1Z5', director: 'Mr. Puran Joshi' },
+      { id: 1, companyId: 1, code: 'SJ', name: 'S.J. CARGO MOVERS', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
+      { id: 5, companyId: 5, code: 'PJ', name: 'PURAN JOSHI', gstin: '07ADGPJ3166M2Z9', director: 'Mr. Puran Joshi' },
+      { id: 4, companyId: 4, code: 'SPJ-MUM', name: 'SPJ CARGO PVT LTD-MUMBAI', gstin: '27AAOCS1758E1Z3', director: 'Mr. Puran Joshi' }
     ];
   }, [companies]);
 
-  // Look up customer's detailed branch presence in customerTerminalMatrix
+  // Helper to resolve company object and canonical ID (1..5)
+  const resolveCompany = (val) => {
+    if (!val || val === 'ALL' || val === 'all') return null;
+    const str = String(val).toLowerCase().trim();
+    return companyList.find(c => 
+      String(c.id).toLowerCase() === str || 
+      String(c.companyId).toLowerCase() === str || 
+      String(c.code).toLowerCase() === str ||
+      String(c.name).toLowerCase() === str
+    ) || null;
+  };
+
+  const selectedCompanyObj = useMemo(() => resolveCompany(selectedCompany), [selectedCompany, companyList]);
+  const activeCompId = selectedCompanyObj ? String(selectedCompanyObj.id || selectedCompanyObj.companyId) : null;
+
+  // STRICT CASCADING CUSTOMERS: Filtered exclusively to selectedCompany
+  const availableCustomers = useMemo(() => {
+    // A) If a company is selected: ONLY show customers belonging to this company
+    if (activeCompId) {
+      // 1. From backend companyCustomers map if available
+      if (companyCustomers && companyCustomers[activeCompId] && companyCustomers[activeCompId].length > 0) {
+        return companyCustomers[activeCompId].map(c => {
+          const matrixMatch = (customerTerminalMatrix || []).find(m => 
+            String(m.companyId) === activeCompId && 
+            (String(m.customerId) === String(c.id) || (m.customerName && c.name && m.customerName.toLowerCase() === c.name.toLowerCase()))
+          );
+          return {
+            id: c.id,
+            customerId: c.id,
+            name: c.name,
+            customerName: c.name,
+            code: c.code || '',
+            city: c.city || '',
+            invoiceCount: matrixMatch ? matrixMatch.totalInvoices : (c.invoiceCount || 0),
+            terminalCount: matrixMatch ? matrixMatch.terminalCount : (c.terminalCount || 1),
+            terminals: matrixMatch ? matrixMatch.terminals : [],
+            netRevenue: matrixMatch ? matrixMatch.totalRevenue : (c.totalAmount || 0)
+          };
+        }).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
+      }
+
+      // 2. From customerTerminalMatrix filtered by this companyId
+      const matrixMatchList = (customerTerminalMatrix || []).filter(c => 
+        String(c.companyId) === activeCompId || 
+        String(c.companyId) === String(selectedCompanyObj?.code)
+      );
+      if (matrixMatchList.length > 0) {
+        return matrixMatchList.map(c => ({
+          id: c.customerId,
+          customerId: c.customerId,
+          name: c.customerName,
+          customerName: c.customerName,
+          code: '',
+          city: '',
+          invoiceCount: c.totalInvoices || 0,
+          terminalCount: c.terminalCount || (c.terminals?.length || 1),
+          terminals: c.terminals || [],
+          netRevenue: c.totalRevenue || 0
+        })).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
+      }
+      return [];
+    }
+
+    // B) If ALL companies are selected: Show all active clients from customerTerminalMatrix or topCustomers
+    if (customerTerminalMatrix && customerTerminalMatrix.length > 0) {
+      return customerTerminalMatrix.map(c => ({
+        id: c.customerId,
+        customerId: c.customerId,
+        name: c.customerName,
+        customerName: c.customerName,
+        code: '',
+        city: '',
+        invoiceCount: c.totalInvoices || 0,
+        terminalCount: c.terminalCount || (c.terminals?.length || 1),
+        terminals: c.terminals || [],
+        netRevenue: c.totalRevenue || 0,
+        companyId: c.companyId
+      })).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
+    }
+
+    if (topCustomers && topCustomers.length > 0) {
+      return topCustomers.slice(0, 100);
+    }
+    return (customers || []).slice(0, 200);
+  }, [activeCompId, selectedCompanyObj, companyCustomers, customerTerminalMatrix, topCustomers, customers]);
+
+  // Look up selected customer's matrix details
   const customerMatrixEntry = useMemo(() => {
     if (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') return null;
     const sLower = String(selectedCustomer).toLowerCase().trim();
-    return (customerTerminalMatrix || []).find(c => 
+
+    // Look in currently available customers first
+    const directMatch = availableCustomers.find(c => 
+      String(c.customerId || c.id).toLowerCase() === sLower ||
+      String(c.customerName || c.name).toLowerCase() === sLower ||
+      String(c.customerName || c.name).toLowerCase().includes(sLower)
+    );
+    if (directMatch && directMatch.terminals && directMatch.terminals.length > 0) return directMatch;
+
+    // Look in global customerTerminalMatrix
+    const matrixMatch = (customerTerminalMatrix || []).find(c => 
       String(c.customerId).toLowerCase() === sLower ||
       String(c.customerName).toLowerCase() === sLower ||
-      String(c.customerName).toLowerCase().includes(sLower) ||
-      sLower.includes(String(c.customerName).toLowerCase())
-    ) || null;
-  }, [selectedCustomer, customerTerminalMatrix]);
-
-  // Customers segmented into Top Active and Registered, optionally filtered by selectedCompany
-  const availableMatrixCustomers = useMemo(() => {
-    let list = customerTerminalMatrix || [];
-    if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') {
-      const compStr = String(selectedCompany).toLowerCase();
-      const matchComp = companyList.find(c => String(c.id).toLowerCase() === compStr || c.code.toLowerCase() === compStr);
-      if (matchComp) {
-        list = list.filter(c => String(c.companyId) === String(matchComp.id) || String(c.companyId) === String(matchComp.code));
-      }
-    }
-    return list;
-  }, [customerTerminalMatrix, selectedCompany, companyList]);
-
-  const activeCustomers = useMemo(() => {
-    if (availableMatrixCustomers && availableMatrixCustomers.length > 0) {
-      return availableMatrixCustomers;
-    }
-    if (topCustomers && topCustomers.length > 0) {
-      return topCustomers.slice(0, 60);
-    }
-    return [];
-  }, [availableMatrixCustomers, topCustomers]);
-
-  const otherCustomers = useMemo(() => {
-    const activeNames = new Set(activeCustomers.map(c => (c.customerName || c.name || '').toLowerCase().trim()));
-    return (customers || [])
-      .filter(c => !activeNames.has((c.name || '').toLowerCase().trim()))
-      .slice(0, 200);
-  }, [customers, activeCustomers]);
-
-  const selectedCompanyObj = companyList.find(c => String(c.id) === String(selectedCompany) || String(c.code) === String(selectedCompany));
-  const selectedCustomerObj = 
-    customerMatrixEntry ||
-    activeCustomers.find(c => String(c.customerId || c.id || c.customerName) === String(selectedCustomer)) ||
-    (customers || []).find(c => String(c.id || c.name) === String(selectedCustomer));
+      String(c.customerName).toLowerCase().includes(sLower)
+    );
+    return matrixMatch || directMatch || null;
+  }, [selectedCustomer, availableCustomers, customerTerminalMatrix]);
 
   // Compute terminal stats specifically for current selectedFY
   const getTerminalStats = (t) => {
@@ -136,7 +199,7 @@ export default function GlobalFilterBar({
         invoiceCount: t.invoiceCount || 0
       };
     }
-    const cell = terminalFyMatrix.find(m => String(m.terminalId) === String(t.terminalId) && m.fy === selectedFY);
+    const cell = (terminalFyMatrix || []).find(m => String(m.terminalId) === String(t.terminalId) && m.fy === selectedFY);
     if (cell) {
       return {
         totalContainers: cell.totalContainers || 0,
@@ -153,29 +216,95 @@ export default function GlobalFilterBar({
     currentStats: getTerminalStats(t)
   }));
 
+  // STRICT CASCADING TERMINALS:
+  // 1. If Customer selected -> Only that customer's operating terminals
+  // 2. If Company selected -> Only that company's operating terminals
+  // 3. If All -> All active operational terminals
+  const availableTerminals = useMemo(() => {
+    // 1. Customer selected: Only show branches this customer operates at
+    if (customerMatrixEntry && customerMatrixEntry.terminals && customerMatrixEntry.terminals.length > 0) {
+      return customerMatrixEntry.terminals.map(t => {
+        const fullTerm = terminals.find(ft => String(ft.terminalId || ft.id) === String(t.terminalId));
+        return {
+          terminalId: t.terminalId,
+          terminalName: t.terminalName || fullTerm?.terminalName || ('Terminal ' + t.terminalId),
+          invoiceCount: t.invoiceCount || 0,
+          totalContainers: t.totalContainers || 0,
+          netRevenue: t.netRevenue || 0,
+          isCustomerBranch: true
+        };
+      }).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
+    }
+
+    // 2. Company selected: Only show branches operated by this company
+    if (activeCompId) {
+      const compTerms = companyTerminals[activeCompId];
+      if (compTerms && compTerms.length > 0) {
+        return compTerms.map(t => {
+          const fullTerm = terminalsWithStats.find(ft => String(ft.terminalId || ft.id) === String(t.terminalId));
+          return {
+            terminalId: t.terminalId,
+            terminalName: t.terminalName || fullTerm?.terminalName || ('Terminal ' + t.terminalId),
+            invoiceCount: t.invoiceCount || fullTerm?.currentStats?.invoiceCount || 0,
+            totalContainers: fullTerm?.currentStats?.totalContainers || 0,
+            netRevenue: t.totalAmount || fullTerm?.currentStats?.netRevenue || 0,
+            isCompanyBranch: true
+          };
+        }).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
+      }
+    }
+
+    // 3. No Customer & No Company selected: Full terminals list
+    return terminalsWithStats
+      .filter(t => t.currentStats.totalContainers > 0 || t.currentStats.netRevenue > 0)
+      .sort((a, b) => (b.currentStats.netRevenue || 0) - (a.currentStats.netRevenue || 0));
+  }, [customerMatrixEntry, activeCompId, companyTerminals, terminalsWithStats, terminals]);
+
   const activeTerminals = terminalsWithStats.filter(t => t.currentStats.totalContainers > 0 || t.currentStats.netRevenue > 0)
     .sort((a, b) => (b.currentStats.netRevenue || 0) - (a.currentStats.netRevenue || 0));
 
   const inactiveTerminals = terminalsWithStats.filter(t => t.currentStats.totalContainers === 0 && t.currentStats.netRevenue === 0);
 
-  const selectedTerminalObj = terminalsWithStats.find(t => String(t.terminalId) === String(selectedTerminal));
+  // Cascading event handlers with auto-reset
+  const handleCompanyChange = (newCompanyVal) => {
+    if (setSelectedCompany) setSelectedCompany(newCompanyVal);
 
-  const handleQuickExport = () => {
-    const wb = XLSX.utils.book_new();
-    const dataToExport = terminalsWithStats.map(t => ({
-      'Terminal ID': t.terminalId,
-      'Terminal / Branch': t.terminalName,
-      'Fiscal Year': selectedFY === 'ALL' ? 'Cumulative (All Years)' : selectedFY,
-      'Status': (t.currentStats.totalContainers > 0 || t.currentStats.netRevenue > 0) ? 'Active with Data' : 'Zero Data / Inactive',
-      'Code': t.terminalCode || `T-${t.terminalId}`,
-      'Job Orders': t.currentStats.totalJobs || 0,
-      'Containers': t.currentStats.totalContainers || 0,
-      'Invoices': t.currentStats.invoiceCount || 0,
-      'Net Revenue (Gross Sale INR)': t.currentStats.netRevenue || 0
-    }));
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
-    XLSX.utils.book_append_sheet(wb, ws, 'Branch_Overview');
-    XLSX.writeFile(wb, `SPJ_Enterprise_Overview_${selectedFY.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    // If company changed, verify if current selectedCustomer belongs to new company
+    if (newCompanyVal !== 'ALL' && selectedCustomer !== 'ALL') {
+      const targetObj = resolveCompany(newCompanyVal);
+      const targetId = targetObj ? String(targetObj.id || targetObj.companyId) : null;
+      if (targetId && companyCustomers[targetId]) {
+        const isCustValid = companyCustomers[targetId].some(c => 
+          String(c.id).toLowerCase() === String(selectedCustomer).toLowerCase() ||
+          c.name.toLowerCase() === String(selectedCustomer).toLowerCase()
+        );
+        if (!isCustValid) {
+          if (setSelectedCustomer) setSelectedCustomer('ALL');
+          if (setSelectedTerminal) setSelectedTerminal('ALL');
+        }
+      } else {
+        if (setSelectedCustomer) setSelectedCustomer('ALL');
+        if (setSelectedTerminal) setSelectedTerminal('ALL');
+      }
+    }
+  };
+
+  const handleCustomerChange = (newCustomerVal) => {
+    if (setSelectedCustomer) setSelectedCustomer(newCustomerVal);
+
+    // If customer changed, verify if current selectedTerminal is valid for this customer
+    if (newCustomerVal !== 'ALL' && selectedTerminal !== 'ALL') {
+      const match = (customerTerminalMatrix || []).find(c => 
+        String(c.customerId).toLowerCase() === String(newCustomerVal).toLowerCase() ||
+        c.customerName.toLowerCase() === String(newCustomerVal).toLowerCase()
+      );
+      if (match && match.terminals) {
+        const hasTerm = match.terminals.some(t => String(t.terminalId) === String(selectedTerminal));
+        if (!hasTerm) {
+          if (setSelectedTerminal) setSelectedTerminal('ALL');
+        }
+      }
+    }
   };
 
   return (
@@ -196,9 +325,7 @@ export default function GlobalFilterBar({
               <div className="relative">
                 <select
                   value={selectedCompany}
-                  onChange={(e) => {
-                    if (setSelectedCompany) setSelectedCompany(e.target.value);
-                  }}
+                  onChange={(e) => handleCompanyChange(e.target.value)}
                   className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-all cursor-pointer shadow-xs truncate"
                 >
                   <option value="ALL">🏛️ All Companies (5 Group Entities)</option>
@@ -211,31 +338,34 @@ export default function GlobalFilterBar({
               </div>
             </div>
 
-            {/* 2. Customer Selection */}
+            {/* 2. Customer Selection (Strictly filtered by selectedCompany) */}
             <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-blue-600" />
                 Customer Selection
+                {selectedCompanyObj && (
+                  <span className="text-[9px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded-full border border-indigo-200">
+                    {selectedCompanyObj.code}
+                  </span>
+                )}
               </label>
               <div className="relative">
                 <select
                   value={selectedCustomer}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (setSelectedCustomer) setSelectedCustomer(val);
-                  }}
+                  onChange={(e) => handleCustomerChange(e.target.value)}
                   className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer shadow-xs truncate"
                 >
-                  <option value="ALL">👥 All Customers ({customers.length || 'All'} Total)</option>
+                  <option value="ALL">
+                    👥 {selectedCompanyObj ? `All Customers in ${selectedCompanyObj.code} (${availableCustomers.length} Total)` : `All Customers (${availableCustomers.length} Total)`}
+                  </option>
                   
-                  {/* Top Active Customers with branch count */}
-                  {activeCustomers.length > 0 && (
-                    <optgroup label="── 🟢 Active Customers with Branch Coverage ──">
-                      {activeCustomers.map(c => {
-                        const val = c.customerId || c.id || c.customerName;
+                  {availableCustomers.length > 0 ? (
+                    <optgroup label={selectedCompanyObj ? `── 🏢 Customers of ${selectedCompanyObj.name} (${availableCustomers.length}) ──` : `── 🟢 Active Customers with Branch Coverage ──`}>
+                      {availableCustomers.map(c => {
+                        const val = c.customerId || c.id || c.customerName || c.name;
                         const name = c.customerName || c.name;
-                        const branches = c.terminalCount ? ` (${c.terminalCount} Branches)` : '';
-                        const bills = c.invoiceCount ? ` [${formatNumber(c.invoiceCount)} Bills]` : '';
+                        const branches = c.terminalCount ? ` (${c.terminalCount} Hubs)` : '';
+                        const bills = c.invoiceCount ? ` [${formatNumber(c.invoiceCount)} Invoices]` : '';
                         return (
                           <option key={val} value={String(val)}>
                             🟢 {name}{branches}{bills}
@@ -243,31 +373,27 @@ export default function GlobalFilterBar({
                         );
                       })}
                     </optgroup>
-                  )}
-
-                  {otherCustomers.length > 0 && (
-                    <optgroup label="── All Registered Customers ──">
-                      {otherCustomers.map(c => (
-                        <option key={c.id} value={String(c.id)}>
-                          {c.name} {c.city ? `(${c.city})` : ''}
-                        </option>
-                      ))}
-                    </optgroup>
+                  ) : (
+                    <option value="" disabled>No registered clients for this entity</option>
                   )}
                 </select>
               </div>
             </div>
 
-            {/* 3. Branch / Terminal Selection (Cascaded: Highlights customer's specific branches if customer selected) */}
+            {/* 3. Branch / Terminal Selection (Cascaded: Filtered by Customer or Company) */}
             <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-[#2b1f55]" />
                 Branch / Terminal Selection
-                {customerMatrixEntry && (
+                {customerMatrixEntry ? (
                   <span className="text-[9px] font-normal text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded-full">
-                    {customerMatrixEntry.terminalCount} Hubs
+                    {availableTerminals.length} Client Hubs
                   </span>
-                )}
+                ) : selectedCompanyObj ? (
+                  <span className="text-[9px] font-normal text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded-full">
+                    {availableTerminals.length} Entity Hubs
+                  </span>
+                ) : null}
               </label>
               <div className="relative">
                 <select
@@ -275,31 +401,35 @@ export default function GlobalFilterBar({
                   onChange={(e) => setSelectedTerminal(e.target.value)}
                   className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all cursor-pointer shadow-xs truncate"
                 >
-                  <option value="ALL">🏢 All Terminals & Hubs ({terminals.length || 39} Total)</option>
+                  <option value="ALL">
+                    {customerMatrixEntry
+                      ? `🏢 All Active Branches for ${customerMatrixEntry.customerName || customerMatrixEntry.name} (${availableTerminals.length} Hubs)`
+                      : selectedCompanyObj
+                      ? `🏢 All Operating Branches of ${selectedCompanyObj.name} (${availableTerminals.length} Hubs)`
+                      : `🏢 All Terminals & Hubs (${terminals.length || 39} Total)`}
+                  </option>
                   
-                  {/* If a customer is selected, highlight their exact active branches */}
-                  {customerMatrixEntry && customerMatrixEntry.terminals?.length > 0 ? (
-                    <>
-                      <optgroup label={`── 🟢 Active Branches for ${customerMatrixEntry.customerName} (${customerMatrixEntry.terminalCount} Hubs) ──`}>
-                        {customerMatrixEntry.terminals.map(t => (
-                          <option key={t.terminalId} value={String(t.terminalId)}>
-                            🟢 {t.terminalName} ({formatNumber(t.totalContainers)} Cont | {formatCurrency(t.netRevenue)})
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label={`── Other Terminals (No Activity for ${customerMatrixEntry.customerName}) ──`}>
-                        {terminalsWithStats
-                          .filter(t => !customerMatrixEntry.terminals.some(ct => String(ct.terminalId) === String(t.terminalId)))
-                          .map(t => (
-                            <option key={t.terminalId} value={String(t.terminalId)} className="text-slate-400">
-                              ⚪ {t.terminalName} (0 Activity)
-                            </option>
-                          ))}
-                      </optgroup>
-                    </>
+                  {/* If a customer is selected, show strictly their active branches */}
+                  {customerMatrixEntry && availableTerminals.length > 0 ? (
+                    <optgroup label={`── 🟢 Active Operating Branches for ${customerMatrixEntry.customerName || customerMatrixEntry.name} ──`}>
+                      {availableTerminals.map(t => (
+                        <option key={t.terminalId} value={String(t.terminalId)}>
+                          🟢 {t.terminalName} ({formatNumber(t.invoiceCount)} Invoices{t.totalContainers ? ` | ${formatNumber(t.totalContainers)} Cont` : ''}{t.netRevenue ? ` | ${formatCurrency(t.netRevenue)}` : ''})
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : selectedCompanyObj && availableTerminals.length > 0 ? (
+                    /* If a company is selected (and customer is ALL), show strictly that company's terminals */
+                    <optgroup label={`── 🏢 Operating Terminals of ${selectedCompanyObj.name} (${availableTerminals.length}) ──`}>
+                      {availableTerminals.map(t => (
+                        <option key={t.terminalId} value={String(t.terminalId)}>
+                          🟢 {t.terminalName} ({formatNumber(t.invoiceCount)} Invoices{t.totalContainers ? ` | ${formatNumber(t.totalContainers)} Cont` : ''}{t.netRevenue ? ` | ${formatCurrency(t.netRevenue)}` : ''})
+                        </option>
+                      ))}
+                    </optgroup>
                   ) : (
+                    /* Global unfiltered view with Active vs Inactive hubs */
                     <>
-                      {/* 🟢 Active Operational Hubs in selected FY */}
                       <optgroup label={selectedFY === 'ALL' ? "── 🟢 Active Hubs with Data ──" : `── 🟢 Active Hubs in ${selectedFY} ──`}>
                         {activeTerminals.map(t => (
                           <option key={t.terminalId} value={String(t.terminalId)}>
@@ -308,7 +438,6 @@ export default function GlobalFilterBar({
                         ))}
                       </optgroup>
 
-                      {/* 🔴 Inactive / Zero Data Terminals in selected FY */}
                       {inactiveTerminals.length > 0 && (
                         <optgroup label={selectedFY === 'ALL' ? "── 🔴 Inactive / Zero Data Terminals ──" : `── 🔴 No Activity in ${selectedFY} ──`}>
                           {inactiveTerminals.map(t => (
