@@ -20,9 +20,9 @@ import {
 
 function formatCurrency(val) {
   const num = Number(val) || 0;
-  if (Math.abs(num) >= 1000000000) return `₹ ${(num / 1000000000).toFixed(2)} bn`;
-  if (Math.abs(num) >= 10000000) return `₹ ${(num / 10000000).toFixed(2)} Cr`;
-  if (Math.abs(num) >= 100000) return `₹ ${(num / 100000).toFixed(2)} Lakh`;
+  if (Math.abs(num) >= 10000000) return `₹ ${(num / 10000000).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Cr`;
+  if (Math.abs(num) >= 100000) return `₹ ${(num / 100000).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L`;
+  if (Math.abs(num) >= 1000) return `₹ ${(num / 1000).toFixed(1)} K`;
   return `₹ ${num.toLocaleString('en-IN')}`;
 }
 
@@ -31,16 +31,16 @@ function formatNumber(val) {
   return num.toLocaleString('en-IN');
 }
 
-// Power BI Coral / Crimson Color Palette matching user screenshot
+// Power BI Coral / Crimson Color Palette
 const COLORS = [
-  '#b91c1c', // Dark Crimson (Electronics / Reefer)
-  '#e11d48', // Coral Red (Solar / Multimodal)
-  '#f43f5e', // Rose Coral (Appliances / ICD Ops)
-  '#fda4af', // Light Coral (Industrial Consumables)
+  '#b91c1c', // Dark Crimson (Electronics & Reefer Cargo)
+  '#e11d48', // Coral Red (Solar & Multimodal Rail Ops)
+  '#f43f5e', // Rose Coral (Appliances & ICD Terminals)
+  '#fda4af', // Light Coral (Industrial Consumables & Port)
   '#fecdd3'  // Soft Rose (General Cargo & Ancillary)
 ];
 
-// Custom Label with Leader Line matching Power BI Donut Screenshot
+// Custom Label with Leader Line matching Power BI Donut Style
 const renderCustomizedLabel = (props) => {
   const {
     cx,
@@ -56,19 +56,19 @@ const renderCustomizedLabel = (props) => {
   const sin = Math.sin(-RADIAN * midAngle);
   const cos = Math.cos(-RADIAN * midAngle);
 
-  const sx = cx + (outerRadius + 8) * cos;
-  const sy = cy + (outerRadius + 8) * sin;
-  const mx = cx + (outerRadius + 26) * cos;
-  const my = cy + (outerRadius + 26) * sin;
-  const ex = mx + (cos >= 0 ? 1 : -1) * 20;
+  const sx = cx + (outerRadius + 6) * cos;
+  const sy = cy + (outerRadius + 6) * sin;
+  const mx = cx + (outerRadius + 22) * cos;
+  const my = cy + (outerRadius + 22) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 16;
   const ey = my;
   const textAnchor = cos >= 0 ? 'start' : 'end';
 
-  const valBn = (value >= 1000000000) 
-    ? `${(value / 1000000000).toFixed(2)}bn` 
-    : (value >= 10000000) 
-    ? `₹${(value / 10000000).toFixed(0)}Cr` 
-    : `₹${(value / 100000).toFixed(0)}L`;
+  const valFormatted = (value >= 10000000) 
+    ? `₹${(value / 10000000).toFixed(2)} Cr` 
+    : (value >= 100000) 
+    ? `₹${(value / 100000).toFixed(2)} L` 
+    : `₹${Math.round(value).toLocaleString('en-IN')}`;
 
   return (
     <g>
@@ -83,18 +83,19 @@ const renderCustomizedLabel = (props) => {
         x={ex + (cos >= 0 ? 1 : -1) * 6}
         y={ey}
         textAnchor={textAnchor}
-        fill="#334155"
+        fill="#1e293b"
         fontSize={10}
         fontWeight={700}
         dominantBaseline="central"
       >
-        {`${valBn} (${(percent * 100).toFixed(1)}%)`}
+        {`${valFormatted} (${(percent * 100).toFixed(1)}%)`}
       </text>
     </g>
   );
 };
 
 export default function SalesRevenueDonutSection({
+  totalSales,
   totalGrossRevenue = 38536360360.24,
   selectedCompany = 'ALL',
   selectedCustomer = 'ALL',
@@ -106,9 +107,11 @@ export default function SalesRevenueDonutSection({
 }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
-  // Category Distribution scaled to active total revenue
+  const activeTotal = totalSales || totalGrossRevenue || 38536360360.24;
+
+  // Category Distribution scaled to active total sales
   const categoryData = useMemo(() => {
-    const total = totalGrossRevenue || 38536360360.24;
+    const total = activeTotal;
 
     const baseCategories = [
       {
@@ -150,11 +153,13 @@ export default function SalesRevenueDonutSection({
         color: COLORS[idx % COLORS.length]
       };
     });
-  }, [totalGrossRevenue]);
+  }, [activeTotal]);
 
-  const totalValueBn = (totalGrossRevenue >= 1000000000)
-    ? `${(totalGrossRevenue / 1000000000).toFixed(2)}bn`
-    : `${(totalGrossRevenue / 10000000).toFixed(2)} Cr`;
+  const centerTotalFormatted = (activeTotal >= 10000000)
+    ? `₹ ${(activeTotal / 10000000).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Cr`
+    : (activeTotal >= 100000)
+    ? `₹ ${(activeTotal / 100000).toFixed(2)} L`
+    : `₹ ${Math.round(activeTotal).toLocaleString('en-IN')}`;
 
   return (
     <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-soft p-4 sm:p-6 transition-all animate-fade-in">
@@ -181,7 +186,7 @@ export default function SalesRevenueDonutSection({
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            Active Scope: {formatCurrency(totalGrossRevenue)}
+            Active Scope: {formatCurrency(activeTotal)}
           </span>
         </div>
       </div>
@@ -237,7 +242,7 @@ export default function SalesRevenueDonutSection({
           {/* Central Donut Total Value */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
             <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tracking-tight block">
-              {totalValueBn}
+              {centerTotalFormatted}
             </span>
             <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
               TOTAL SALES

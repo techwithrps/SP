@@ -256,43 +256,10 @@ export default function FilterBar({
         </div>
       </div>
 
-      {/* Grid of Parameter Filters (6 Columns: Customer -> Service -> Trip -> Container -> Size -> BL) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-3 border-t border-slate-100">
+      {/* Grid of Parameter Filters (5 Columns: Service -> Trip -> Container -> Size -> BL) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-3 border-t border-slate-100">
         
-        {/* 1. Customer / Bill-to (Cascaded with 🟢 Active Indicator and Sales Revenue Amount) */}
-        <div>
-          <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-            <Users className="w-3 h-3 text-blue-600" />
-            Customer
-          </label>
-          <select
-            value={filters.customerId || 'all'}
-            onChange={(e) => handleChange('customerId', e.target.value)}
-            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer truncate"
-          >
-            <option value="all">🏢 {availableCustomers.compLabel || 'All Customers'} ({availableCustomers.all?.length || 'All'})</option>
-            {availableCustomers.active?.length > 0 && (
-              <optgroup label="── 🟢 Active in Current Scope ──">
-                {availableCustomers.active.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    🟢 {c.name}{formatRevenueBadge(c.revenue)} ({c.count} Bills)
-                  </option>
-                ))}
-              </optgroup>
-            )}
-            {availableCustomers.others?.length > 0 && (
-              <optgroup label="── All Master Customers ──">
-                {availableCustomers.others.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-          </select>
-        </div>
-
-        {/* 2. Service Type (Cascaded based on Terminal & Customer) */}
+        {/* 1. Service Type */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
             <Wrench className="w-3 h-3 text-orange-600" />

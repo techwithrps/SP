@@ -717,6 +717,7 @@ export default function App() {
 
                 {/* Power BI-Style Revenue by Product / Service Category Donut Section */}
                 <SalesRevenueDonutSection
+                  totalSales={activeSalesKPIs.netRevenue || activeSalesKPIs.grossRevenue}
                   totalGrossRevenue={activeSalesKPIs.grossRevenue}
                   selectedCompany={selectedCompany}
                   selectedCustomer={selectedCustomer}
