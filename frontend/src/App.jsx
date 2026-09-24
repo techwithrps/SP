@@ -3,7 +3,7 @@ import { Globe2, Ship, Truck, Users } from 'lucide-react';
 import Navbar from './components/Navbar';
 import GlobalFilterBar from './components/GlobalFilterBar';
 import FilterBar from './components/FilterBar';
-import SalesRevenueDonutSection from './components/SalesRevenueDonutSection';
+import ObsidianNetworkGraph from './components/ObsidianNetworkGraph';
 import KPICards from './components/KPICards';
 import CIRTable from './components/CIRTable';
 import InvoiceDetailModal from './components/InvoiceDetailModal';
@@ -715,17 +715,18 @@ export default function App() {
               <div className="space-y-6 animate-fade-in">
                 <KPICards kpis={activeSalesKPIs} loading={loading} />
 
-                {/* Power BI-Style Revenue by Product / Service Category Donut Section */}
-                <SalesRevenueDonutSection
-                  totalSales={activeSalesKPIs.netRevenue || activeSalesKPIs.grossRevenue}
-                  totalGrossRevenue={activeSalesKPIs.grossRevenue}
+                {/* Interactive Obsidian-Style Force-Directed Logistics Network Graph */}
+                <ObsidianNetworkGraph
+                  masters={masters}
+                  financialData={financialData}
+                  records={records}
                   selectedCompany={selectedCompany}
                   selectedCustomer={selectedCustomer}
                   selectedTerminal={selectedTerminal}
-                  selectedFY={selectedFY}
-                  topServices={financialData?.topServices || []}
-                  companyName={selectedCompany !== 'ALL' ? (masters.companies?.find(c => String(c.id) === String(selectedCompany) || c.code === selectedCompany)?.name || selectedCompany) : null}
-                  customerName={selectedCustomer !== 'ALL' ? (masters.customerTerminalMatrix?.find(c => String(c.customerId) === String(selectedCustomer) || c.customerName === selectedCustomer)?.customerName || selectedCustomer) : null}
+                  onSelectCompany={handleSetSelectedCompany}
+                  onSelectCustomer={handleSetSelectedCustomer}
+                  onSelectTerminal={handleSetSelectedTerminal}
+                  totalSales={activeSalesKPIs.netRevenue || activeSalesKPIs.grossRevenue || 38536360360.24}
                 />
 
                 <FilterBar
