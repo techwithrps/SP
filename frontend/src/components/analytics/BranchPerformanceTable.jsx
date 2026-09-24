@@ -18,6 +18,8 @@ export default function BranchPerformanceTable({
   setSortOrder,
   handleSortHeader,
   SortIcon,
+  customerName = null,
+  companyName = null,
 }) {
   return (
     <div className="space-y-6">
@@ -26,15 +28,20 @@ export default function BranchPerformanceTable({
         {/* Top Terminals by Net Revenue */}
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
           <div className="flex items-center justify-between mb-1">
-            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-[#2b1f55]" /> Top Terminals — {topRevenueChart.length} Active ({selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})
+            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 truncate">
+              <BarChart3 className="w-4 h-4 text-[#2b1f55] shrink-0" /> 
+              {customerName 
+                ? `Active Branches for ${customerName} (${topRevenueChart.length} Hubs)`
+                : companyName
+                ? `Operating Branches of ${companyName} (${topRevenueChart.length} Hubs)`
+                : `Top Terminals — ${topRevenueChart.length} Active (${selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})`}
             </h4>
-            <span className="text-[10px] px-2 py-0.5 bg-purple-100 text-[#2b1f55] rounded-full font-bold">
+            <span className="text-[10px] px-2 py-0.5 bg-purple-100 text-[#2b1f55] rounded-full font-bold shrink-0">
               {topRevenueChart.length} Active Branches
             </span>
           </div>
           <p className="text-xs text-slate-500 mb-4">
-            Branch contribution to overall net sales revenue (INR Crores)
+            {customerName ? `Net revenue generated across ${topRevenueChart.length} operating branch terminals` : 'Branch contribution to overall net sales revenue (INR Crores)'}
           </p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -52,10 +59,13 @@ export default function BranchPerformanceTable({
         {/* Top Terminals by Container TEU Volume */}
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft">
           <div className="flex items-center justify-between mb-1">
-            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <Container className="w-4 h-4 text-[#ff6a00]" /> Top Terminals by TEU Volume — {topVolumeChart.length} Active ({selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})
+            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 truncate">
+              <Container className="w-4 h-4 text-[#ff6a00] shrink-0" /> 
+              {customerName 
+                ? `TEU Volume Throughput — ${customerName}`
+                : `Top Terminals by TEU Volume — ${topVolumeChart.length} Active (${selectedFY === 'ALL' ? 'All Time Cumulative' : selectedFY})`}
             </h4>
-            <span className="text-[10px] px-2 py-0.5 bg-orange-100 text-[#ff6a00] rounded-full font-bold">
+            <span className="text-[10px] px-2 py-0.5 bg-orange-100 text-[#ff6a00] rounded-full font-bold shrink-0">
               {topVolumeChart.length} Active Branches
             </span>
           </div>

@@ -455,11 +455,17 @@ export default function App() {
             {activeTab === 'analytics' && (
               <div className="space-y-6 animate-fade-in">
                 <AnalyticsCharts
+                  selectedCompany={selectedCompany}
+                  selectedCustomer={selectedCustomer}
                   selectedTerminal={selectedTerminal}
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}
                   setSelectedFY={setSelectedFY}
                   financialData={financialData}
+                  customerTerminalMatrix={masters.customerTerminalMatrix || []}
+                  companyTerminals={masters.companyTerminals || {}}
+                  companyCustomers={masters.companyCustomers || {}}
+                  kpis={kpis}
                   loading={finLoading}
                 />
               </div>

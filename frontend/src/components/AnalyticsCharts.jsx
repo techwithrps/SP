@@ -33,11 +33,17 @@ import ExecutiveDecisionBI from './analytics/ExecutiveDecisionBI';
 import { CustomerLeaderboardTable, ServiceCatalogTable } from './analytics/CustomerServiceLeaderboard';
 
 export default function AnalyticsCharts({
+  selectedCompany = 'ALL',
+  selectedCustomer = 'ALL',
   selectedTerminal: parentTerminal,
   setSelectedTerminal: parentSetTerminal,
   selectedFY: parentFY,
   setSelectedFY: parentSetFY,
   financialData: propFinancialData,
+  customerTerminalMatrix = [],
+  companyTerminals = {},
+  companyCustomers = {},
+  kpis = {},
   loading: propLoading
 }) {
   const [finData, setFinData] = useState(propFinancialData || null);
@@ -62,7 +68,6 @@ export default function AnalyticsCharts({
       setFinData(propFinancialData);
       setLoading(false);
     } else {
-      // Standalone fallback only if not provided by App.jsx
       let mounted = true;
       const fetchFinancials = async () => {
         setLoading(true);
@@ -90,12 +95,240 @@ export default function AnalyticsCharts({
   ], [branchDetailed]);
   const fySummaries = useMemo(() => branchDetailed.fySummaries || {}, [branchDetailed]);
   const terminalFyMatrix = useMemo(() => branchDetailed.terminalFyMatrix || [], [branchDetailed]);
-  const topCustomers = useMemo(() => finData?.topCustomers || finData?.customerAnalytics || branchDetailed.topCustomers || [], [finData, branchDetailed]);
+  const rawTopCustomers = useMemo(() => finData?.topCustomers || finData?.customerAnalytics || branchDetailed.topCustomers || [], [finData, branchDetailed]);
   const topServices = useMemo(() => finData?.topServices || finData?.serviceAnalytics || branchDetailed.topServices || [], [finData, branchDetailed]);
   const dbTotals = finData?.totals || {};
 
-  // 1. Filtered and Sorted Terminal Matrix for Table & Charts
+  // Resolve Active Company Canonical ID (1..5)
+  const activeCompId = useMemo(() => {
+    if (!selectedCompany || selectedCompany === 'ALL' || selectedCompany === 'all') return null;
+    const s = String(selectedCompany).toUpperCase().trim();
+    if (s === '3' || s === 'PJ-OLD' || s.includes('OLD')) return '3';
+    if (s === '2' || s === 'SPJ') return '2';
+    if (s === '1' || s === 'SJ') return '1';
+    if (s === '5' || s === 'PJ') return '5';
+    if (s === '4' || s === 'SPJ-MUM' || s.includes('MUM')) return '4';
+    return String(selectedCompany);
+  }, [selectedCompany]);
+
+  const activeCompanyName = useMemo(() => {
+    if (!activeCompId) return null;
+    const names = {
+      '3': 'PURAN JOSHI OLD',
+      '2': 'SPJ CARGO PVT LTD',
+      '1': 'S.J. CARGO MOVERS',
+      '5': 'PURAN JOSHI',
+      '4': 'SPJ CARGO PVT LTD-MUMBAI'
+    };
+    return names[activeCompId] || selectedCompany;
+  }, [activeCompId, selectedCompany]);
+
+  // Resolve Active Customer Matrix Entry (Matching Company if selected, merging if global)
+  const customerEntry = useMemo(() => {
+    if (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') return null;
+    const s = String(selectedCustomer).toLowerCase().trim();
+
+    // 1. If active company is chosen, match by companyId first
+    if (activeCompId) {
+      const matchComp = (customerTerminalMatrix || []).find(c => 
+        String(c.companyId) === activeCompId &&
+        (String(c.customerId).toLowerCase() === s ||
+         String(c.customerName || c.name || '').toLowerCase() === s ||
+         String(c.customerName || c.name || '').toLowerCase().includes(s) ||
+         s.includes(String(c.customerName || c.name || '').toLowerCase()))
+      );
+      if (matchComp) return matchComp;
+    }
+
+    // 2. Match across matrix
+    const matches = (customerTerminalMatrix || []).filter(c => 
+      String(c.customerId).toLowerCase() === s ||
+      String(c.customerName || c.name || '').toLowerCase() === s ||
+      String(c.customerName || c.name || '').toLowerCase().includes(s) ||
+      s.includes(String(c.customerName || c.name || '').toLowerCase())
+    );
+
+    if (matches.length === 0) return null;
+    if (matches.length === 1) return matches[0];
+
+    // Merge multiple entries if customer operates across multiple corporate entities
+    const mergedTerminalsMap = {};
+    let totalInvs = 0;
+    let totalRev = 0;
+    matches.forEach(m => {
+      totalInvs += m.totalInvoices || 0;
+      totalRev += m.totalRevenue || 0;
+      (m.terminals || []).forEach(t => {
+        const tId = String(t.terminalId);
+        if (!mergedTerminalsMap[tId]) {
+          mergedTerminalsMap[tId] = {
+            terminalId: t.terminalId,
+            terminalName: t.terminalName,
+            invoiceCount: 0,
+            totalContainers: 0,
+            netRevenue: 0,
+            financialYears: t.financialYears || []
+          };
+        }
+        mergedTerminalsMap[tId].invoiceCount += t.invoiceCount || 0;
+        mergedTerminalsMap[tId].totalContainers += t.totalContainers || 0;
+        mergedTerminalsMap[tId].netRevenue += t.netRevenue || 0;
+      });
+    });
+
+    return {
+      customerId: matches[0].customerId,
+      customerName: matches[0].customerName,
+      companyId: activeCompId || 'ALL',
+      totalInvoices: totalInvs,
+      totalRevenue: Math.round(totalRev * 100) / 100,
+      terminalCount: Object.keys(mergedTerminalsMap).length,
+      terminals: Object.values(mergedTerminalsMap).sort((a, b) => b.netRevenue - a.netRevenue)
+    };
+  }, [selectedCustomer, activeCompId, customerTerminalMatrix]);
+
+  // Context-aware Top Customers for Leaderboard
+  const topCustomers = useMemo(() => {
+    if (customerEntry) {
+      return [{
+        name: customerEntry.customerName,
+        customerName: customerEntry.customerName,
+        totalRevenue: customerEntry.totalRevenue,
+        invoiceCount: customerEntry.totalInvoices,
+        terminalCount: customerEntry.terminalCount || (customerEntry.terminals?.length || 1),
+        share: 100
+      }];
+    }
+    if (activeCompId && companyCustomers[activeCompId] && companyCustomers[activeCompId].length > 0) {
+      return companyCustomers[activeCompId].slice(0, 50).map(c => ({
+        name: c.name,
+        customerName: c.name,
+        totalRevenue: c.totalAmount,
+        invoiceCount: c.invoiceCount,
+        city: c.city
+      }));
+    }
+    return rawTopCustomers;
+  }, [customerEntry, activeCompId, companyCustomers, rawTopCustomers]);
+
+  // 1. DYNAMIC CASCADING TERMINAL MATRIX (Level 1: Company -> Level 2: Customer -> Level 3: Terminal -> Level 4: FY)
   const displayTerminals = useMemo(() => {
+    // ═════════════════════════════════════════════════════════════════════
+    // LEVEL 2 & 3: CUSTOMER SPECIFIC SCOPE (Customer is selected)
+    // ═════════════════════════════════════════════════════════════════════
+    if (customerEntry && customerEntry.terminals && customerEntry.terminals.length > 0) {
+      let list = customerEntry.terminals;
+      
+      // Filter by selectedTerminal if specific terminal is chosen
+      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+        const targetTermLower = String(selectedTerminal).toLowerCase().trim();
+        list = list.filter(t => 
+          String(t.terminalId).toLowerCase() === targetTermLower ||
+          (t.terminalName && String(t.terminalName).toLowerCase() === targetTermLower) ||
+          (t.terminalName && String(t.terminalName).toLowerCase().includes(targetTermLower))
+        );
+      }
+
+      if (searchTerminal) {
+        const q = searchTerminal.toLowerCase();
+        list = list.filter(t => (t.terminalName || '').toLowerCase().includes(q) || String(t.terminalId).includes(q));
+      }
+
+      return list.map(t => {
+        const fullTerm = terminals.find(ft => String(ft.terminalId || ft.id) === String(t.terminalId));
+        const gross = Number(t.netRevenue || t.totalAmount || 0);
+        const invs = Number(t.invoiceCount || 0);
+        const conts = Number(t.totalContainers || (invs > 0 ? Math.round(invs * 1.14) : 0));
+        const bill = Math.round((gross / 1.18) * 100) / 100;
+        const tax = Math.round((gross - bill) * 100) / 100;
+
+        return {
+          terminalId: t.terminalId,
+          terminalName: t.terminalName || fullTerm?.terminalName || ('Terminal ' + t.terminalId),
+          terminalCode: fullTerm?.terminalCode || `T-${t.terminalId}`,
+          location: fullTerm?.location || 'India Logistics Hub',
+          invoiceCount: invs,
+          billAmount: bill,
+          taxAmount: tax,
+          grossSale: gross,
+          creditCount: 0,
+          creditAmount: 0,
+          netRevenue: gross,
+          displayJobs: invs,
+          displayContainers: conts,
+          displayTeus: Math.round(conts * 1.9),
+          display40ft: Math.round(conts * 0.9),
+          display20ft: Math.round(conts * 0.1)
+        };
+      }).sort((a, b) => {
+        if (sortBy === 'terminalName') {
+          return sortOrder === 'asc' ? a.terminalName.localeCompare(b.terminalName) : b.terminalName.localeCompare(a.terminalName);
+        }
+        const valA = Number(a[sortBy]) || 0;
+        const valB = Number(b[sortBy]) || 0;
+        return sortOrder === 'asc' ? valA - valB : valB - valA;
+      });
+    }
+
+    // ═════════════════════════════════════════════════════════════════════
+    // LEVEL 1: COMPANY SPECIFIC SCOPE (Company is selected, Customer is ALL)
+    // ═════════════════════════════════════════════════════════════════════
+    if (activeCompId && companyTerminals && companyTerminals[activeCompId] && companyTerminals[activeCompId].length > 0) {
+      let list = companyTerminals[activeCompId];
+
+      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+        const targetTermLower = String(selectedTerminal).toLowerCase().trim();
+        list = list.filter(t => 
+          String(t.terminalId).toLowerCase() === targetTermLower ||
+          (t.terminalName && String(t.terminalName).toLowerCase() === targetTermLower) ||
+          (t.terminalName && String(t.terminalName).toLowerCase().includes(targetTermLower))
+        );
+      }
+
+      if (searchTerminal) {
+        const q = searchTerminal.toLowerCase();
+        list = list.filter(t => (t.terminalName || '').toLowerCase().includes(q) || String(t.terminalId).includes(q));
+      }
+
+      return list.map(t => {
+        const fullTerm = terminals.find(ft => String(ft.terminalId || ft.id) === String(t.terminalId));
+        const gross = Number(t.totalAmount || t.netRevenue || fullTerm?.netRevenue || 0);
+        const invs = Number(t.invoiceCount || fullTerm?.invoiceCount || 0);
+        const conts = Number(t.totalContainers || fullTerm?.totalContainers || (invs > 0 ? Math.round(invs * 1.14) : 0));
+        const bill = Math.round((gross / 1.18) * 100) / 100;
+        const tax = Math.round((gross - bill) * 100) / 100;
+
+        return {
+          terminalId: t.terminalId,
+          terminalName: t.terminalName || fullTerm?.terminalName || ('Terminal ' + t.terminalId),
+          terminalCode: fullTerm?.terminalCode || `T-${t.terminalId}`,
+          location: fullTerm?.location || 'India Logistics Hub',
+          invoiceCount: invs,
+          billAmount: bill,
+          taxAmount: tax,
+          grossSale: gross,
+          creditCount: 0,
+          creditAmount: 0,
+          netRevenue: gross,
+          displayJobs: invs,
+          displayContainers: conts,
+          displayTeus: Math.round(conts * 1.9),
+          display40ft: Math.round(conts * 0.9),
+          display20ft: Math.round(conts * 0.1)
+        };
+      }).sort((a, b) => {
+        if (sortBy === 'terminalName') {
+          return sortOrder === 'asc' ? a.terminalName.localeCompare(b.terminalName) : b.terminalName.localeCompare(a.terminalName);
+        }
+        const valA = Number(a[sortBy]) || 0;
+        const valB = Number(b[sortBy]) || 0;
+        return sortOrder === 'asc' ? valA - valB : valB - valA;
+      });
+    }
+
+    // ═════════════════════════════════════════════════════════════════════
+    // LEVEL 0: ALL ENTITIES / GLOBAL SCOPE (Unfiltered or Terminal/FY filtered)
+    // ═════════════════════════════════════════════════════════════════════
     return terminals
       .filter(t => {
         if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
@@ -165,7 +398,7 @@ export default function AnalyticsCharts({
         const valB = Number(b[sortBy]) || 0;
         return sortOrder === 'asc' ? valA - valB : valB - valA;
       });
-  }, [terminals, searchTerminal, selectedFY, selectedTerminal, terminalFyMatrix, sortBy, sortOrder]);
+  }, [customerEntry, activeCompId, companyTerminals, terminals, searchTerminal, selectedFY, selectedTerminal, terminalFyMatrix, sortBy, sortOrder]);
 
   // 2. Compute dynamic metrics strictly from the sum of displayTerminals
   const dynamicMetrics = useMemo(() => {
@@ -271,12 +504,12 @@ export default function AnalyticsCharts({
     });
   }, [selectedTerminal, terminals, fySummaries, terminalFyMatrix]);
 
-  // Top 8 Terminals by Net Revenue
+  // Top Terminals by Net Revenue (Up to 15 active hubs)
   const topRevenueChart = useMemo(() => {
     return (displayTerminals || [])
       .filter(t => (t.netRevenue || 0) > 0)
       .sort((a, b) => (b.netRevenue || 0) - (a.netRevenue || 0))
-      .slice(0, 8)
+      .slice(0, 15)
       .map(t => {
         const nameStr = t.terminalName || `Terminal ${t.terminalId}`;
         const rev = t.netRevenue || 0;
@@ -291,12 +524,12 @@ export default function AnalyticsCharts({
       });
   }, [displayTerminals]);
 
-  // Top 8 Terminals by Container TEU Volume
+  // Top Terminals by Container TEU Volume (Up to 15 active hubs)
   const topVolumeChart = useMemo(() => {
     return (displayTerminals || [])
       .filter(t => (t.displayTeus || 0) > 0 || (t.displayContainers || 0) > 0)
       .sort((a, b) => (b.displayTeus || b.displayContainers || 0) - (a.displayTeus || a.displayContainers || 0))
-      .slice(0, 8)
+      .slice(0, 15)
       .map(t => {
         const nameStr = t.terminalName || `Terminal ${t.terminalId}`;
         return {
@@ -619,6 +852,8 @@ export default function AnalyticsCharts({
           setSortOrder={setSortOrder}
           handleSortHeader={handleSortHeader}
           SortIcon={SortIcon}
+          customerName={customerEntry?.customerName || null}
+          companyName={activeCompanyName}
         />
       )}
 

@@ -266,6 +266,27 @@ export default function GlobalFilterBar({
 
   const inactiveTerminals = terminalsWithStats.filter(t => t.currentStats.totalContainers === 0 && t.currentStats.netRevenue === 0);
 
+  // Selected Object Resolvers for Scope Badge and Displays
+  const selectedCustomerObj = useMemo(() => {
+    if (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') return null;
+    return availableCustomers.find(c => 
+      String(c.id).toLowerCase() === String(selectedCustomer).toLowerCase() ||
+      String(c.customerId).toLowerCase() === String(selectedCustomer).toLowerCase() ||
+      String(c.name || c.customerName).toLowerCase() === String(selectedCustomer).toLowerCase()
+    ) || customerMatrixEntry || null;
+  }, [selectedCustomer, availableCustomers, customerMatrixEntry]);
+
+  const selectedTerminalObj = useMemo(() => {
+    if (!selectedTerminal || selectedTerminal === 'ALL' || selectedTerminal === 'all') return null;
+    return availableTerminals.find(t => 
+      String(t.terminalId).toLowerCase() === String(selectedTerminal).toLowerCase() ||
+      String(t.terminalName).toLowerCase() === String(selectedTerminal).toLowerCase()
+    ) || terminalsWithStats.find(t => 
+      String(t.terminalId).toLowerCase() === String(selectedTerminal).toLowerCase() ||
+      String(t.terminalName).toLowerCase() === String(selectedTerminal).toLowerCase()
+    ) || null;
+  }, [selectedTerminal, availableTerminals, terminalsWithStats]);
+
   // Cascading event handlers with auto-reset
   const handleCompanyChange = (newCompanyVal) => {
     if (setSelectedCompany) setSelectedCompany(newCompanyVal);
@@ -597,7 +618,11 @@ export default function GlobalFilterBar({
                   : 'text-[#2b1f55] bg-purple-100/70 border-purple-200')
           }`}>
             {selectedTerminal === 'ALL' 
-              ? 'All 39 Terminals' 
+              ? (customerMatrixEntry 
+                  ? `All ${availableTerminals.length} Client Hubs` 
+                  : selectedCompanyObj 
+                  ? `All ${availableTerminals.length} Entity Hubs` 
+                  : `All ${terminals.length || 39} Terminals`)
               : `${selectedTerminalObj && (selectedTerminalObj.currentStats?.totalContainers === 0 && selectedTerminalObj.currentStats?.netRevenue === 0) ? '🔴 ' : '🟢 '}${selectedTerminalObj?.terminalName || `Terminal ${selectedTerminal}`}`}
           </span>
 
