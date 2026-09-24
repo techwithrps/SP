@@ -466,18 +466,18 @@ export default function GlobalFilterBar({
               </div>
             </div>
 
-            {/* 3. Branch / Terminal Selection (Cascaded: Filtered by Customer or Company) */}
+            {/* 3. Branch Selection (Cascaded: Filtered by Customer or Company) */}
             <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-[#2b1f55]" />
-                Branch / Terminal Selection
+                Branch Selection
                 {customerMatrixEntry ? (
                   <span className="text-[9px] font-normal text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded-full">
-                    {availableTerminals.length} Client Hubs
+                    {availableTerminals.length} Client Branches
                   </span>
                 ) : selectedCompanyObj ? (
                   <span className="text-[9px] font-normal text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded-full">
-                    {availableTerminals.length} Entity Hubs
+                    {availableTerminals.length} Entity Branches
                   </span>
                 ) : null}
               </label>
@@ -489,10 +489,10 @@ export default function GlobalFilterBar({
                 >
                   <option value="ALL">
                     {customerMatrixEntry
-                      ? `🏢 All Active Branches for ${customerMatrixEntry.customerName || customerMatrixEntry.name} (${availableTerminals.length} Hubs)`
+                      ? `🏢 All Active Branches for ${customerMatrixEntry.customerName || customerMatrixEntry.name} (${availableTerminals.length} Branches)`
                       : selectedCompanyObj
-                      ? `🏢 All Operating Branches of ${selectedCompanyObj.name} (${availableTerminals.length} Hubs)`
-                      : `🏢 All Terminals & Hubs (${terminals.length || 39} Total)`}
+                      ? `🏢 All Operating Branches of ${selectedCompanyObj.name} (${availableTerminals.length} Branches)`
+                      : `🏢 All Branches (${terminals.length || 39} Total)`}
                   </option>
                   
                   {/* If a customer is selected, show strictly their active branches */}
@@ -506,7 +506,7 @@ export default function GlobalFilterBar({
                     </optgroup>
                   ) : selectedCompanyObj && availableTerminals.length > 0 ? (
                     /* If a company is selected (and customer is ALL), show strictly that company's terminals */
-                    <optgroup label={`── 🏢 Operating Terminals of ${selectedCompanyObj.name} (${availableTerminals.length}) ──`}>
+                    <optgroup label={`── 🏢 Operating Branches of ${selectedCompanyObj.name} (${availableTerminals.length}) ──`}>
                       {availableTerminals.map(t => (
                         <option key={t.terminalId} value={String(t.terminalId)}>
                           🟢 {t.terminalName} ({formatNumber(t.invoiceCount)} Invoices{t.totalContainers ? ` | ${formatNumber(t.totalContainers)} Cont` : ''}{t.netRevenue ? ` | ${formatCurrency(t.netRevenue)}` : ''})
@@ -516,7 +516,7 @@ export default function GlobalFilterBar({
                   ) : (
                     /* Global unfiltered view with Active vs Inactive hubs */
                     <>
-                      <optgroup label={selectedFY === 'ALL' ? "── 🟢 Active Hubs with Data ──" : `── 🟢 Active Hubs in ${selectedFY} ──`}>
+                      <optgroup label={selectedFY === 'ALL' ? "── 🟢 Active Branches with Data ──" : `── 🟢 Active Branches in ${selectedFY} ──`}>
                         {activeTerminals.map(t => (
                           <option key={t.terminalId} value={String(t.terminalId)}>
                             🟢 {t.terminalName} ({formatNumber(t.currentStats.totalContainers)} Cont | {formatCurrency(t.currentStats.netRevenue)})
@@ -525,7 +525,7 @@ export default function GlobalFilterBar({
                       </optgroup>
 
                       {inactiveTerminals.length > 0 && (
-                        <optgroup label={selectedFY === 'ALL' ? "── 🔴 Inactive / Zero Data Terminals ──" : `── 🔴 No Activity in ${selectedFY} ──`}>
+                        <optgroup label={selectedFY === 'ALL' ? "── 🔴 Inactive Branches ──" : `── 🔴 No Activity in ${selectedFY} ──`}>
                           {inactiveTerminals.map(t => (
                             <option key={t.terminalId} value={String(t.terminalId)} className="text-rose-600 font-semibold bg-rose-50/50">
                               🔴 {t.terminalName} (0 Cont | Inactive)
@@ -653,7 +653,7 @@ export default function GlobalFilterBar({
             </>
           )}
 
-          {/* Terminal Scope Pill */}
+          {/* Terminal / Branch Scope Pill */}
           <span className={`inline-flex items-center font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border ${
             selectedTerminal === 'ALL'
               ? 'text-[#2b1f55] bg-purple-100/70 border-purple-200'
@@ -663,11 +663,11 @@ export default function GlobalFilterBar({
           }`}>
             {selectedTerminal === 'ALL' 
               ? (customerMatrixEntry 
-                  ? `All ${availableTerminals.length} Client Hubs` 
+                  ? `All ${availableTerminals.length} Client Branches` 
                   : selectedCompanyObj 
-                  ? `All ${availableTerminals.length} Entity Hubs` 
-                  : `All ${terminals.length || 39} Terminals`)
-              : `${selectedTerminalObj && (selectedTerminalObj.currentStats?.totalContainers === 0 && selectedTerminalObj.currentStats?.netRevenue === 0) ? '🔴 ' : '🟢 '}${selectedTerminalObj?.terminalName || `Terminal ${selectedTerminal}`}`}
+                  ? `All ${availableTerminals.length} Entity Branches` 
+                  : `All ${terminals.length || 39} Branches`)
+              : `${selectedTerminalObj && (selectedTerminalObj.currentStats?.totalContainers === 0 && selectedTerminalObj.currentStats?.netRevenue === 0) ? '🔴 ' : '🟢 '}${selectedTerminalObj?.terminalName || `Branch ${selectedTerminal}`}`}
           </span>
 
           <span className="text-slate-400 font-bold">&bull;</span>
