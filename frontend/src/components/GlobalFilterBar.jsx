@@ -159,20 +159,46 @@ export default function GlobalFilterBar({
       return [];
     }
 
-    // B) If ALL companies are selected: Show all active clients from customerTerminalMatrix or topCustomers
+    // B) If ALL companies are selected: Show deduplicated active clients across all entities
     if (customerTerminalMatrix && customerTerminalMatrix.length > 0) {
-      return customerTerminalMatrix.map(c => ({
+      const dedupMap = {};
+      customerTerminalMatrix.forEach(c => {
+        const key = (c.customerName || c.name || '').trim().toLowerCase();
+        if (!key) return;
+        if (!dedupMap[key]) {
+          dedupMap[key] = {
+            id: c.customerId,
+            customerId: c.customerId,
+            name: c.customerName || c.name,
+            customerName: c.customerName || c.name,
+            code: c.code || '',
+            city: c.city || '',
+            invoiceCount: 0,
+            netRevenue: 0,
+            terminalsMap: {}
+          };
+        }
+        dedupMap[key].invoiceCount += Number(c.totalInvoices || 0);
+        dedupMap[key].netRevenue += Number(c.totalRevenue || 0);
+        (c.terminals || []).forEach(t => {
+          const tId = String(t.terminalId);
+          if (!dedupMap[key].terminalsMap[tId]) {
+            dedupMap[key].terminalsMap[tId] = t;
+          }
+        });
+      });
+
+      return Object.values(dedupMap).map(c => ({
         id: c.customerId,
         customerId: c.customerId,
         name: c.customerName,
         customerName: c.customerName,
-        code: '',
-        city: '',
-        invoiceCount: c.totalInvoices || 0,
-        terminalCount: c.terminalCount || (c.terminals?.length || 1),
-        terminals: c.terminals || [],
-        netRevenue: c.totalRevenue || 0,
-        companyId: c.companyId
+        code: c.code,
+        city: c.city,
+        invoiceCount: c.invoiceCount,
+        terminalCount: Object.keys(c.terminalsMap).length,
+        terminals: Object.values(c.terminalsMap),
+        netRevenue: Math.round(c.netRevenue * 100) / 100
       })).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
     }
 
