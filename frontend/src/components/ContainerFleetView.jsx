@@ -85,6 +85,9 @@ export default function ContainerFleetView({
   }, [selectedCompany, selectedCustomer, selectedTerminal, selectedFY, statusFilter, sizeFilter, typeFilter, search, currentPage]);
 
   const containers = data?.containers || [];
+  const paginatedContainers = data?.containers || [];
+  const baseStats = data?.stats || {};
+
   // Exact Dynamic Totals
   const displayStats = useMemo(() => {
     const totCont = baseStats.totalDBContainers !== undefined ? baseStats.totalDBContainers : 89245;
@@ -111,10 +114,9 @@ export default function ContainerFleetView({
     if (statusFilter === 'Dispatched / Gate Out') return Math.round(displayStats.totalContainers * 0.45);
     if (search && search.trim()) return data?.totalRecords || paginatedContainers.length;
     return displayStats.totalContainers;
-  }, [sizeFilter, typeFilter, statusFilter, search, displayStats, data]);
+  }, [sizeFilter, typeFilter, statusFilter, search, displayStats, data, paginatedContainers.length]);
 
   const totalPages = data?.totalPages || Math.ceil(totalDisplayCount / pageSize) || 1;
-  const paginatedContainers = data?.containers || [];
 
   // Export containers to Excel
   const handleExport = () => {
