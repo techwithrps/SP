@@ -187,29 +187,93 @@ export default function AnalyticsCharts({
     };
   }, [selectedCustomer, activeCompId, customerTerminalMatrix]);
 
-  // Context-aware Top Customers for Leaderboard
+  // Context-aware Top Customers for Leaderboard and Executive Decision BI
   const topCustomers = useMemo(() => {
+    // 1. If single customer selected
     if (customerEntry) {
+      const gross = customerEntry.totalRevenue || 0;
+      const bill = Math.round((gross / 1.18) * 100) / 100;
+      const tax = Math.round((gross - bill) * 100) / 100;
       return [{
         name: customerEntry.customerName,
         customerName: customerEntry.customerName,
-        totalRevenue: customerEntry.totalRevenue,
-        invoiceCount: customerEntry.totalInvoices,
+        grossRevenue: gross,
+        totalRevenue: gross,
+        billAmount: bill,
+        taxAmount: tax,
+        invoiceCount: customerEntry.totalInvoices || 0,
         terminalCount: customerEntry.terminalCount || (customerEntry.terminals?.length || 1),
         share: 100
       }];
     }
+
+    // 2. If company selected
     if (activeCompId && companyCustomers[activeCompId] && companyCustomers[activeCompId].length > 0) {
-      return companyCustomers[activeCompId].slice(0, 50).map(c => ({
-        name: c.name,
-        customerName: c.name,
-        totalRevenue: c.totalAmount,
-        invoiceCount: c.invoiceCount,
-        city: c.city
-      }));
+      return companyCustomers[activeCompId].slice(0, 100).map(c => {
+        const gross = Number(c.totalAmount || c.grossRevenue || 0);
+        const bill = Math.round((gross / 1.18) * 100) / 100;
+        const tax = Math.round((gross - bill) * 100) / 100;
+        return {
+          name: c.name,
+          customerName: c.name,
+          grossRevenue: gross,
+          totalRevenue: gross,
+          billAmount: bill,
+          taxAmount: tax,
+          invoiceCount: c.invoiceCount || 0,
+          city: c.city || ''
+        };
+      });
     }
-    return rawTopCustomers;
-  }, [customerEntry, activeCompId, companyCustomers, rawTopCustomers]);
+
+    // 3. Global All Entities View: Use deduplicated customerTerminalMatrix or rawTopCustomers
+    if (customerTerminalMatrix && customerTerminalMatrix.length > 0) {
+      const dedupMap = {};
+      customerTerminalMatrix.forEach(c => {
+        const key = (c.customerName || c.name || '').trim().toLowerCase();
+        if (!key) return;
+        if (!dedupMap[key]) {
+          dedupMap[key] = {
+            customerName: c.customerName || c.name,
+            invoiceCount: 0,
+            grossRevenue: 0,
+            terminalCount: c.terminalCount || (c.terminals ? c.terminals.length : 1)
+          };
+        }
+        dedupMap[key].invoiceCount += Number(c.totalInvoices || 0);
+        dedupMap[key].grossRevenue += Number(c.totalRevenue || 0);
+      });
+
+      return Object.values(dedupMap).map(c => {
+        const gross = Math.round(c.grossRevenue * 100) / 100;
+        const bill = Math.round((gross / 1.18) * 100) / 100;
+        const tax = Math.round((gross - bill) * 100) / 100;
+        return {
+          name: c.customerName,
+          customerName: c.customerName,
+          grossRevenue: gross,
+          totalRevenue: gross,
+          billAmount: bill,
+          taxAmount: tax,
+          invoiceCount: c.invoiceCount,
+          terminalCount: c.terminalCount
+        };
+      }).sort((a, b) => b.grossRevenue - a.grossRevenue);
+    }
+
+    return (rawTopCustomers || []).map(c => {
+      const gross = Number(c.grossRevenue || c.totalRevenue || c.totalAmount || 0);
+      const bill = Number(c.billAmount || (gross / 1.18));
+      const tax = Number(c.taxAmount || (gross - bill));
+      return {
+        ...c,
+        grossRevenue: gross,
+        totalRevenue: gross,
+        billAmount: bill,
+        taxAmount: tax
+      };
+    });
+  }, [customerEntry, activeCompId, companyCustomers, customerTerminalMatrix, rawTopCustomers]);
 
   // Factor calculator for selected Financial Year
   const getFyFactors = (terminalId, targetFY) => {

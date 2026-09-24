@@ -343,20 +343,60 @@ export default function App() {
       let invs = list.reduce((acc, t) => acc + (t.invoiceCount || 0), 0);
       let conts = Math.round(invs * 1.14);
 
+      let fyRatio = 1.0;
       if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
         const fyCell = (terminalFyMatrix || []).filter(m => m.fy === selectedFY);
         const fySum = fyCell.reduce((acc, m) => acc + (m.grossSale || 0), 0);
         const allSum = 38536360360.24;
-        const ratio = allSum > 0 ? (fySum / allSum) : 0.125;
-        gross = Math.round(gross * ratio * 100) / 100;
-        invs = Math.round(invs * ratio);
-        conts = Math.round(conts * ratio);
+        fyRatio = allSum > 0 ? (fySum / allSum) : 0.125;
+        gross = Math.round(gross * fyRatio * 100) / 100;
+        invs = Math.round(invs * fyRatio);
+        conts = Math.round(conts * fyRatio);
       }
 
       const bill = Math.round((gross / 1.18) * 100) / 100;
       const tax = Math.round((gross - bill) * 100) / 100;
 
-      const custs = (masters.companyCustomers || {})[compId] || [];
+      // Extract and scale company clients
+      const companyMatrixClients = (masters.customerTerminalMatrix || []).filter(c => String(c.companyId) === compId);
+      const custs = companyMatrixClients.length > 0 
+        ? companyMatrixClients 
+        : ((masters.companyCustomers || {})[compId] || []);
+
+      const mappedCustWise = custs.map(c => {
+        let cGross = Number(c.totalRevenue || c.totalAmount || 0);
+        let cInvs = Number(c.totalInvoices || c.invoiceCount || 0);
+        let termList = c.terminals || [];
+
+        if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+          const tMatch = Array.isArray(termList) ? termList.filter(t => String(t.terminalId) === String(selectedTerminal) || (t.terminalName && t.terminalName.toLowerCase().includes(String(selectedTerminal).toLowerCase()))) : [];
+          if (tMatch.length > 0) {
+            cGross = tMatch.reduce((sum, t) => sum + (t.netRevenue || t.totalAmount || 0), 0);
+            cInvs = tMatch.reduce((sum, t) => sum + (t.invoiceCount || 0), 0);
+            termList = tMatch;
+          }
+        }
+
+        if (fyRatio < 1.0) {
+          cGross = Math.round(cGross * fyRatio * 100) / 100;
+          cInvs = Math.round(cInvs * fyRatio);
+        }
+
+        const cBill = Math.round((cGross / 1.18) * 100) / 100;
+        const cTax = Math.round((cGross - cBill) * 100) / 100;
+
+        return {
+          customerId: c.customerId || c.id,
+          customerName: c.customerName || c.name,
+          invoiceCount: cInvs,
+          billAmount: cBill,
+          taxAmount: cTax,
+          grossAmount: cGross,
+          terminalCount: c.terminalCount || (Array.isArray(termList) ? termList.length : 1),
+          terminals: Array.isArray(termList) ? termList.map(t => t.terminalName || ('Terminal ' + t.terminalId)) : []
+        };
+      }).filter(c => c.grossAmount > 0 || c.invoiceCount > 0);
+
       return {
         grossRevenue: gross,
         totalGrossAmount: gross,
@@ -371,20 +411,12 @@ export default function App() {
         containerCount: conts,
         teuCount: Math.round(conts * 1.9),
         totalRecords: invs,
-        customerWise: custs.map(c => ({
-          customerId: c.id,
-          customerName: c.name,
-          invoiceCount: c.invoiceCount,
-          billAmount: Math.round((c.totalAmount / 1.18) * 100) / 100,
-          taxAmount: Math.round((c.totalAmount - (c.totalAmount / 1.18)) * 100) / 100,
-          grossAmount: c.totalAmount,
-          terminalCount: c.terminalCount || 1,
-          terminals: []
-        }))
+        customerWise: mappedCustWise
       };
     }
 
     // 3. Global All Entities View
+    let fyRatio = 1.0;
     const gross = (selectedFY !== 'ALL' && selectedFY !== 'all')
       ? (terminalFyMatrix || []).filter(m => m.fy === selectedFY).reduce((a, b) => a + (b.grossSale || 0), 0) || 4829257523.43
       : 38536360360.24;
@@ -397,19 +429,62 @@ export default function App() {
       ? (terminalFyMatrix || []).filter(m => m.fy === selectedFY).reduce((a, b) => a + (b.totalContainers || 0), 0) || 17316
       : 85313;
 
+    if (selectedFY !== 'ALL' && selectedFY !== 'all') {
+      fyRatio = gross / 38536360360.24;
+    }
+
     const bill = Math.round((gross / 1.18) * 100) / 100;
     const tax = Math.round((gross - bill) * 100) / 100;
 
-    const custWise = (masters.customerTerminalMatrix || []).slice(0, 100).map(c => ({
-      customerId: c.customerId,
-      customerName: c.customerName,
-      invoiceCount: c.totalInvoices,
-      billAmount: Math.round((c.totalRevenue / 1.18) * 100) / 100,
-      taxAmount: Math.round((c.totalRevenue - (c.totalRevenue / 1.18)) * 100) / 100,
-      grossAmount: c.totalRevenue,
-      terminalCount: c.terminalCount || (c.terminals ? c.terminals.length : 1),
-      terminals: (c.terminals || []).map(t => t.terminalName)
-    }));
+    // Deduplicate customer accounts across all entities
+    const dedupMap = {};
+    (masters.customerTerminalMatrix || []).forEach(c => {
+      const key = (c.customerName || '').trim().toLowerCase();
+      if (!key) return;
+      if (!dedupMap[key]) {
+        dedupMap[key] = {
+          customerId: c.customerId,
+          customerName: c.customerName,
+          totalInvoices: 0,
+          totalRevenue: 0,
+          terminals: []
+        };
+      }
+      dedupMap[key].totalInvoices += (c.totalInvoices || 0);
+      dedupMap[key].totalRevenue += (c.totalRevenue || 0);
+      if (Array.isArray(c.terminals)) {
+        c.terminals.forEach(t => {
+          if (!dedupMap[key].terminals.some(existing => String(existing.terminalId) === String(t.terminalId))) {
+            dedupMap[key].terminals.push(t);
+          }
+        });
+      }
+    });
+
+    let custWiseList = Object.values(dedupMap);
+    if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+      custWiseList = custWiseList.filter(c => 
+        c.terminals.some(t => String(t.terminalId) === String(selectedTerminal) || (t.terminalName && t.terminalName.toLowerCase().includes(String(selectedTerminal).toLowerCase())))
+      );
+    }
+
+    const custWise = custWiseList.slice(0, 100).map(c => {
+      let cGross = Math.round(c.totalRevenue * fyRatio * 100) / 100;
+      let cInvs = Math.round(c.totalInvoices * fyRatio);
+      let cBill = Math.round((cGross / 1.18) * 100) / 100;
+      let cTax = Math.round((cGross - cBill) * 100) / 100;
+
+      return {
+        customerId: c.customerId,
+        customerName: c.customerName,
+        invoiceCount: cInvs,
+        billAmount: cBill,
+        taxAmount: cTax,
+        grossAmount: cGross,
+        terminalCount: c.terminals ? c.terminals.length : 1,
+        terminals: (c.terminals || []).map(t => t.terminalName || ('Terminal ' + t.terminalId))
+      };
+    }).sort((a, b) => b.grossAmount - a.grossAmount);
 
     return {
       grossRevenue: gross,
