@@ -713,21 +713,32 @@ export default function App() {
             {/* Tab 2: Total Sales */}
             {activeTab === 'sales' && (
               <div className="space-y-6 animate-fade-in">
-                <KPICards kpis={activeSalesKPIs} loading={loading} />
+                
+                {/* 2-Column Side-by-Side: Left = Obsidian Node Graph, Right = KPI Cards Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                  
+                  {/* Left (7 Cols on lg): Obsidian Force-Directed Network Graph */}
+                  <div className="lg:col-span-7 flex flex-col min-h-[580px]">
+                    <ObsidianNetworkGraph
+                      masters={masters}
+                      financialData={financialData}
+                      records={records}
+                      selectedCompany={selectedCompany}
+                      selectedCustomer={selectedCustomer}
+                      selectedTerminal={selectedTerminal}
+                      onSelectCompany={handleSetSelectedCompany}
+                      onSelectCustomer={handleSetSelectedCustomer}
+                      onSelectTerminal={handleSetSelectedTerminal}
+                      totalSales={activeSalesKPIs.netRevenue || activeSalesKPIs.grossRevenue || 38536360360.24}
+                    />
+                  </div>
 
-                {/* Interactive Obsidian-Style Force-Directed Logistics Network Graph */}
-                <ObsidianNetworkGraph
-                  masters={masters}
-                  financialData={financialData}
-                  records={records}
-                  selectedCompany={selectedCompany}
-                  selectedCustomer={selectedCustomer}
-                  selectedTerminal={selectedTerminal}
-                  onSelectCompany={handleSetSelectedCompany}
-                  onSelectCustomer={handleSetSelectedCustomer}
-                  onSelectTerminal={handleSetSelectedTerminal}
-                  totalSales={activeSalesKPIs.netRevenue || activeSalesKPIs.grossRevenue || 38536360360.24}
-                />
+                  {/* Right (5 Cols on lg): 9 KPI Cards */}
+                  <div className="lg:col-span-5 flex flex-col justify-between">
+                    <KPICards kpis={activeSalesKPIs} loading={loading} isSideLayout={true} />
+                  </div>
+
+                </div>
 
                 <FilterBar
                   filters={filters}
