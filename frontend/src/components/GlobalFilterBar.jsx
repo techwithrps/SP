@@ -70,17 +70,31 @@ export default function GlobalFilterBar({
     if (setSelectedFY) setSelectedFY('ALL');
   };
 
-  // 5 Official SPJ Group Companies in exact user requested order
+  // 5 Official SPJ Group Companies in exact user requested order with enriched revenue stats
   const companyList = useMemo(() => {
-    if (companies && companies.length > 0) return companies;
-    return [
+    const base = (companies && companies.length > 0) ? companies : [
       { id: 3, companyId: 3, code: 'PJ-OLD', name: 'PURAN JOSHI OLD', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
       { id: 2, companyId: 2, code: 'SPJ', name: 'SPJ CARGO PVT LTD', gstin: '07AAOCS1758E1Z5', director: 'Mr. Puran Joshi' },
       { id: 1, companyId: 1, code: 'SJ', name: 'S.J. CARGO MOVERS', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
       { id: 5, companyId: 5, code: 'PJ', name: 'PURAN JOSHI', gstin: '07ADGPJ3166M2Z9', director: 'Mr. Puran Joshi' },
       { id: 4, companyId: 4, code: 'SPJ-MUM', name: 'SPJ CARGO PVT LTD-MUMBAI', gstin: '27AAOCS1758E1Z3', director: 'Mr. Puran Joshi' }
     ];
-  }, [companies]);
+
+    return base.map(comp => {
+      const cId = String(comp.id || comp.companyId);
+      const terms = companyTerminals[cId] || [];
+      const custs = companyCustomers[cId] || [];
+      const gross = terms.reduce((acc, t) => acc + Number(t.totalAmount || t.netRevenue || 0), 0);
+      const invs = terms.reduce((acc, t) => acc + Number(t.invoiceCount || 0), 0);
+      return {
+        ...comp,
+        totalRevenue: gross,
+        invoiceCount: invs,
+        terminalCount: terms.length,
+        customerCount: custs.length
+      };
+    });
+  }, [companies, companyTerminals, companyCustomers]);
 
   // Helper to resolve company object and canonical ID (1..5)
   const resolveCompany = (val) => {
@@ -370,12 +384,16 @@ export default function GlobalFilterBar({
                   onChange={(e) => handleCompanyChange(e.target.value)}
                   className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-all cursor-pointer shadow-xs truncate"
                 >
-                  <option value="ALL">🏛️ All Companies (5 Group Entities)</option>
-                  {companyList.map(comp => (
-                    <option key={comp.id || comp.code} value={String(comp.id || comp.code)}>
-                      🏢 {comp.name} ({comp.code})
-                    </option>
-                  ))}
+                  <option value="ALL">🏛️ All Companies (5 Entities — ₹ 3,853.64 Cr)</option>
+                  {companyList.map(comp => {
+                    const revStr = comp.totalRevenue ? ` [${formatCurrency(comp.totalRevenue)}]` : '';
+                    const invStr = comp.invoiceCount ? ` (${formatNumber(comp.invoiceCount)} Invs)` : '';
+                    return (
+                      <option key={comp.id || comp.code} value={String(comp.id || comp.code)}>
+                        🏢 {comp.name} ({comp.code}){revStr}{invStr}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>
