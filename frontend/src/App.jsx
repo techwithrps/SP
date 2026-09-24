@@ -735,6 +735,9 @@ export default function App() {
                     terminals: allTerminals.length > 0 ? allTerminals : (masters.terminals || [])
                   }}
                   records={records}
+                  selectedCompany={selectedCompany}
+                  companyCustomers={masters.companyCustomers || {}}
+                  customerTerminalMatrix={masters.customerTerminalMatrix || []}
                   selectedTerminal={selectedTerminal}
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}

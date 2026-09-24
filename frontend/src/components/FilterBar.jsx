@@ -26,6 +26,7 @@ export default function FilterBar({
   setFilters,
   masters = {},
   records = [],
+  selectedCompany = 'ALL',
   selectedTerminal = 'ALL',
   setSelectedTerminal,
   selectedFY = 'ALL',
@@ -38,6 +39,8 @@ export default function FilterBar({
     'FY 2023-24', 
     'FY 2022-23 & Earlier'
   ],
+  companyCustomers = {},
+  customerTerminalMatrix = [],
   onReset,
   onExport,
   loading = false,
@@ -83,8 +86,33 @@ export default function FilterBar({
     return 'FY 2022-23 & Earlier';
   };
 
-  // 1. Cascading Customers: Active customers in scope at top with revenue, plus all master customers
+  // 1. Cascading Customers: Active customers in scope at top with sales amount, plus all scoped master customers
   const availableCustomers = useMemo(() => {
+    let companyScopeCusts = null;
+    let compLabel = 'All Customers';
+
+    if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') {
+      const s = String(selectedCompany).toUpperCase().trim();
+      let compId = '3';
+      if (s === '2' || s === 'SPJ') compId = '2';
+      else if (s === '1' || s === 'SJ') compId = '1';
+      else if (s === '5' || s === 'PJ') compId = '5';
+      else if (s === '4' || s === 'SPJ-MUM' || s.includes('MUM')) compId = '4';
+
+      const compNames = { '3': 'PJ-OLD', '2': 'SPJ', '1': 'SJ', '5': 'PJ', '4': 'SPJ-MUM' };
+      compLabel = `All Customers in ${compNames[compId] || selectedCompany}`;
+
+      const rawCompCusts = (companyCustomers && companyCustomers[compId]) || 
+        (customerTerminalMatrix || []).filter(c => String(c.companyId) === compId);
+
+      if (rawCompCusts && rawCompCusts.length > 0) {
+        companyScopeCusts = rawCompCusts.map(c => ({
+          id: c.customerId || c.id,
+          name: c.customerName || c.name
+        }));
+      }
+    }
+
     const custMap = {};
     if (records && records.length > 0) {
       records.forEach(r => {
@@ -109,16 +137,27 @@ export default function FilterBar({
     const activeIds = new Set(activeList.map(a => String(a.id)));
     const activeNames = new Set(activeList.map(a => String(a.name).toLowerCase().trim()));
 
-    const otherList = (customers || [])
+    let baseSource = companyScopeCusts || (customerTerminalMatrix.length > 0 ? customerTerminalMatrix.map(c => ({ id: c.customerId, name: c.customerName })) : (customers || []));
+
+    // Deduplicate baseSource
+    const dedupMap = {};
+    baseSource.forEach(c => {
+      const k = (c.name || '').toLowerCase().trim();
+      if (k && !dedupMap[k]) dedupMap[k] = c;
+    });
+    baseSource = Object.values(dedupMap);
+
+    const otherList = baseSource
       .filter(c => !activeIds.has(String(c.id)) && !activeNames.has(String(c.name).toLowerCase().trim()))
       .map(c => ({ id: c.id, name: c.name, revenue: 0, count: 0 }));
 
     return {
+      compLabel,
       active: activeList,
       others: otherList,
       all: [...activeList, ...otherList]
     };
-  }, [records, customers]);
+  }, [records, customers, selectedCompany, companyCustomers, customerTerminalMatrix]);
 
   // 2. Cascading Services: Active services in scope at top, plus all master services
   const availableServices = useMemo(() => {
@@ -231,7 +270,7 @@ export default function FilterBar({
             onChange={(e) => handleChange('customerId', e.target.value)}
             className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-[#2b1f55] cursor-pointer truncate"
           >
-            <option value="all">🏢 All Customers ({availableCustomers.all?.length || 'All'})</option>
+            <option value="all">🏢 {availableCustomers.compLabel || 'All Customers'} ({availableCustomers.all?.length || 'All'})</option>
             {availableCustomers.active?.length > 0 && (
               <optgroup label="── 🟢 Active in Current Scope ──">
                 {availableCustomers.active.map((c) => (

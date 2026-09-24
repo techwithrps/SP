@@ -94,7 +94,7 @@ export default function CIRTable({
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-[#ff6a00]" />
           <h4 className="font-display font-extrabold text-sm text-[#2b1f55]">
-            Container Invoice & Revenue Ledger (CIR Data Grid)
+            Container Invoice & Sales Ledger (CIR Data Grid)
           </h4>
           <span className="text-xs text-slate-500 font-semibold ml-2">
             Showing {paginatedRecords.length} of {activeTotalRecords} records
