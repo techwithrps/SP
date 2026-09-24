@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
+  Building,
   Building2, 
+  Users,
   Calendar, 
   RotateCcw, 
   RefreshCw, 
@@ -25,10 +27,17 @@ function formatNumber(val) {
 }
 
 export default function GlobalFilterBar({
+  selectedCompany = 'ALL',
+  setSelectedCompany,
+  selectedCustomer = 'ALL',
+  setSelectedCustomer,
   selectedTerminal = 'ALL',
   setSelectedTerminal,
   selectedFY = 'ALL',
   setSelectedFY,
+  companies = [],
+  customers = [],
+  topCustomers = [],
   terminals = [],
   financialYears = [
     'All Financial Years', 
@@ -43,12 +52,47 @@ export default function GlobalFilterBar({
   loading = false,
   activeTab = 'analytics'
 }) {
-  const isFilterActive = selectedTerminal !== 'ALL' || selectedFY !== 'ALL';
+  const isFilterActive = 
+    selectedCompany !== 'ALL' || 
+    selectedCustomer !== 'ALL' || 
+    selectedTerminal !== 'ALL' || 
+    selectedFY !== 'ALL';
 
   const resetFilters = () => {
+    if (setSelectedCompany) setSelectedCompany('ALL');
+    if (setSelectedCustomer) setSelectedCustomer('ALL');
     if (setSelectedTerminal) setSelectedTerminal('ALL');
     if (setSelectedFY) setSelectedFY('ALL');
   };
+
+  // Companies List fallback
+  const companyList = useMemo(() => {
+    if (companies && companies.length > 0) return companies;
+    return [
+      { id: 1, name: 'SPJ CARGO LOGISTICS PVT LTD', code: 'SPJ' },
+      { id: 2, name: 'SPJ COLD STORAGE PVT LTD', code: 'SPJ-CS' }
+    ];
+  }, [companies]);
+
+  // Customers segmented into Top Active and Registered
+  const activeCustomers = useMemo(() => {
+    if (topCustomers && topCustomers.length > 0) {
+      return topCustomers.slice(0, 60);
+    }
+    return [];
+  }, [topCustomers]);
+
+  const otherCustomers = useMemo(() => {
+    const activeNames = new Set(activeCustomers.map(c => (c.customerName || c.name || '').toLowerCase().trim()));
+    return (customers || [])
+      .filter(c => !activeNames.has((c.name || '').toLowerCase().trim()))
+      .slice(0, 200);
+  }, [customers, activeCustomers]);
+
+  const selectedCompanyObj = companyList.find(c => String(c.id) === String(selectedCompany));
+  const selectedCustomerObj = 
+    activeCustomers.find(c => String(c.customerId || c.id || c.customerName) === String(selectedCustomer)) ||
+    (customers || []).find(c => String(c.id || c.name) === String(selectedCustomer));
 
   // Compute terminal stats specifically for current selectedFY
   const getTerminalStats = (t) => {
@@ -108,11 +152,73 @@ export default function GlobalFilterBar({
       <div className="p-3 sm:p-5">
         <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-3 sm:gap-4">
           
-          {/* Controls Group */}
-          <div className="flex flex-wrap items-end gap-2.5 sm:gap-3.5 w-full lg:w-auto">
+          {/* Controls Group: 1. Company -> 2. Customer -> 3. Terminal -> 4. Financial Year */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 w-full lg:w-auto flex-1">
             
-            {/* 1. Terminal / Branch Selector */}
-            <div className="flex flex-col min-w-full sm:min-w-[280px] flex-1 sm:flex-initial">
+            {/* 1. Company Selection */}
+            <div className="flex flex-col min-w-0">
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
+                <Building className="w-3.5 h-3.5 text-indigo-600" />
+                Company Selection
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedCompany}
+                  onChange={(e) => setSelectedCompany && setSelectedCompany(e.target.value)}
+                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-all cursor-pointer shadow-xs truncate"
+                >
+                  <option value="ALL">🏛️ All Companies / Entities</option>
+                  {companyList.map(comp => (
+                    <option key={comp.id} value={String(comp.id)}>
+                      🏢 {comp.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* 2. Customer Selection */}
+            <div className="flex flex-col min-w-0">
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-blue-600" />
+                Customer Selection
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedCustomer}
+                  onChange={(e) => setSelectedCustomer && setSelectedCustomer(e.target.value)}
+                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer shadow-xs truncate"
+                >
+                  <option value="ALL">👥 All Customers ({customers.length || 'All'} Total)</option>
+                  {activeCustomers.length > 0 && (
+                    <optgroup label="── 🟢 Top Active Customers (by Volume) ──">
+                      {activeCustomers.map(c => {
+                        const val = c.customerId || c.id || c.customerName;
+                        const name = c.customerName || c.name;
+                        const bills = c.invoiceCount ? ` (${formatNumber(c.invoiceCount)} Bills)` : '';
+                        return (
+                          <option key={val} value={String(val)}>
+                            🟢 {name}{bills}
+                          </option>
+                        );
+                      })}
+                    </optgroup>
+                  )}
+                  {otherCustomers.length > 0 && (
+                    <optgroup label="── All Registered Customers ──">
+                      {otherCustomers.map(c => (
+                        <option key={c.id} value={String(c.id)}>
+                          {c.name} {c.city ? `(${c.city})` : ''}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
+            </div>
+
+            {/* 3. Branch / Terminal Selection */}
+            <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-[#2b1f55]" />
                 Branch / Terminal Selection
@@ -121,9 +227,9 @@ export default function GlobalFilterBar({
                 <select
                   value={selectedTerminal}
                   onChange={(e) => setSelectedTerminal(e.target.value)}
-                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all cursor-pointer shadow-xs"
+                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all cursor-pointer shadow-xs truncate"
                 >
-                  <option value="ALL">🏢 All Terminals & Regional Hubs ({terminals.length || 39} Total)</option>
+                  <option value="ALL">🏢 All Terminals & Hubs ({terminals.length || 39} Total)</option>
                   
                   {/* 🟢 Active Operational Hubs in selected FY */}
                   <optgroup label={selectedFY === 'ALL' ? "── 🟢 Active Hubs with Data ──" : `── 🟢 Active Hubs in ${selectedFY} ──`}>
@@ -148,8 +254,8 @@ export default function GlobalFilterBar({
               </div>
             </div>
 
-            {/* 2. Financial Year Selector */}
-            <div className="flex flex-col min-w-full sm:min-w-[220px] flex-1 sm:flex-initial">
+            {/* 4. Financial Year Filter */}
+            <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" />
                 Financial Year Filter
@@ -158,7 +264,7 @@ export default function GlobalFilterBar({
                 <select
                   value={selectedFY}
                   onChange={(e) => setSelectedFY(e.target.value)}
-                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-xs"
+                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-xs truncate"
                 >
                   <option value="ALL">📅 All Financial Years (Cumulative)</option>
                   <option value="FY 2026-27">FY 2026-27 (Current Fiscal)</option>
@@ -170,22 +276,22 @@ export default function GlobalFilterBar({
               </div>
             </div>
 
-            {/* 3. Reset Button */}
+          </div>
+
+          {/* Action Buttons Group */}
+          <div className="flex items-center gap-2 w-full lg:w-auto justify-end shrink-0 pt-1 lg:pt-0">
+            {/* Reset Button */}
             {isFilterActive && (
               <button
                 onClick={resetFilters}
                 className="h-9 sm:h-11 inline-flex items-center gap-1.5 px-3 sm:px-4 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
-                title="Reset to All Terminals and All Financial Years"
+                title="Reset All Filters to Default"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset</span>
               </button>
             )}
 
-          </div>
-
-          {/* Action Buttons Group */}
-          <div className="flex items-center gap-2 w-full lg:w-auto justify-end pt-1 lg:pt-0">
             <button
               onClick={onRefresh}
               disabled={loading}
@@ -217,6 +323,26 @@ export default function GlobalFilterBar({
             Scope:
           </span>
 
+          {/* Company Scope Pill */}
+          {selectedCompany !== 'ALL' && (
+            <>
+              <span className="inline-flex items-center font-bold text-indigo-800 bg-indigo-100/80 border border-indigo-200 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg">
+                🏢 {selectedCompanyObj?.name || `Company ${selectedCompany}`}
+              </span>
+              <span className="text-slate-400 font-bold">&bull;</span>
+            </>
+          )}
+
+          {/* Customer Scope Pill */}
+          {selectedCustomer !== 'ALL' && (
+            <>
+              <span className="inline-flex items-center font-bold text-blue-800 bg-blue-100/80 border border-blue-200 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg truncate max-w-[200px]" title={String(selectedCustomer)}>
+                👥 {selectedCustomerObj?.customerName || selectedCustomerObj?.name || `Customer: ${selectedCustomer}`}
+              </span>
+              <span className="text-slate-400 font-bold">&bull;</span>
+            </>
+          )}
+
           <span className={`inline-flex items-center font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border ${
             selectedTerminal === 'ALL'
               ? 'text-[#2b1f55] bg-purple-100/70 border-purple-200'
@@ -238,9 +364,9 @@ export default function GlobalFilterBar({
 
         {/* Right: Database Source */}
         <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500 font-mono">
-          <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
           <span>Oracle Live</span>
-          <span className="font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">SPJLIVE</span>
+          <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">SPJLIVE</span>
         </div>
 
       </div>
@@ -248,4 +374,3 @@ export default function GlobalFilterBar({
     </div>
   );
 }
-

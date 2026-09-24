@@ -14,6 +14,7 @@ import {
 import CompactFilterGroup from './CompactFilterGroup';
 import AnimatedCounter from './AnimatedCounter';
 import { SkeletonKPICard } from './SkeletonLoader';
+import { authFetch } from '../utils/api';
 
 export default function OperationsView({
   selectedTerminal = 'ALL',
@@ -34,7 +35,7 @@ export default function OperationsView({
       if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') queryParams.append('terminalId', selectedTerminal);
       if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') queryParams.append('financialYear', selectedFY);
 
-      const res = await fetch(`/api/operations?${queryParams.toString()}`);
+      const res = await authFetch(`/api/operations?${queryParams.toString()}`);
       const json = await res.json();
       if (json.success) {
         setOpsData(json.data);

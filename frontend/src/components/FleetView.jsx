@@ -18,6 +18,7 @@ import CompactFilterGroup from './CompactFilterGroup';
 import AnimatedCounter from './AnimatedCounter';
 import { SkeletonKPICard } from './SkeletonLoader';
 import * as XLSX from 'xlsx';
+import { authFetch } from '../utils/api';
 
 export default function FleetView({
   selectedTerminal = 'ALL',
@@ -41,7 +42,7 @@ export default function FleetView({
       if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') queryParams.append('terminalId', selectedTerminal);
       if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') queryParams.append('financialYear', selectedFY);
 
-      const fleetRes = await fetch(`/api/fleet?${queryParams.toString()}`).then(r => r.json());
+      const fleetRes = await authFetch(`/api/fleet?${queryParams.toString()}`).then(r => r.json());
       const vehicles = fleetRes.data?.vehicles || [];
 
       const carriers = [

@@ -13,12 +13,23 @@ import {
 export default function CIRTable({ 
   records = [], 
   loading = false, 
-  onSelectRecord 
+  onSelectRecord,
+  page = 1,
+  pageSize = 50,
+  totalRecords = 0,
+  totalPages = 1,
+  onPageChange,
+  onPageSizeChange,
 }) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  const [localPage, setLocalPage] = useState(1);
+  const [localPageSize, setLocalPageSize] = useState(25);
   const [sortField, setSortField] = useState('INVOICE_DATE');
   const [sortOrder, setSortOrder] = useState('desc');
+
+  const isServerPagination = typeof onPageChange === 'function';
+  const currentPage = isServerPagination ? page : localPage;
+  const activePageSize = isServerPagination ? pageSize : localPageSize;
+  const activeTotalRecords = isServerPagination ? (totalRecords || records.length) : records.length;
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -46,11 +57,33 @@ export default function CIRTable({
     });
   }, [records, sortField, sortOrder]);
 
-  const totalPages = Math.ceil(sortedRecords.length / pageSize) || 1;
+  const activeTotalPages = isServerPagination 
+    ? (totalPages || 1) 
+    : (Math.ceil(sortedRecords.length / activePageSize) || 1);
+
   const paginatedRecords = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return sortedRecords.slice(start, start + pageSize);
-  }, [sortedRecords, currentPage, pageSize]);
+    if (isServerPagination) return sortedRecords;
+    const start = (currentPage - 1) * activePageSize;
+    return sortedRecords.slice(start, start + activePageSize);
+  }, [sortedRecords, currentPage, activePageSize, isServerPagination]);
+
+  const handlePageChange = (newPage) => {
+    const validPage = Math.max(1, Math.min(activeTotalPages, newPage));
+    if (isServerPagination) {
+      onPageChange(validPage);
+    } else {
+      setLocalPage(validPage);
+    }
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    if (isServerPagination && onPageSizeChange) {
+      onPageSizeChange(newSize);
+    } else {
+      setLocalPageSize(newSize);
+      setLocalPage(1);
+    }
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-soft overflow-hidden flex flex-col">
@@ -63,18 +96,15 @@ export default function CIRTable({
             Container Invoice & Revenue Ledger (CIR Data Grid)
           </h4>
           <span className="text-xs text-slate-500 font-semibold ml-2">
-            Showing {paginatedRecords.length} of {records.length} records
+            Showing {paginatedRecords.length} of {activeTotalRecords} records
           </span>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
           <span className="text-slate-500 font-medium">Rows per page:</span>
           <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setCurrentPage(1);
-            }}
+            value={activePageSize}
+            onChange={(e) => handlePageSizeChange(Number(e.target.value))}
             className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-slate-800 text-xs font-semibold focus:outline-none focus:border-[#2b1f55]"
           >
             <option value={15}>15</option>
@@ -424,26 +454,31 @@ export default function CIRTable({
       {/* Pagination Footer */}
       <div className="p-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50">
         <div className="text-xs text-slate-600 font-medium">
-          Page <span className="font-bold text-slate-900">{currentPage}</span> of <span className="font-bold text-slate-900">{totalPages}</span>
+          Page <span className="font-bold text-slate-900">{currentPage}</span> of <span className="font-bold text-slate-900">{activeTotalPages}</span>
         </div>
 
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1 || loading}
-            className="p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 disabled:opacity-40 transition-colors shadow-sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage <= 1 || loading}
+            className="p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 disabled:opacity-40 transition-colors shadow-sm cursor-pointer"
+            title="Previous Page"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
 
           <div className="flex items-center gap-1 px-2 text-xs">
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const p = i + 1;
-              return (
+            {(() => {
+              const delta = 2;
+              const start = Math.max(1, currentPage - delta);
+              const end = Math.min(activeTotalPages, currentPage + delta);
+              const pages = [];
+              for (let p = start; p <= end; p++) pages.push(p);
+              return pages.map(p => (
                 <button
                   key={p}
-                  onClick={() => setCurrentPage(p)}
-                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors shadow-sm ${
+                  onClick={() => handlePageChange(p)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors shadow-sm cursor-pointer ${
                     currentPage === p
                       ? 'bg-[#2b1f55] text-white'
                       : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
@@ -451,14 +486,15 @@ export default function CIRTable({
                 >
                   {p}
                 </button>
-              );
-            })}
+              ));
+            })()}
           </div>
 
           <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages || loading}
-            className="p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 disabled:opacity-40 transition-colors shadow-sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= activeTotalPages || loading}
+            className="p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 disabled:opacity-40 transition-colors shadow-sm cursor-pointer"
+            title="Next Page"
           >
             <ChevronRight className="w-4 h-4" />
           </button>

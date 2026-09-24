@@ -22,8 +22,11 @@ import CompactFilterGroup from './CompactFilterGroup';
 import AnimatedCounter from './AnimatedCounter';
 import { SkeletonKPICard } from './SkeletonLoader';
 import * as XLSX from 'xlsx';
+import { authFetch } from '../utils/api';
 
 export default function ContainerFleetView({
+  selectedCompany = 'ALL',
+  selectedCustomer = 'ALL',
   selectedTerminal = 'ALL',
   setSelectedTerminal,
   selectedFY = 'ALL',
@@ -34,19 +37,35 @@ export default function ContainerFleetView({
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+
   const [statusFilter, setStatusFilter] = useState('all');
   const [sizeFilter, setSizeFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 25;
 
+  // Reset to page 1 on filter changes
+  const handleStatusFilterChange = (val) => { setStatusFilter(val); setCurrentPage(1); };
+  const handleSizeFilterChange = (val) => { setSizeFilter(val); setCurrentPage(1); };
+  const handleTypeFilterChange = (val) => { setTypeFilter(val); setCurrentPage(1); };
+  const handleSearchChange = (e) => { setSearch(e.target.value); setCurrentPage(1); };
+
   const fetchContainers = async () => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams();
+      queryParams.append('page', String(currentPage));
+      queryParams.append('limit', String(pageSize));
+      if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') queryParams.append('companyId', selectedCompany);
+      if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') queryParams.append('customerId', selectedCustomer);
       if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') queryParams.append('terminalId', selectedTerminal);
       if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') queryParams.append('financialYear', selectedFY);
-      const res = await fetch(`/api/containers?${queryParams.toString()}`);
+      if (statusFilter && statusFilter !== 'all') queryParams.append('status', statusFilter);
+      if (sizeFilter && sizeFilter !== 'all') queryParams.append('contSize', sizeFilter);
+      if (typeFilter && typeFilter !== 'all') queryParams.append('contType', typeFilter);
+      if (search && search.trim() !== '') queryParams.append('search', search.trim());
+
+      const res = await authFetch(`/api/containers?${queryParams.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);
@@ -59,8 +78,11 @@ export default function ContainerFleetView({
   };
 
   useEffect(() => {
-    fetchContainers();
-  }, [selectedTerminal, selectedFY]);
+    const timer = setTimeout(() => {
+      fetchContainers();
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [selectedCompany, selectedCustomer, selectedTerminal, selectedFY, statusFilter, sizeFilter, typeFilter, search, currentPage]);
 
   const containers = data?.containers || [];
   const baseStats = data?.stats || {};
@@ -139,13 +161,10 @@ export default function ContainerFleetView({
       totalTeus: teus,
       totalJobs: jobs,
     };
-  }, [baseStats, filteredContainers]);
+  }, [baseStats, data]);
 
-  const totalPages = Math.ceil(filteredContainers.length / pageSize) || 1;
-  const paginatedContainers = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredContainers.slice(start, start + pageSize);
-  }, [filteredContainers, currentPage, pageSize]);
+  const totalPages = data?.totalPages || 1;
+  const paginatedContainers = data?.containers || [];
 
   // Export containers to Excel
   const handleExport = () => {

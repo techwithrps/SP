@@ -38,7 +38,7 @@ export default function LoginPage({ onLoginSuccess }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     if (e) e.preventDefault();
     setError('');
 
@@ -52,34 +52,30 @@ export default function LoginPage({ onLoginSuccess }) {
 
     setLoading(true);
 
-    setTimeout(() => {
-      const isUserMatch = (
-        cleanUser === MASTER_USER.username.toLowerCase() ||
-        cleanUser === MASTER_USER.id.toLowerCase() ||
-        cleanUser === MASTER_USER.altId.toLowerCase()
-      );
-      const isPassMatch = (
-        cleanPass === MASTER_USER.password ||
-        cleanPass === MASTER_USER.altPassword
-      );
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: cleanUser, password: cleanPass }),
+      });
 
-      if (isUserMatch && isPassMatch) {
+      const data = await res.json();
+
+      if (res.ok && data.success && data.token) {
         if (rememberMe) {
-          localStorage.setItem('spj_auth_user', JSON.stringify({
-            id: 'admin',
-            name: 'Admin',
-            role: 'System Administrator',
-            badge: 'Master Admin',
-            loginTime: new Date().toISOString()
-          }));
+          localStorage.setItem('spj_auth_token', data.token);
+          localStorage.setItem('spj_auth_user', JSON.stringify(data.user));
         }
         setLoading(false);
-        onLoginSuccess(MASTER_USER);
+        onLoginSuccess(data.user, data.token);
       } else {
         setLoading(false);
-        setError('Invalid credentials. Please enter valid Admin details.');
+        setError(data.message || 'Invalid credentials. Please enter valid login details.');
       }
-    }, 300);
+    } catch (err) {
+      setLoading(false);
+      setError('Authentication server error. Please try again.');
+    }
   };
 
   return (
