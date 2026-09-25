@@ -119,7 +119,7 @@ export function CustomerLeaderboardTable({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* 1. TOP CUSTOMER KPI STRIP */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
         <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
           <div className="flex items-start justify-between gap-1">
             <div className="min-w-0 flex-1">
@@ -154,25 +154,6 @@ export function CustomerLeaderboardTable({
             </div>
             <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-purple-700 border border-purple-200 shadow-xs shrink-0">
               <TrendingUp className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
-          <div className="flex items-start justify-between gap-1">
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
-                Total Client Invoices
-              </p>
-              <h3 className="text-sm sm:text-2xl font-black font-display text-blue-900 mt-1 sm:mt-2 truncate">
-                <AnimatedCounter value={totalCustomerInvoices} duration={600} suffix=" Invoices" />
-              </h3>
-              <p className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 truncate">
-                Tax Bills Reconciled
-              </p>
-            </div>
-            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs shrink-0">
-              <Receipt className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
         </div>
