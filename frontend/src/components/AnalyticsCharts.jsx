@@ -35,7 +35,8 @@ import KPICards from './KPICards';
 
 export default function AnalyticsCharts({
   selectedCompany = 'ALL',
-  selectedCustomer = 'ALL',
+  selectedCustomer: propSelectedCustomer = 'ALL',
+  setSelectedCustomer: parentSetCustomer,
   selectedTerminal: parentTerminal,
   setSelectedTerminal: parentSetTerminal,
   selectedFY: parentFY,
@@ -53,6 +54,7 @@ export default function AnalyticsCharts({
   
   // Local or Shared Filters
   const [localTerminal, setLocalTerminal] = useState('ALL');
+  const [localCustomer, setLocalCustomer] = useState('ALL');
   const [localFY, setLocalFY] = useState('ALL');
   const [searchTerminal, setSearchTerminal] = useState('');
   const [sortBy, setSortBy] = useState('netRevenue');
@@ -60,6 +62,8 @@ export default function AnalyticsCharts({
 
   const selectedTerminal = parentTerminal !== undefined ? parentTerminal : localTerminal;
   const setSelectedTerminal = parentSetTerminal || setLocalTerminal;
+  const selectedCustomer = propSelectedCustomer !== undefined ? propSelectedCustomer : localCustomer;
+  const setSelectedCustomer = parentSetCustomer || setLocalCustomer;
   const selectedFY = parentFY !== undefined ? parentFY : localFY;
   const setSelectedFY = parentSetFY || setLocalFY;
 
@@ -770,6 +774,8 @@ export default function AnalyticsCharts({
           selectedFY={selectedFY}
           selectedTerminal={selectedTerminal}
           setSelectedTerminal={setSelectedTerminal}
+          selectedCustomer={selectedCustomer}
+          setSelectedCustomer={setSelectedCustomer}
           searchTerminal={searchTerminal}
           setSearchTerminal={setSearchTerminal}
           sortBy={sortBy}
@@ -778,7 +784,7 @@ export default function AnalyticsCharts({
           setSortOrder={setSortOrder}
           handleSortHeader={handleSortHeader}
           SortIcon={SortIcon}
-          customerName={customerEntry?.customerName || null}
+          customerName={customerEntry?.customerName || (selectedCustomer !== 'ALL' ? selectedCustomer : null)}
           companyName={activeCompanyName}
         />
       )}

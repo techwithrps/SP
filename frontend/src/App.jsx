@@ -544,6 +544,63 @@ export default function App() {
   }, [allTerminals, masters, selectedCompany, selectedTerminal]);
 
   const activeSalesCustomers = useMemo(() => {
+    // 1. If a single customer is explicitly selected
+    if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') {
+      const s = String(selectedCustomer).toLowerCase().trim();
+      const rawList = financialData?.topCustomers || financialData?.customerAnalytics || [];
+      const found = rawList.find(c => 
+        (c.customerName || c.name || '').toLowerCase() === s ||
+        (c.customerName || c.name || '').toLowerCase().includes(s) ||
+        s.includes((c.customerName || c.name || '').toLowerCase())
+      );
+      if (found) {
+        return [{
+          customerName: found.customerName || found.name,
+          grossRevenue: Number(found.grossRevenue || found.totalRevenue || found.netRevenue || 0),
+          invoiceCount: Number(found.invoiceCount || 0)
+        }];
+      }
+      if (activeSalesKPIs.customerWise && activeSalesKPIs.customerWise.length > 0) {
+        return activeSalesKPIs.customerWise.map(c => ({
+          customerName: c.customerName || c.name,
+          grossRevenue: Number(c.grossAmount || c.grossRevenue || c.totalRevenue || 0),
+          invoiceCount: Number(c.invoiceCount || 0)
+        }));
+      }
+    }
+
+    // 2. If a terminal is selected, filter customers who operate at this terminal
+    if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+      const sTerm = String(selectedTerminal).toLowerCase().trim();
+      const matchedCusts = [];
+      (masters.customerTerminalMatrix || []).forEach(c => {
+        const hasTerm = (c.terminals || []).find(t => 
+          String(t.terminalId).toLowerCase() === sTerm || 
+          (t.terminalName && t.terminalName.toLowerCase().includes(sTerm))
+        );
+        if (hasTerm) {
+          matchedCusts.push({
+            customerName: c.customerName,
+            grossRevenue: Number(hasTerm.netRevenue || hasTerm.totalAmount || 0),
+            invoiceCount: Number(hasTerm.invoiceCount || 0)
+          });
+        }
+      });
+      if (matchedCusts.length > 0) {
+        return matchedCusts.sort((a, b) => b.grossRevenue - a.grossRevenue);
+      }
+    }
+
+    // 3. Default: Audited master top customers (Fair Exports ₹273.66 Cr #1)
+    const masterList = financialData?.topCustomers || financialData?.customerAnalytics;
+    if (masterList && masterList.length > 0) {
+      return masterList.map(c => ({
+        customerName: c.customerName || c.name,
+        grossRevenue: Number(c.grossRevenue || c.totalRevenue || c.netRevenue || c.grossAmount || 0),
+        invoiceCount: Number(c.invoiceCount || 0)
+      })).sort((a, b) => b.grossRevenue - a.grossRevenue);
+    }
+
     if (activeSalesKPIs.customerWise && activeSalesKPIs.customerWise.length > 0) {
       return activeSalesKPIs.customerWise.map(c => ({
         customerName: c.customerName || c.name,
@@ -551,11 +608,9 @@ export default function App() {
         invoiceCount: Number(c.invoiceCount || 0)
       }));
     }
-    if (financialData?.topCustomers && financialData.topCustomers.length > 0) {
-      return financialData.topCustomers;
-    }
+
     return [];
-  }, [activeSalesKPIs, financialData]);
+  }, [selectedCustomer, selectedTerminal, financialData, masters.customerTerminalMatrix, activeSalesKPIs]);
 
   const handleResetFilters = () => {
     setSelectedCompany('ALL');
@@ -750,6 +805,7 @@ export default function App() {
                 <AnalyticsCharts
                   selectedCompany={selectedCompany}
                   selectedCustomer={selectedCustomer}
+                  setSelectedCustomer={handleSetSelectedCustomer}
                   selectedTerminal={selectedTerminal}
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}
@@ -776,6 +832,10 @@ export default function App() {
                   displayTerminals={activeSalesTerminals}
                   topCustomers={activeSalesCustomers}
                   totalGross={activeSalesKPIs.grossRevenue || activeSalesKPIs.totalGrossAmount}
+                  selectedTerminal={selectedTerminal}
+                  onSelectTerminal={handleSetSelectedTerminal}
+                  selectedCustomer={selectedCustomer}
+                  onSelectCustomer={handleSetSelectedCustomer}
                 />
 
                 <FilterBar

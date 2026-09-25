@@ -13,6 +13,8 @@ export default function BranchPerformanceTable({
   selectedFY = 'ALL',
   selectedTerminal = 'ALL',
   setSelectedTerminal,
+  selectedCustomer = 'ALL',
+  setSelectedCustomer,
   searchTerminal = '',
   setSearchTerminal,
   sortBy = 'netRevenue',
@@ -42,11 +44,15 @@ export default function BranchPerformanceTable({
 
   return (
     <div className="space-y-6">
-      {/* DUAL EXECUTIVE LEADERBOARDS: LEFT = BRANCHES, RIGHT = CUSTOMERS */}
+      {/* DUAL EXECUTIVE LEADERBOARDS: LEFT = BRANCHES, RIGHT = CUSTOMERS (Interactive Click-to-Filter) */}
       <DualSalesLeaderboard
         displayTerminals={displayTerminals}
         topCustomers={topCustomers}
         totalGross={totalGross}
+        selectedTerminal={selectedTerminal}
+        onSelectTerminal={setSelectedTerminal}
+        selectedCustomer={selectedCustomer !== 'ALL' && selectedCustomer ? selectedCustomer : (customerName || 'ALL')}
+        onSelectCustomer={setSelectedCustomer}
       />
 
       {/* Search & Sort Controls for Matrix */}
