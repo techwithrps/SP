@@ -42,11 +42,9 @@ export default function KPICards({ kpis = {}, loading = false, isSideLayout = fa
       subtitle: 'Net Billed Realization',
       value: formatCurrency(netRevenue),
       icon: IndianRupee,
-      iconBg: 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
-      valueColor: 'text-emerald-950',
-      badge: 'Net Sales',
-      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
-      accentColor: 'from-emerald-500 to-teal-600',
+      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
+      valueColor: 'text-emerald-800',
+      subColor: 'text-emerald-700',
       isCurrency: true
     },
     {
@@ -54,11 +52,9 @@ export default function KPICards({ kpis = {}, loading = false, isSideLayout = fa
       subtitle: 'Taxable + Statutory GST',
       value: formatCurrency(grossRevenue),
       icon: IndianRupee,
-      iconBg: 'bg-purple-500/10 text-purple-700 border border-purple-500/20',
-      valueColor: 'text-purple-950',
-      badge: 'Gross Total',
-      badgeColor: 'text-purple-700 bg-purple-50 border-purple-200',
-      accentColor: 'from-purple-600 to-indigo-600',
+      iconBg: 'bg-purple-50 text-[#2b1f55] border border-purple-200',
+      valueColor: 'text-[#2b1f55]',
+      subColor: 'text-purple-700',
       isCurrency: true
     },
     {
@@ -66,11 +62,9 @@ export default function KPICards({ kpis = {}, loading = false, isSideLayout = fa
       subtitle: 'Pre-Tax Freight & Handling',
       value: formatCurrency(taxableRevenue),
       icon: Receipt,
-      iconBg: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
-      valueColor: 'text-blue-950',
-      badge: 'Base Sales',
-      badgeColor: 'text-blue-700 bg-blue-50 border-blue-200',
-      accentColor: 'from-blue-600 to-sky-600',
+      iconBg: 'bg-blue-50 text-blue-600 border border-blue-200',
+      valueColor: 'text-blue-900',
+      subColor: 'text-blue-700',
       isCurrency: true
     },
     {
@@ -78,11 +72,9 @@ export default function KPICards({ kpis = {}, loading = false, isSideLayout = fa
       subtitle: 'Direct from IMP_INVOICE_TAX',
       value: formatCurrency(gstTax),
       icon: Percent,
-      iconBg: 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20',
-      valueColor: 'text-indigo-950',
-      badge: 'GST Output',
-      badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200',
-      accentColor: 'from-indigo-600 to-violet-600',
+      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-200',
+      valueColor: 'text-indigo-900',
+      subColor: 'text-indigo-700',
       isCurrency: true
     },
     {
@@ -90,55 +82,45 @@ export default function KPICards({ kpis = {}, loading = false, isSideLayout = fa
       subtitle: 'Distinct Billed Invoices',
       value: `${totalInvoices.toLocaleString('en-IN')}`,
       icon: FileText,
-      iconBg: 'bg-fuchsia-500/10 text-fuchsia-700 border border-fuchsia-500/20',
-      valueColor: 'text-fuchsia-950',
-      badge: 'Tax Bills',
-      badgeColor: 'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-200',
-      accentColor: 'from-fuchsia-600 to-purple-600'
+      iconBg: 'bg-fuchsia-50 text-fuchsia-600 border border-fuchsia-200',
+      valueColor: 'text-fuchsia-900',
+      subColor: 'text-fuchsia-700'
     },
     {
       title: 'Physical Containers',
       subtitle: 'COUNT(DISTINCT CONT_NO)',
       value: `${physicalContainers.toLocaleString('en-IN')}`,
       icon: Container,
-      iconBg: 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
-      valueColor: 'text-amber-950',
-      badge: 'Fleet Boxes',
-      badgeColor: 'text-amber-700 bg-amber-50 border-amber-200',
-      accentColor: 'from-amber-500 to-orange-500'
+      iconBg: 'bg-amber-50 text-amber-600 border border-amber-200',
+      valueColor: 'text-amber-900',
+      subColor: 'text-amber-700'
     },
     {
       title: 'Container Movements',
       subtitle: 'Distinct Job Cycles',
       value: `${containerMovements.toLocaleString('en-IN')}`,
       icon: Truck,
-      iconBg: 'bg-teal-500/10 text-teal-600 border border-teal-500/20',
-      valueColor: 'text-teal-950',
-      badge: 'Throughput',
-      badgeColor: 'text-teal-700 bg-teal-50 border-teal-200',
-      accentColor: 'from-teal-500 to-emerald-600'
+      iconBg: 'bg-teal-50 text-teal-600 border border-teal-200',
+      valueColor: 'text-teal-900',
+      subColor: 'text-teal-700'
     },
     {
-      title: 'Job Orders',
-      subtitle: 'Distinct Operations Files',
+      title: 'Job Orders (JO)',
+      subtitle: 'Multi-Modal Distinct Jobs',
       value: `${jobOrders.toLocaleString('en-IN')}`,
       icon: Layers,
-      iconBg: 'bg-sky-500/10 text-sky-600 border border-sky-500/20',
-      valueColor: 'text-sky-950',
-      badge: 'Job Orders',
-      badgeColor: 'text-sky-700 bg-sky-50 border-sky-200',
-      accentColor: 'from-sky-500 to-blue-600'
+      iconBg: 'bg-blue-50 text-blue-600 border border-blue-200',
+      valueColor: 'text-blue-900',
+      subColor: 'text-blue-700'
     },
     {
       title: 'Total TEUs',
       subtitle: '20ft × 1 + 40ft × 2',
       value: `${teus.toLocaleString('en-IN')}`,
       icon: Container,
-      iconBg: 'bg-orange-500/10 text-orange-600 border border-orange-500/20',
-      valueColor: 'text-orange-950',
-      badge: 'Standard TEU',
-      badgeColor: 'text-orange-700 bg-orange-50 border-orange-200',
-      accentColor: 'from-orange-500 to-rose-500'
+      iconBg: 'bg-orange-50 text-orange-600 border border-orange-200',
+      valueColor: 'text-orange-600',
+      subColor: 'text-orange-700'
     }
   ];
 
@@ -161,38 +143,28 @@ export default function KPICards({ kpis = {}, loading = false, isSideLayout = fa
           return (
             <div
               key={idx}
-              className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-soft hover-lift transition-all duration-300 relative overflow-hidden group"
+              className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all"
             >
-              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.accentColor} opacity-70 group-hover:opacity-100 transition-opacity`} />
-              
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-1">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
                     {card.title}
                   </p>
-                  <div className="mt-1">
-                    <h3 className={`text-lg sm:text-2xl font-black font-display tracking-tight truncate ${card.valueColor}`}>
-                      <AnimatedCounter 
-                        value={card.value} 
-                        duration={600}
-                        decimals={card.isCurrency ? 2 : 0}
-                      />
-                    </h3>
-                  </div>
+                  <h3 className={`text-sm sm:text-2xl font-black font-display mt-1 sm:mt-2 truncate ${card.valueColor}`}>
+                    <AnimatedCounter 
+                      value={card.value} 
+                      duration={600}
+                      decimals={card.isCurrency ? 2 : 0}
+                    />
+                  </h3>
+                  <p className={`text-[9px] sm:text-[11px] font-semibold mt-0.5 truncate ${card.subColor}`}>
+                    {card.subtitle}
+                  </p>
                 </div>
 
-                <div className={`p-2.5 rounded-xl ${card.iconBg} shrink-0`}>
-                  <Icon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                <div className={`p-1.5 sm:p-3 rounded-lg sm:rounded-2xl ${card.iconBg} shadow-xs shrink-0`}>
+                  <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
-              </div>
-
-              <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px] gap-1">
-                <span className="text-slate-500 font-medium truncate">
-                  {card.subtitle}
-                </span>
-                <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold shrink-0 border ${card.badgeColor}`}>
-                  {card.badge}
-                </span>
               </div>
             </div>
           );

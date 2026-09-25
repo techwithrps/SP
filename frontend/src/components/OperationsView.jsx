@@ -99,82 +99,118 @@ export default function OperationsView({
           </>
         ) : (
           <>
-            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Gate-Ins</span>
-                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs shrink-0">
-                  <ArrowDownRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Gate-Ins
+                  </p>
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-emerald-800 mt-1 sm:mt-2 truncate">
+                    <AnimatedCounter value={isFiltered ? gateInsList.length : (stats.totalGateIn || 655)} />
+                  </h3>
+                  <p className="text-[9px] sm:text-[11px] text-emerald-700 font-semibold mt-0.5 truncate">
+                    Inward Yard Arrivals
+                  </p>
+                </div>
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs shrink-0">
+                  <ArrowDownRight className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
-              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
-                <AnimatedCounter value={isFiltered ? gateInsList.length : (stats.totalGateIn || 655)} />
-              </div>
-              <div className="text-[9px] sm:text-[11px] text-emerald-700 font-semibold mt-0.5 truncate">Inward</div>
             </div>
 
-            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Vehicle Outward</span>
-                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs shrink-0">
-                  <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Vehicle Outward
+                  </p>
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-blue-900 mt-1 sm:mt-2 truncate">
+                    <AnimatedCounter value={isFiltered ? gateOutsList.length : (stats.totalGateOut || 806)} />
+                  </h3>
+                  <p className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 truncate">
+                    Dispatched Units
+                  </p>
+                </div>
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs shrink-0">
+                  <ArrowUpRight className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
-              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
-                <AnimatedCounter value={isFiltered ? gateOutsList.length : (stats.totalGateOut || 806)} />
-              </div>
-              <div className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 truncate">Dispatched</div>
             </div>
 
-            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Dispatches</span>
-                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-orange-50 text-[#ff6a00] border border-orange-200 shadow-xs shrink-0">
-                  <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Dispatches
+                  </p>
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-orange-600 mt-1 sm:mt-2 truncate">
+                    <AnimatedCounter value={isFiltered ? dispatchesList.length : (stats.totalDispatches || 427)} />
+                  </h3>
+                  <p className="text-[9px] sm:text-[11px] text-orange-700 font-semibold mt-0.5 truncate">
+                    Cold Chain Line
+                  </p>
+                </div>
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-orange-50 text-[#ff6a00] border border-orange-200 shadow-xs shrink-0">
+                  <FileCheck className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
-              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
-                <AnimatedCounter value={isFiltered ? dispatchesList.length : (stats.totalDispatches || 427)} />
-              </div>
-              <div className="text-[9px] sm:text-[11px] text-orange-700 font-semibold mt-0.5 truncate">Cold Chain</div>
             </div>
 
-            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Picklists</span>
-                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-purple-50 text-purple-600 border border-purple-200 shadow-xs shrink-0">
-                  <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Picklists
+                  </p>
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-[#2b1f55] mt-1 sm:mt-2 truncate">
+                    <AnimatedCounter value={isFiltered ? picklistsList.length : (stats.totalPicklists || 395)} />
+                  </h3>
+                  <p className="text-[9px] sm:text-[11px] text-purple-700 font-semibold mt-0.5 truncate">
+                    Picked Service Orders
+                  </p>
+                </div>
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs shrink-0">
+                  <Layers className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
-              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
-                <AnimatedCounter value={isFiltered ? picklistsList.length : (stats.totalPicklists || 395)} />
-              </div>
-              <div className="text-[9px] sm:text-[11px] text-purple-700 font-semibold mt-0.5 truncate">Picked Items</div>
             </div>
 
-            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">ASN Notices</span>
-                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-xs shrink-0">
-                  <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    ASN Notices
+                  </p>
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-indigo-900 mt-1 sm:mt-2 truncate">
+                    <AnimatedCounter value={isFiltered ? asnsList.length : (stats.totalASNs || 322)} />
+                  </h3>
+                  <p className="text-[9px] sm:text-[11px] text-indigo-700 font-semibold mt-0.5 truncate">
+                    Shipping Advance Advises
+                  </p>
+                </div>
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-xs shrink-0">
+                  <Package className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
-              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
-                <AnimatedCounter value={isFiltered ? asnsList.length : (stats.totalASNs || 322)} />
-              </div>
-              <div className="text-[9px] sm:text-[11px] text-indigo-700 font-semibold mt-0.5 truncate">Shipping</div>
             </div>
 
-            <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift">
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Cross Stuffing</span>
-                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 border border-amber-200 shadow-xs shrink-0">
-                  <Container className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                    Cross Stuffing
+                  </p>
+                  <h3 className="text-sm sm:text-2xl font-black font-display text-amber-900 mt-1 sm:mt-2 truncate">
+                    <AnimatedCounter value={isFiltered ? crossStuffingList.length : (stats.totalCrossStuffing || 56)} />
+                  </h3>
+                  <p className="text-[9px] sm:text-[11px] text-amber-700 font-semibold mt-0.5 truncate">
+                    Yard Container Transfers
+                  </p>
+                </div>
+                <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 shadow-xs shrink-0">
+                  <Container className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
               </div>
-              <div className="text-sm sm:text-2xl font-black font-display text-slate-900 mt-1 sm:mt-2 truncate">
-                <AnimatedCounter value={isFiltered ? crossStuffingList.length : (stats.totalCrossStuffing || 56)} />
-              </div>
-              <div className="text-[9px] sm:text-[11px] text-amber-700 font-semibold mt-0.5 truncate">Transfers</div>
             </div>
           </>
         )}

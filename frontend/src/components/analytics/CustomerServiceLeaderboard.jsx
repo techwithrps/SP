@@ -119,56 +119,80 @@ export function CustomerLeaderboardTable({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* 1. TOP CUSTOMER KPI STRIP */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-gradient-to-br from-[#2b1f55] to-[#1e153d] text-white p-4 rounded-2xl shadow-sm border border-purple-900/30 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-purple-200">Active Clients</p>
-            <h3 className="text-xl sm:text-2xl font-black font-display mt-0.5">
-              <AnimatedCounter value={topCustomers.length} duration={600} />
-            </h3>
-            <p className="text-[10px] text-purple-300 mt-0.5">Audited Corporate Parties</p>
-          </div>
-          <div className="p-2.5 rounded-xl bg-white/10 border border-white/20">
-            <Users className="w-5 h-5 text-amber-400" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Top 5 Concentration</p>
-            <h3 className="text-xl sm:text-2xl font-black font-display text-purple-900 mt-0.5">
-              {top5Share}%
-            </h3>
-            <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">{formatCurrency(top5Gross)} Combined</p>
-          </div>
-          <div className="p-2.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200">
-            <TrendingUp className="w-5 h-5" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Active Clients
+              </p>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-[#2b1f55] mt-1 sm:mt-2 truncate">
+                <AnimatedCounter value={topCustomers.length} duration={600} suffix=" Parties" />
+              </h3>
+              <p className="text-[9px] sm:text-[11px] text-purple-700 font-semibold mt-0.5 truncate">
+                Audited Corporate Accounts
+              </p>
+            </div>
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs shrink-0">
+              <Users className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Client Invoices</p>
-            <h3 className="text-xl sm:text-2xl font-black font-display text-slate-800 mt-0.5">
-              <AnimatedCounter value={totalCustomerInvoices} duration={600} />
-            </h3>
-            <p className="text-[10px] text-blue-600 font-semibold mt-0.5">Bills Reconciled</p>
-          </div>
-          <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-200">
-            <Receipt className="w-5 h-5" />
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Top 5 Concentration
+              </p>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-purple-900 mt-1 sm:mt-2 truncate">
+                {top5Share}%
+              </h3>
+              <p className="text-[9px] sm:text-[11px] text-emerald-700 font-semibold mt-0.5 truncate">
+                {formatCurrency(top5Gross)} Combined
+              </p>
+            </div>
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-purple-700 border border-purple-200 shadow-xs shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Avg Gross / Client</p>
-            <h3 className="text-xl sm:text-2xl font-black font-display text-emerald-700 mt-0.5 truncate">
-              {formatCurrency(avgRevenuePerClient)}
-            </h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Portfolio Mean Value</p>
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Total Client Invoices
+              </p>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-blue-900 mt-1 sm:mt-2 truncate">
+                <AnimatedCounter value={totalCustomerInvoices} duration={600} suffix=" Invoices" />
+              </h3>
+              <p className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 truncate">
+                Tax Bills Reconciled
+              </p>
+            </div>
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs shrink-0">
+              <Receipt className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+            </div>
           </div>
-          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
-            <Award className="w-5 h-5" />
+        </div>
+
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Avg Gross / Client
+              </p>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-emerald-800 mt-1 sm:mt-2 truncate">
+                {formatCurrency(avgRevenuePerClient)}
+              </h3>
+              <p className="text-[9px] sm:text-[11px] text-slate-500 font-medium mt-0.5 truncate">
+                Portfolio Mean Value
+              </p>
+            </div>
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs shrink-0">
+              <Award className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+            </div>
           </div>
         </div>
       </div>
@@ -511,56 +535,80 @@ export function ServiceCatalogTable({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* 1. SERVICE KPI STRIP */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-gradient-to-br from-[#ff6a00] to-[#c2410c] text-white p-4 rounded-2xl shadow-sm border border-orange-700/30 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-orange-100">Service Categories</p>
-            <h3 className="text-xl sm:text-2xl font-black font-display mt-0.5">
-              <AnimatedCounter value={topServices.length} duration={600} />
-            </h3>
-            <p className="text-[10px] text-orange-200 mt-0.5">Operational Tariff Heads</p>
-          </div>
-          <div className="p-2.5 rounded-xl bg-white/10 border border-white/20">
-            <Layers className="w-5 h-5 text-white" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Billed Items</p>
-            <h3 className="text-xl sm:text-2xl font-black font-display text-orange-950 mt-0.5">
-              <AnimatedCounter value={totalLineItems} duration={600} />
-            </h3>
-            <p className="text-[10px] text-orange-600 font-semibold mt-0.5">Distinct Job Line Entries</p>
-          </div>
-          <div className="p-2.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-200">
-            <Receipt className="w-5 h-5" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Service Categories
+              </p>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-orange-600 mt-1 sm:mt-2 truncate">
+                <AnimatedCounter value={topServices.length} duration={600} suffix=" Tariff Heads" />
+              </h3>
+              <p className="text-[9px] sm:text-[11px] text-orange-700 font-semibold mt-0.5 truncate">
+                Operational Billing Heads
+              </p>
+            </div>
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-orange-50 text-orange-600 border border-orange-200 shadow-xs shrink-0">
+              <Layers className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Service Gross</p>
-            <h3 className="text-xl sm:text-2xl font-black font-display text-[#2b1f55] mt-0.5 truncate">
-              {formatCurrency(totalServiceGross)}
-            </h3>
-            <p className="text-[10px] text-purple-700 font-semibold mt-0.5">Catalog Turnover</p>
-          </div>
-          <div className="p-2.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200">
-            <TrendingUp className="w-5 h-5" />
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Total Billed Items
+              </p>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-blue-900 mt-1 sm:mt-2 truncate">
+                <AnimatedCounter value={totalLineItems} duration={600} suffix=" Items" />
+              </h3>
+              <p className="text-[9px] sm:text-[11px] text-blue-700 font-semibold mt-0.5 truncate">
+                Distinct Job Line Entries
+              </p>
+            </div>
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-xs shrink-0">
+              <Receipt className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-soft flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Avg Ticket / Line Item</p>
-            <h3 className="text-xl sm:text-2xl font-black font-display text-emerald-700 mt-0.5 truncate">
-              {formatCurrency(avgLineItemVal)}
-            </h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Yield per Operation</p>
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Total Service Gross
+              </p>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-[#2b1f55] mt-1 sm:mt-2 truncate">
+                {formatCurrency(totalServiceGross)}
+              </h3>
+              <p className="text-[9px] sm:text-[11px] text-purple-700 font-semibold mt-0.5 truncate">
+                Catalog Turnover
+              </p>
+            </div>
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-purple-700 border border-purple-200 shadow-xs shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+            </div>
           </div>
-          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
-            <Award className="w-5 h-5" />
+        </div>
+
+        <div className="bg-white p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-soft hover-lift transition-all">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                Avg Ticket / Line Item
+              </p>
+              <h3 className="text-sm sm:text-2xl font-black font-display text-emerald-800 mt-1 sm:mt-2 truncate">
+                {formatCurrency(avgLineItemVal)}
+              </h3>
+              <p className="text-[9px] sm:text-[11px] text-slate-500 font-medium mt-0.5 truncate">
+                Yield per Operation
+              </p>
+            </div>
+            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-xs shrink-0">
+              <Award className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+            </div>
           </div>
         </div>
       </div>
