@@ -15,6 +15,7 @@ import AnalyticsCharts from './components/AnalyticsCharts';
 import ContainerFleetView from './components/ContainerFleetView';
 import FleetView from './components/FleetView';
 import OperationsView from './components/OperationsView';
+import DualSalesLeaderboard from './components/analytics/DualSalesLeaderboard';
 
 function TabLoadingSkeleton() {
   return (
@@ -525,6 +526,37 @@ export default function App() {
     };
   }, [selectedCustomer, selectedCompany, selectedTerminal, selectedFY, masters, terminalFyMatrix, kpis]);
 
+  const activeSalesTerminals = useMemo(() => {
+    let list = allTerminals.length > 0 ? allTerminals : (masters.terminals || []);
+    if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') {
+      const s = String(selectedCompany).toUpperCase().trim();
+      let compId = '3';
+      if (s === '2' || s === 'SPJ') compId = '2';
+      else if (s === '1' || s === 'SJ') compId = '1';
+      else if (s === '5' || s === 'PJ') compId = '5';
+      else if (s === '4' || s.includes('MUM')) compId = '4';
+      list = (masters.companyTerminals || {})[compId] || list;
+    }
+    if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+      list = list.filter(t => String(t.terminalId) === String(selectedTerminal) || (t.terminalName && t.terminalName.toLowerCase().includes(String(selectedTerminal).toLowerCase())));
+    }
+    return list;
+  }, [allTerminals, masters, selectedCompany, selectedTerminal]);
+
+  const activeSalesCustomers = useMemo(() => {
+    if (activeSalesKPIs.customerWise && activeSalesKPIs.customerWise.length > 0) {
+      return activeSalesKPIs.customerWise.map(c => ({
+        customerName: c.customerName || c.name,
+        grossRevenue: Number(c.grossAmount || c.grossRevenue || c.totalRevenue || 0),
+        invoiceCount: Number(c.invoiceCount || 0)
+      }));
+    }
+    if (financialData?.topCustomers && financialData.topCustomers.length > 0) {
+      return financialData.topCustomers;
+    }
+    return [];
+  }, [activeSalesKPIs, financialData]);
+
   const handleResetFilters = () => {
     setSelectedCompany('ALL');
     setSelectedCustomer('ALL');
@@ -738,6 +770,13 @@ export default function App() {
                 
                 {/* 9 Verified Sales & Operations KPI Cards (Full Width) */}
                 <KPICards kpis={activeSalesKPIs} loading={loading} />
+
+                {/* Dual Executive Leaderboards (Left: Top Branches, Right: Top Customers) */}
+                <DualSalesLeaderboard
+                  displayTerminals={activeSalesTerminals}
+                  topCustomers={activeSalesCustomers}
+                  totalGross={activeSalesKPIs.grossRevenue || activeSalesKPIs.totalGrossAmount}
+                />
 
                 <FilterBar
                   filters={filters}
