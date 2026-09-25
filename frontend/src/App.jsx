@@ -11,33 +11,10 @@ import AnimatedCounter from './components/AnimatedCounter';
 import LiveMarqueeTicker from './components/LiveMarqueeTicker';
 import { authFetch, getAuthToken } from './utils/api';
 
-// Auto-recovery wrapper for dynamic imports when new code is deployed to Vercel/production
-function lazyWithRetry(componentImport) {
-  return React.lazy(async () => {
-    const pageHasBeenRefreshed = JSON.parse(
-      window.sessionStorage.getItem('page-chunk-refreshed') || 'false'
-    );
-    try {
-      const component = await componentImport();
-      window.sessionStorage.setItem('page-chunk-refreshed', 'false');
-      return component;
-    } catch (error) {
-      console.warn('Chunk loading failed, attempting auto-refresh for new deployment...', error);
-      if (!pageHasBeenRefreshed) {
-        window.sessionStorage.setItem('page-chunk-refreshed', 'true');
-        window.location.reload();
-        return { default: () => <TabLoadingSkeleton /> };
-      }
-      throw error;
-    }
-  });
-}
-
-// Code-splitting heavy dashboard views with auto-retry on new deployments
-const AnalyticsCharts = lazyWithRetry(() => import('./components/AnalyticsCharts'));
-const ContainerFleetView = lazyWithRetry(() => import('./components/ContainerFleetView'));
-const FleetView = lazyWithRetry(() => import('./components/FleetView'));
-const OperationsView = lazyWithRetry(() => import('./components/OperationsView'));
+import AnalyticsCharts from './components/AnalyticsCharts';
+import ContainerFleetView from './components/ContainerFleetView';
+import FleetView from './components/FleetView';
+import OperationsView from './components/OperationsView';
 
 function TabLoadingSkeleton() {
   return (
