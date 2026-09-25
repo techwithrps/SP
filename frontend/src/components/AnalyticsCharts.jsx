@@ -239,10 +239,45 @@ export default function AnalyticsCharts({
     // 1. If single customer selected
     if (customerEntry) {
       if (canonFY && realOracleFYData?.fyCustomers?.[canonFY]) {
-        const cMatch = realOracleFYData.fyCustomers[canonFY].find(c => 
+        let cMatch = realOracleFYData.fyCustomers[canonFY].find(c => 
           (c.customerName || '').toLowerCase().includes(customerEntry.customerName.toLowerCase()) ||
           customerEntry.customerName.toLowerCase().includes((c.customerName || '').toLowerCase())
         );
+        
+        // If not found by direct name, match by Corporate Parent Group
+        if (!cMatch) {
+          const getBaseGroupName = (name) => String(name || '').toLowerCase()
+            .replace(/[\(\[\{].*?[\)\]\}]/g, ' ')
+            .replace(/-(up|hr|dl|mh|tn|punjab|karnataka|bihar|mumbai|delhi|sahibabad|rampur|barabanki|aligarh|nuh|kerala|import|imp|exp).*$/g, ' ')
+            .replace(/[^a-z0-9]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          const targetBase = getBaseGroupName(customerEntry.customerName);
+          const groupMatches = realOracleFYData.fyCustomers[canonFY].filter(c => {
+            const b = getBaseGroupName(c.customerName);
+            return (b.length > 3 && (b === targetBase || b.includes(targetBase) || targetBase.includes(b)));
+          });
+          if (groupMatches.length > 0) {
+            const totGross = groupMatches.reduce((s, c) => s + c.grossRevenue, 0);
+            const totBase = groupMatches.reduce((s, c) => s + c.baseAmount, 0);
+            const totTax = groupMatches.reduce((s, c) => s + c.taxAmount, 0);
+            const totInvs = groupMatches.reduce((s, c) => s + c.invoiceCount, 0);
+            const totConts = groupMatches.reduce((s, c) => s + c.containerCount, 0);
+            return [{
+              name: customerEntry.customerName,
+              customerName: customerEntry.customerName,
+              grossRevenue: totGross,
+              totalRevenue: totGross,
+              billAmount: totBase,
+              taxAmount: totTax,
+              invoiceCount: totInvs,
+              containerCount: totConts,
+              terminalCount: groupMatches.length,
+              share: 100
+            }];
+          }
+        }
+
         if (cMatch) {
           return [{
             name: cMatch.customerName,
@@ -368,19 +403,36 @@ export default function AnalyticsCharts({
 
       // Check if real Oracle FY Customer dataset has this customer for the chosen FY
       let realCustInFY = null;
+      let groupMatches = [];
       if (canonFY && realOracleFYData?.fyCustomers?.[canonFY]) {
         realCustInFY = realOracleFYData.fyCustomers[canonFY].find(c =>
           (c.customerName || '').toLowerCase().includes(customerEntry.customerName.toLowerCase()) ||
           customerEntry.customerName.toLowerCase().includes((c.customerName || '').toLowerCase())
         );
-        // If customer had NO invoices in this financial year in Oracle DB
+
         if (!realCustInFY) {
+          const getBaseGroupName = (name) => String(name || '').toLowerCase()
+            .replace(/[\(\[\{].*?[\)\]\}]/g, ' ')
+            .replace(/-(up|hr|dl|mh|tn|punjab|karnataka|bihar|mumbai|delhi|sahibabad|rampur|barabanki|aligarh|nuh|kerala|import|imp|exp).*$/g, ' ')
+            .replace(/[^a-z0-9]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          const targetBase = getBaseGroupName(customerEntry.customerName);
+          groupMatches = realOracleFYData.fyCustomers[canonFY].filter(c => {
+            const b = getBaseGroupName(c.customerName);
+            return (b.length > 3 && (b === targetBase || b.includes(targetBase) || targetBase.includes(b)));
+          });
+        }
+
+        // If customer & sister units had NO invoices in this financial year in Oracle DB
+        if (!realCustInFY && groupMatches.length === 0) {
           return [];
         }
 
-        // If real terminals exist for this customer in this FY from Oracle DB
-        if (Array.isArray(realCustInFY.terminals) && realCustInFY.terminals.length > 0) {
-          let termList = realCustInFY.terminals;
+        // If real terminals exist for this customer or group in this FY from Oracle DB
+        const sourceTerminals = realCustInFY?.terminals || groupMatches.flatMap(c => c.terminals || []);
+        if (Array.isArray(sourceTerminals) && sourceTerminals.length > 0) {
+          let termList = sourceTerminals;
           if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
             const targetTermLower = String(selectedTerminal).toLowerCase().trim();
             termList = termList.filter(t => 

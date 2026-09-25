@@ -423,14 +423,41 @@ export default function App() {
       }
     }
 
-    // 2. Filter by Customer
+    // 2. Filter by Customer with Corporate Group / Base Entity Intelligence
     if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') {
       const sCust = String(selectedCustomer).toLowerCase().trim();
-      result = result.filter(c => 
+      
+      // Direct / exact customer match
+      let custMatches = result.filter(c => 
         String(c.customerId).toLowerCase() === sCust ||
+        (c.customerName || '').toLowerCase() === sCust ||
         (c.customerName || '').toLowerCase().includes(sCust) ||
         sCust.includes((c.customerName || '').toLowerCase())
       );
+
+      // If direct match has 0 records in current scope (e.g. FAIR (UP) in FY 2026-27),
+      // seamlessly roll up all sister accounts under the same Corporate Parent Group
+      if (custMatches.length === 0) {
+        const getBaseGroupName = (name) => {
+          return String(name || '')
+            .toLowerCase()
+            .replace(/[\(\[\{].*?[\)\]\}]/g, ' ')
+            .replace(/-(up|hr|dl|mh|tn|punjab|karnataka|bihar|mumbai|delhi|sahibabad|rampur|barabanki|aligarh|nuh|kerala|import|imp|exp).*$/g, ' ')
+            .replace(/[^a-z0-9]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        };
+
+        const targetBase = getBaseGroupName(selectedCustomer);
+        if (targetBase.length > 3) {
+          custMatches = result.filter(c => {
+            const candBase = getBaseGroupName(c.customerName);
+            return (candBase.length > 3 && (candBase === targetBase || candBase.includes(targetBase) || targetBase.includes(candBase)));
+          });
+        }
+      }
+
+      result = custMatches;
     }
 
     // 3. Filter by Terminal
