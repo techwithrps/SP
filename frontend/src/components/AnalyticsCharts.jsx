@@ -32,6 +32,7 @@ import YoYAnalyticsSection from './analytics/YoYAnalyticsSection';
 import ExecutiveDecisionBI from './analytics/ExecutiveDecisionBI';
 import { CustomerLeaderboardTable, ServiceCatalogTable } from './analytics/CustomerServiceLeaderboard';
 import KPICards from './KPICards';
+import realOracleFYData from '../data/realOracleFYData.json';
 
 export default function AnalyticsCharts({
   selectedCompany = 'ALL',
@@ -218,10 +219,45 @@ export default function AnalyticsCharts({
     return { revRatio: 1.0, invRatio: 1.0, contRatio: 1.0 };
   };
 
-  // Context-aware & FY-Synchronized Top Customers (Auto-arranged & ranked for any selected FY, Company, or Terminal)
+  const getCanonicalFY = (fy) => {
+    if (!fy || fy === 'ALL' || fy === 'all' || fy === 'All Financial Years') return null;
+    const s = String(fy).trim();
+    if (s.includes('2026-27') || s.includes('2026-2027') || s.includes('26-27')) return '2026-2027';
+    if (s.includes('2025-26') || s.includes('2025-2026') || s.includes('25-26')) return '2025-2026';
+    if (s.includes('2024-25') || s.includes('2024-2025') || s.includes('24-25')) return '2024-2025';
+    if (s.includes('2023-24') || s.includes('2023-2024') || s.includes('23-24')) return '2023-2024';
+    if (s.includes('2022-23') || s.includes('2022-2023') || s.includes('22-23')) return '2022-2023';
+    if (s.includes('2021-22') || s.includes('2021-2022') || s.includes('21-22')) return '2021-2022';
+    if (s.includes('2020-21') || s.includes('2020-2021') || s.includes('20-21')) return '2020-2021';
+    return s;
+  };
+
+  // Context-aware & FY-Synchronized Top Customers (100% REAL Oracle SPJLIVE Data per FY)
   const topCustomers = useMemo(() => {
+    const canonFY = getCanonicalFY(selectedFY);
+
     // 1. If single customer selected
     if (customerEntry) {
+      if (canonFY && realOracleFYData?.fyCustomers?.[canonFY]) {
+        const cMatch = realOracleFYData.fyCustomers[canonFY].find(c => 
+          (c.customerName || '').toLowerCase().includes(customerEntry.customerName.toLowerCase()) ||
+          customerEntry.customerName.toLowerCase().includes((c.customerName || '').toLowerCase())
+        );
+        if (cMatch) {
+          return [{
+            name: cMatch.customerName,
+            customerName: cMatch.customerName,
+            grossRevenue: cMatch.grossRevenue,
+            totalRevenue: cMatch.grossRevenue,
+            billAmount: cMatch.baseAmount,
+            taxAmount: cMatch.taxAmount,
+            invoiceCount: cMatch.invoiceCount,
+            containerCount: cMatch.containerCount,
+            terminalCount: customerEntry.terminalCount || 1,
+            share: 100
+          }];
+        }
+      }
       const factors = getFyFactors(selectedTerminal !== 'ALL' ? selectedTerminal : '1', selectedFY);
       const gross = Math.round(Number(customerEntry.totalRevenue || 0) * factors.revRatio * 100) / 100;
       const invs = Math.round(Number(customerEntry.totalInvoices || 0) * factors.invRatio);
@@ -240,161 +276,58 @@ export default function AnalyticsCharts({
       }];
     }
 
-    // FY-specific growth index multipliers for enterprise accounts across fiscal years
-    const fyCustomerWeights = {
-      'FY 2026-27': {
-        'IFF INDIA FROZEN FOODS PRIVATE LIMITED': 1.45,
-        'HMA AGRO INDUSTRIES LTD': 1.38,
-        'AL AMMAR FROZEN FOOD EXPORTS PVT LTD': 1.25,
-        'FAIR EXPORTS (INDIA) PVT LTD-(UP)': 0.95,
-        'MARHABA FROZEN FOODS': 1.05,
-        'AL-NASIR EXPORTS PVT LTD (U.P)': 1.18,
-        'INTERNATIONAL AGRO FOODS': 1.12,
-        'JH LOGISTICS PRIVATE LIMITED-DL': 1.20,
-        'RUSTAM FOODS PVT.LTD.': 0.92,
-        'JH LOGISTICS PRIVATE LIMITED': 1.15
-      },
-      'FY 2025-26': {
-        'FAIR EXPORTS (INDIA) PVT LTD-(UP)': 1.35,
-        'IFF INDIA FROZEN FOODS PRIVATE LIMITED': 1.22,
-        'RUSTAM FOODS PVT.LTD.': 1.28,
-        'MARHABA FROZEN FOODS': 1.15,
-        'AL AMMAR FROZEN FOOD EXPORTS PVT LTD': 1.10,
-        'JH LOGISTICS PRIVATE LIMITED-DL': 1.18,
-        'HMA AGRO INDUSTRIES LTD': 1.08,
-        'AL-NASIR EXPORTS PVT LTD (U.P)': 1.02,
-        'INTERNATIONAL AGRO FOODS': 0.98,
-        'JH LOGISTICS PRIVATE LIMITED': 1.05
-      },
-      'FY 2024-25': {
-        'MARHABA FROZEN FOODS': 1.42,
-        'FAIR EXPORTS (INDIA) PVT LTD-(UP)': 1.20,
-        'AL-NASIR EXPORTS PVT LTD (U.P)': 1.30,
-        'IFF INDIA FROZEN FOODS PRIVATE LIMITED': 1.05,
-        'INTERNATIONAL AGRO FOODS': 1.22,
-        'RUSTAM FOODS PVT.LTD.': 1.10,
-        'AL AMMAR FROZEN FOOD EXPORTS PVT LTD': 0.95,
-        'HMA AGRO INDUSTRIES LTD': 0.92,
-        'JH LOGISTICS PRIVATE LIMITED': 1.15,
-        'JH LOGISTICS PRIVATE LIMITED-DL': 0.90
-      },
-      'FY 2023-24': {
-        'RUSTAM FOODS PVT.LTD.': 1.40,
-        'FAIR EXPORTS (INDIA) PVT LTD-(UP)': 1.15,
-        'MARHABA FROZEN FOODS': 1.20,
-        'JH LOGISTICS PRIVATE LIMITED': 1.32,
-        'INTERNATIONAL AGRO FOODS': 1.18,
-        'IFF INDIA FROZEN FOODS PRIVATE LIMITED': 0.88,
-        'AL-NASIR EXPORTS PVT LTD (U.P)': 1.12,
-        'AL AMMAR FROZEN FOOD EXPORTS PVT LTD': 1.02,
-        'HMA AGRO INDUSTRIES LTD': 0.85,
-        'JH LOGISTICS PRIVATE LIMITED-DL': 0.82
-      },
-      'FY 2022-23 & Earlier': {
-        'INTERNATIONAL AGRO FOODS': 1.38,
-        'FAIR EXPORTS (INDIA) PVT LTD-(UP)': 1.25,
-        'JH LOGISTICS PRIVATE LIMITED': 1.28,
-        'AL AMMAR FROZEN FOOD EXPORTS PVT LTD': 1.20,
-        'RUSTAM FOODS PVT.LTD.': 1.15,
-        'MARHABA FROZEN FOODS': 1.00,
-        'AL-NASIR EXPORTS PVT LTD (U.P)': 0.95,
-        'IFF INDIA FROZEN FOODS PRIVATE LIMITED': 0.75,
-        'HMA AGRO INDUSTRIES LTD': 0.80,
-        'JH LOGISTICS PRIVATE LIMITED-DL': 0.70
-      }
-    };
+    // 2. Real Oracle DB FY Dataset for selected FY
+    if (canonFY && realOracleFYData?.fyCustomers?.[canonFY] && realOracleFYData.fyCustomers[canonFY].length > 0) {
+      let fyList = realOracleFYData.fyCustomers[canonFY];
 
-    // 2. If company selected
-    if (activeCompId && companyCustomers[activeCompId] && companyCustomers[activeCompId].length > 0) {
-      return companyCustomers[activeCompId].map(c => {
-        const cName = c.name || c.customerName;
-        let gross = Number(c.totalAmount || c.grossRevenue || 0);
-        let invs = Number(c.invoiceCount || 0);
-
-        if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-          const fySummary = fySummaries[selectedFY];
-          const allGross = Number(dbTotals?.grossSale || 38536446342.31);
-          const baseRatio = (fySummary && allGross > 0) ? (Number(fySummary.grossSale || fySummary.netRevenue || 0) / allGross) : 0.138;
-          const weight = (fyCustomerWeights[selectedFY] && fyCustomerWeights[selectedFY][cName]) || 1.0;
-          gross = Math.round(gross * baseRatio * weight * 100) / 100;
-          invs = Math.max(1, Math.round(invs * baseRatio * weight));
-        }
-
-        const bill = Math.round((gross / 1.18) * 100) / 100;
-        const tax = Math.round((gross - bill) * 100) / 100;
-        return {
-          name: cName,
-          customerName: cName,
-          grossRevenue: gross,
-          totalRevenue: gross,
-          billAmount: bill,
-          taxAmount: tax,
-          invoiceCount: invs,
-          city: c.city || ''
-        };
-      }).sort((a, b) => b.grossRevenue - a.grossRevenue);
-    }
-
-    // 3. If a specific terminal is selected -> filter customers of that terminal with FY scaling
-    if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-      const sTerm = String(selectedTerminal).toLowerCase().trim();
-      const matchedCusts = [];
-
-      (customerTerminalMatrix || []).forEach(c => {
-        const hasTerm = (c.terminals || []).find(t => 
-          String(t.terminalId).toLowerCase() === sTerm || 
-          (t.terminalName && t.terminalName.toLowerCase().includes(sTerm))
+      // If company selected, filter company's customers
+      if (activeCompId && companyCustomers[activeCompId] && companyCustomers[activeCompId].length > 0) {
+        const compCustNames = new Set(companyCustomers[activeCompId].map(c => (c.name || c.customerName || '').toLowerCase().trim()));
+        fyList = fyList.filter(c => compCustNames.has((c.customerName || '').toLowerCase().trim()) || 
+          Array.from(compCustNames).some(ccn => ccn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(ccn))
         );
-        if (hasTerm) {
-          const cName = c.customerName;
-          const factors = getFyFactors(hasTerm.terminalId, selectedFY);
-          const weight = (selectedFY && fyCustomerWeights[selectedFY] && fyCustomerWeights[selectedFY][cName]) || 1.0;
-          const gross = Math.round(Number(hasTerm.netRevenue || hasTerm.totalAmount || 0) * factors.revRatio * weight * 100) / 100;
-          const invs = Math.max(1, Math.round(Number(hasTerm.invoiceCount || 0) * factors.invRatio * weight));
-          const bill = Math.round((gross / 1.18) * 100) / 100;
-          const tax = Math.round((gross - bill) * 100) / 100;
-
-          matchedCusts.push({
-            name: cName,
-            customerName: cName,
-            grossRevenue: gross,
-            totalRevenue: gross,
-            billAmount: bill,
-            taxAmount: tax,
-            invoiceCount: invs,
-            terminalCount: 1
-          });
-        }
-      });
-
-      if (matchedCusts.length > 0) {
-        return matchedCusts.sort((a, b) => b.grossRevenue - a.grossRevenue);
       }
+
+      // If terminal selected, filter terminal's customers
+      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+        const sTerm = String(selectedTerminal).toLowerCase().trim();
+        const termCusts = new Set();
+        (customerTerminalMatrix || []).forEach(c => {
+          if ((c.terminals || []).some(t => String(t.terminalId).toLowerCase() === sTerm || (t.terminalName && t.terminalName.toLowerCase().includes(sTerm)))) {
+            termCusts.add(c.customerName.toLowerCase().trim());
+          }
+        });
+        if (termCusts.size > 0) {
+          fyList = fyList.filter(c => termCusts.has((c.customerName || '').toLowerCase().trim()) ||
+            Array.from(termCusts).some(tcn => tcn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(tcn))
+          );
+        }
+      }
+
+      return fyList.map(c => ({
+        name: c.customerName,
+        customerName: c.customerName,
+        grossRevenue: c.grossRevenue,
+        totalRevenue: c.grossRevenue,
+        billAmount: c.baseAmount,
+        taxAmount: c.taxAmount,
+        invoiceCount: c.invoiceCount,
+        containerCount: c.containerCount,
+        city: ''
+      })).sort((a, b) => b.grossRevenue - a.grossRevenue);
     }
 
-    // 4. Primary Data Warehouse / Audited Live Customer Analytics with FY factor & dynamic auto-ranking
+    // 3. Fallback to All-Time Master Leaderboard
     let list = rawTopCustomers;
     if (!list || list.length === 0) {
       list = (customerTerminalMatrix || []);
     }
-
     return list.map(c => {
-      const cName = c.customerName || c.name;
-      let gross = Number(c.grossRevenue || c.totalRevenue || c.totalAmount || 0);
-      let invs = Number(c.invoiceCount || 0);
-
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-        const fySummary = fySummaries[selectedFY];
-        const allGross = Number(dbTotals?.grossSale || 38536446342.31);
-        const baseRatio = (fySummary && allGross > 0) ? (Number(fySummary.grossSale || fySummary.netRevenue || 0) / allGross) : 0.138;
-        const weight = (fyCustomerWeights[selectedFY] && fyCustomerWeights[selectedFY][cName]) || 1.0;
-        gross = Math.round(gross * baseRatio * weight * 100) / 100;
-        invs = Math.max(1, Math.round(invs * baseRatio * weight));
-      }
-
-      const bill = Math.round((gross / 1.18) * 100) / 100;
-      const tax = Math.round((gross - bill) * 100) / 100;
-
+      const cName = c.name || c.customerName;
+      const gross = Number(c.grossRevenue || c.totalRevenue || c.totalAmount || 0);
+      const invs = Number(c.invoiceCount || c.totalInvoices || 0);
+      const bill = c.baseAmount ? Number(c.baseAmount) : Math.round((gross / 1.18) * 100) / 100;
+      const tax = c.taxAmount ? Number(c.taxAmount) : Math.round((gross - bill) * 100) / 100;
       return {
         name: cName,
         customerName: cName,
@@ -403,11 +336,10 @@ export default function AnalyticsCharts({
         billAmount: bill,
         taxAmount: tax,
         invoiceCount: invs,
-        terminalCount: c.terminalCount || 1,
         city: c.city || ''
       };
     }).sort((a, b) => b.grossRevenue - a.grossRevenue);
-  }, [customerEntry, activeCompId, companyCustomers, selectedTerminal, customerTerminalMatrix, rawTopCustomers, selectedFY, fySummaries, dbTotals, terminals, terminalFyMatrix]);
+  }, [customerEntry, activeCompId, companyCustomers, selectedTerminal, customerTerminalMatrix, rawTopCustomers, selectedFY, terminals, terminalFyMatrix]);
 
   // 1. DYNAMIC CASCADING TERMINAL MATRIX (Level 1: Company -> Level 2: Customer -> Level 3: Terminal -> Level 4: FY)
   const displayTerminals = useMemo(() => {
