@@ -14,10 +14,25 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
+import realOracleFYData from '../data/realOracleFYData.json';
+
+function getCanonicalFY(fy) {
+  if (!fy || fy === 'ALL' || fy === 'all' || fy === 'All Financial Years') return null;
+  const s = String(fy).trim();
+  if (s.includes('2026-27') || s.includes('2026-2027') || s.includes('26-27')) return '2026-2027';
+  if (s.includes('2025-26') || s.includes('2025-2026') || s.includes('25-26')) return '2025-2026';
+  if (s.includes('2024-25') || s.includes('2024-2025') || s.includes('24-25')) return '2024-2025';
+  if (s.includes('2023-24') || s.includes('2023-2024') || s.includes('23-24')) return '2023-2024';
+  if (s.includes('2022-23') || s.includes('2022-2023') || s.includes('22-23')) return '2022-2023';
+  if (s.includes('2021-22') || s.includes('2021-2022') || s.includes('21-22')) return '2021-2022';
+  if (s.includes('2020-21') || s.includes('2020-2021') || s.includes('20-21')) return '2020-2021';
+  return s;
+}
+
 function formatCurrency(val) {
   const num = Number(val) || 0;
   if (Math.abs(num) >= 10000000) return `₹ ${(num / 10000000).toFixed(2)} Cr`;
-  if (Math.abs(num) >= 100000) return `₹ ${(num / 100000).toFixed(2)} Lakh`;
+  if (Math.abs(num) >= 100000) return `₹ ${(num / 100000).toFixed(2)} L`;
   return `₹ ${num.toLocaleString('en-IN')}`;
 }
 
@@ -111,102 +126,111 @@ export default function GlobalFilterBar({
   const selectedCompanyObj = useMemo(() => resolveCompany(selectedCompany), [selectedCompany, companyList]);
   const activeCompId = selectedCompanyObj ? String(selectedCompanyObj.id || selectedCompanyObj.companyId) : null;
 
-  // STRICT CASCADING CUSTOMERS: Filtered exclusively to selectedCompany
+  // STRICT CASCADING CUSTOMERS: Filtered by selectedCompany & selectedFY, Sorted Alphabetically (A-Z)
   const availableCustomers = useMemo(() => {
-    // A) If a company is selected: ONLY show customers belonging to this company
-    if (activeCompId) {
-      // 1. From backend companyCustomers map if available
-      if (companyCustomers && companyCustomers[activeCompId] && companyCustomers[activeCompId].length > 0) {
-        return companyCustomers[activeCompId].map(c => {
-          const matrixMatch = (customerTerminalMatrix || []).find(m => 
-            String(m.companyId) === activeCompId && 
-            (String(m.customerId) === String(c.id) || (m.customerName && c.name && m.customerName.toLowerCase() === c.name.toLowerCase()))
-          );
-          return {
-            id: c.id,
-            customerId: c.id,
-            name: c.name,
-            customerName: c.name,
-            code: c.code || '',
-            city: c.city || '',
-            invoiceCount: matrixMatch ? matrixMatch.totalInvoices : (c.invoiceCount || 0),
-            terminalCount: matrixMatch ? matrixMatch.terminalCount : (c.terminalCount || 1),
-            terminals: matrixMatch ? matrixMatch.terminals : [],
-            netRevenue: matrixMatch ? matrixMatch.totalRevenue : (c.totalAmount || 0)
-          };
-        }).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
-      }
+    const canonFY = getCanonicalFY(selectedFY);
+    const fyKeys = canonFY ? [canonFY] : Object.keys(realOracleFYData?.fyCustomers || {});
 
-      // 2. From customerTerminalMatrix filtered by this companyId
-      const matrixMatchList = (customerTerminalMatrix || []).filter(c => 
-        String(c.companyId) === activeCompId || 
-        String(c.companyId) === String(selectedCompanyObj?.code)
-      );
-      if (matrixMatchList.length > 0) {
-        return matrixMatchList.map(c => ({
-          id: c.customerId,
-          customerId: c.customerId,
-          name: c.customerName,
-          customerName: c.customerName,
-          code: '',
-          city: '',
-          invoiceCount: c.totalInvoices || 0,
-          terminalCount: c.terminalCount || (c.terminals?.length || 1),
-          terminals: c.terminals || [],
-          netRevenue: c.totalRevenue || 0
-        })).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
-      }
-      return [];
-    }
+    // 1. Gather all active customers with metrics in the selected FY(s) from Oracle DB
+    const custMap = new Map();
 
-    // B) If ALL companies are selected: Show deduplicated active clients across all entities
-    if (customerTerminalMatrix && customerTerminalMatrix.length > 0) {
-      const dedupMap = {};
-      customerTerminalMatrix.forEach(c => {
-        const key = (c.customerName || c.name || '').trim().toLowerCase();
+    fyKeys.forEach(fy => {
+      const list = realOracleFYData?.fyCustomers?.[fy] || [];
+      list.forEach(c => {
+        const key = (c.customerName || '').trim().toLowerCase();
         if (!key) return;
-        if (!dedupMap[key]) {
-          dedupMap[key] = {
+
+        if (!custMap.has(key)) {
+          custMap.set(key, {
             id: c.customerId,
             customerId: c.customerId,
-            name: c.customerName || c.name,
-            customerName: c.customerName || c.name,
-            code: c.code || '',
-            city: c.city || '',
+            name: c.customerName,
+            customerName: c.customerName,
+            code: c.customerCode || '',
+            city: '',
             invoiceCount: 0,
+            containerCount: 0,
+            grossRevenue: 0,
             netRevenue: 0,
             terminalsMap: {}
-          };
+          });
         }
-        dedupMap[key].invoiceCount += Number(c.totalInvoices || 0);
-        dedupMap[key].netRevenue += Number(c.totalRevenue || 0);
+
+        const entry = custMap.get(key);
+        entry.invoiceCount += (c.invoiceCount || 0);
+        entry.containerCount += (c.containerCount || 0);
+        entry.grossRevenue += (c.grossRevenue || 0);
+        entry.netRevenue += (c.grossRevenue || 0);
+
         (c.terminals || []).forEach(t => {
           const tId = String(t.terminalId);
-          if (!dedupMap[key].terminalsMap[tId]) {
-            dedupMap[key].terminalsMap[tId] = t;
+          if (!entry.terminalsMap[tId]) {
+            entry.terminalsMap[tId] = t;
           }
         });
       });
+    });
 
-      return Object.values(dedupMap).map(c => ({
-        id: c.customerId,
-        customerId: c.customerId,
-        name: c.customerName,
-        customerName: c.customerName,
-        code: c.code,
-        city: c.city,
-        invoiceCount: c.invoiceCount,
-        terminalCount: Object.keys(c.terminalsMap).length,
-        terminals: Object.values(c.terminalsMap),
-        netRevenue: Math.round(c.netRevenue * 100) / 100
-      })).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
+    // 2. Also incorporate registered master accounts that might have 0 invoices in this specific FY
+    (customerTerminalMatrix || []).forEach(c => {
+      const key = (c.customerName || c.name || '').trim().toLowerCase();
+      if (!key) return;
+
+      if (!custMap.has(key)) {
+        custMap.set(key, {
+          id: c.customerId,
+          customerId: c.customerId,
+          name: c.customerName || c.name,
+          customerName: c.customerName || c.name,
+          code: c.code || '',
+          city: c.city || '',
+          invoiceCount: 0,
+          containerCount: 0,
+          grossRevenue: 0,
+          netRevenue: 0,
+          terminalsMap: {}
+        });
+      }
+      const entry = custMap.get(key);
+      (c.terminals || []).forEach(t => {
+        const tId = String(t.terminalId);
+        if (!entry.terminalsMap[tId]) {
+          entry.terminalsMap[tId] = t;
+        }
+      });
+    });
+
+    let result = Array.from(custMap.values()).map(c => ({
+      ...c,
+      terminalCount: Object.keys(c.terminalsMap).length || 1,
+      terminals: Object.values(c.terminalsMap),
+      grossRevenue: Math.round(c.grossRevenue * 100) / 100,
+      netRevenue: Math.round(c.netRevenue * 100) / 100
+    }));
+
+    // 3. Filter by selected company if applicable
+    if (activeCompId) {
+      if (companyCustomers && companyCustomers[activeCompId] && companyCustomers[activeCompId].length > 0) {
+        const compNames = new Set(companyCustomers[activeCompId].map(c => (c.name || c.customerName || '').toLowerCase().trim()));
+        result = result.filter(c => 
+          compNames.has((c.customerName || '').toLowerCase().trim()) ||
+          Array.from(compNames).some(cn => cn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(cn))
+        );
+      } else {
+        const compMatrixCusts = (customerTerminalMatrix || []).filter(c => String(c.companyId) === activeCompId);
+        if (compMatrixCusts.length > 0) {
+          const compNames = new Set(compMatrixCusts.map(c => (c.customerName || '').toLowerCase().trim()));
+          result = result.filter(c => 
+            compNames.has((c.customerName || '').toLowerCase().trim()) ||
+            Array.from(compNames).some(cn => cn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(cn))
+          );
+        }
+      }
     }
 
-    if (topCustomers && topCustomers.length > 0) {
-      return topCustomers.slice(0, 100);
-    }
-    return (customers || []).slice(0, 200);
-  }, [activeCompId, selectedCompanyObj, companyCustomers, customerTerminalMatrix, topCustomers, customers]);
+    // 4. Sort ALPHABETICALLY (A to Z) by customerName
+    return result.sort((a, b) => (a.customerName || '').localeCompare(b.customerName || ''));
+  }, [activeCompId, selectedCompanyObj, companyCustomers, customerTerminalMatrix, selectedFY]);
 
   // Look up selected customer's matrix details
   const customerMatrixEntry = useMemo(() => {
@@ -564,15 +588,23 @@ export default function GlobalFilterBar({
                   </option>
                   
                   {availableCustomers.length > 0 ? (
-                    <optgroup label={selectedCompanyObj ? `── 🏢 Customers of ${selectedCompanyObj.name} (${availableCustomers.length}) ──` : `── 🟢 Active Customers with Branch Coverage ──`}>
+                    <optgroup label={selectedCompanyObj ? `── 🏢 Customers of ${selectedCompanyObj.name} (A-Z) ──` : `── 👥 All Customers (A-Z | ${selectedFY === 'ALL' || selectedFY === 'all' ? 'All Financial Years' : selectedFY}) ──`}>
                       {availableCustomers.map(c => {
                         const val = c.customerId || c.id || c.customerName || c.name;
                         const name = c.customerName || c.name;
-                        const branches = c.terminalCount ? ` (${c.terminalCount} Hubs)` : '';
-                        const bills = c.invoiceCount ? ` [${formatNumber(c.invoiceCount)} Invoices]` : '';
+                        const branches = c.terminalCount > 1 ? ` (${c.terminalCount} Hubs)` : '';
+                        const hasActivity = (c.invoiceCount || 0) > 0;
+                        const metrics = hasActivity 
+                          ? ` [${formatNumber(c.invoiceCount)} Invs | ${formatCurrency(c.grossRevenue || c.netRevenue)}]`
+                          : (selectedFY !== 'ALL' && selectedFY !== 'all' ? ` [0 Invs in ${selectedFY}]` : ` [0 Invoices]`);
+                        
                         return (
-                          <option key={val} value={String(val)}>
-                            🟢 {name}{branches}{bills}
+                          <option 
+                            key={val} 
+                            value={String(val)}
+                            className={hasActivity ? 'font-semibold text-slate-900' : 'text-slate-400 font-normal'}
+                          >
+                            {hasActivity ? '🟢' : '⚪'} {name}{branches}{metrics}
                           </option>
                         );
                       })}
