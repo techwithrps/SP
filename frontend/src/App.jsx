@@ -97,6 +97,19 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+function getCanonicalFY(fy) {
+  if (!fy || fy === 'ALL' || fy === 'all' || fy === 'All Financial Years') return null;
+  const s = String(fy).trim();
+  if (s.includes('2026-27') || s.includes('2026-2027') || s.includes('26-27')) return '2026-2027';
+  if (s.includes('2025-26') || s.includes('2025-2026') || s.includes('25-26')) return '2025-2026';
+  if (s.includes('2024-25') || s.includes('2024-2025') || s.includes('24-25')) return '2024-2025';
+  if (s.includes('2023-24') || s.includes('2023-2024') || s.includes('23-24')) return '2023-2024';
+  if (s.includes('2022-23') || s.includes('2022-2023') || s.includes('22-23')) return '2022-2023';
+  if (s.includes('2021-22') || s.includes('2021-2022') || s.includes('21-22')) return '2021-2022';
+  if (s.includes('2020-21') || s.includes('2020-2021') || s.includes('20-21')) return '2020-2021';
+  return s;
+}
+
 export default function App() {
   // Authentication State
   const [authToken, setAuthToken] = useState(() => getAuthToken() || null);
@@ -644,19 +657,6 @@ export default function App() {
       };
     }).sort((a, b) => (Number(b.grossSale || 0) - Number(a.grossSale || 0)));
   }, [allTerminals, masters, selectedCompany, selectedTerminal, selectedFY, getAppFyFactors]);
-
-  const getCanonicalFY = (fy) => {
-    if (!fy || fy === 'ALL' || fy === 'all' || fy === 'All Financial Years') return null;
-    const s = String(fy).trim();
-    if (s.includes('2026-27') || s.includes('2026-2027') || s.includes('26-27')) return '2026-2027';
-    if (s.includes('2025-26') || s.includes('2025-2026') || s.includes('25-26')) return '2025-2026';
-    if (s.includes('2024-25') || s.includes('2024-2025') || s.includes('24-25')) return '2024-2025';
-    if (s.includes('2023-24') || s.includes('2023-2024') || s.includes('23-24')) return '2023-2024';
-    if (s.includes('2022-23') || s.includes('2022-2023') || s.includes('22-23')) return '2022-2023';
-    if (s.includes('2021-22') || s.includes('2021-2022') || s.includes('21-22')) return '2021-2022';
-    if (s.includes('2020-21') || s.includes('2020-2021') || s.includes('20-21')) return '2020-2021';
-    return s;
-  };
 
   const activeSalesCustomers = useMemo(() => {
     const canonFY = getCanonicalFY(selectedFY);
