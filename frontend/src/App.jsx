@@ -130,8 +130,26 @@ export default function App() {
 
   // Global State for Company, Customer, Terminal and Financial Year across all tabs
   const [selectedCompany, setSelectedCompany] = useState('ALL');
-  const [selectedCustomer, setSelectedCustomer] = useState('ALL');
-  const [selectedTerminal, setSelectedTerminal] = useState('ALL');
+  const [selectedCustomer, setSelectedCustomer] = useState(() => {
+    try {
+      const saved = localStorage.getItem('spj_auth_user');
+      const u = saved ? JSON.parse(saved) : null;
+      if (u?.tenantScope?.type === 'CUSTOMER') {
+        return u.tenantScope.customerName || u.tenantScope.customerId;
+      }
+    } catch {}
+    return 'ALL';
+  });
+  const [selectedTerminal, setSelectedTerminal] = useState(() => {
+    try {
+      const saved = localStorage.getItem('spj_auth_user');
+      const u = saved ? JSON.parse(saved) : null;
+      if (u?.tenantScope?.type === 'TERMINAL') {
+        return u.tenantScope.terminalId;
+      }
+    } catch {}
+    return 'ALL';
+  });
   const [selectedFY, setSelectedFY] = useState('ALL');
   const [allTerminals, setAllTerminals] = useState([]);
   const [terminalFyMatrix, setTerminalFyMatrix] = useState([]);
@@ -670,6 +688,22 @@ export default function App() {
         onLoginSuccess={(user, token) => {
           setAuthToken(token);
           setCurrentUser(user);
+          if (user?.tenantScope?.type === 'CUSTOMER') {
+            const custName = user.tenantScope.customerName || user.tenantScope.customerId;
+            setSelectedCustomer(custName);
+            setFilters(prev => ({
+              ...prev,
+              customerId: custName
+            }));
+          }
+          if (user?.tenantScope?.type === 'TERMINAL') {
+            const termId = user.tenantScope.terminalId;
+            setSelectedTerminal(termId);
+            setFilters(prev => ({
+              ...prev,
+              terminalId: termId
+            }));
+          }
         }}
       />
     );
