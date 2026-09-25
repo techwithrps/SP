@@ -15,6 +15,7 @@ import AnalyticsCharts from './components/AnalyticsCharts';
 import ContainerFleetView from './components/ContainerFleetView';
 import FleetView from './components/FleetView';
 import OperationsView from './components/OperationsView';
+import VesselSchedulesView from './components/VesselSchedulesView';
 import DualSalesLeaderboard from './components/analytics/DualSalesLeaderboard';
 import realOracleFYData from './data/realOracleFYData.json';
 
@@ -924,6 +925,13 @@ export default function App() {
                   terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
                   financialYears={financialYears}
                 />
+              </div>
+            )}
+
+            {/* Tab 3.5: Vessel Schedules & Marine Radar */}
+            {activeTab === 'vessels' && (
+              <div className="space-y-6 animate-fade-in">
+                <VesselSchedulesView />
               </div>
             )}
 
