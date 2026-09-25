@@ -192,6 +192,32 @@ export default function AnalyticsCharts({
     };
   }, [selectedCustomer, activeCompId, customerTerminalMatrix]);
 
+  // Factor calculator for selected Financial Year (Declared BEFORE topCustomers to prevent TDZ error)
+  const getFyFactors = (terminalId, targetFY) => {
+    if (!targetFY || targetFY === 'ALL' || targetFY === 'all') {
+      return { revRatio: 1.0, invRatio: 1.0, contRatio: 1.0 };
+    }
+    const tFyCell = (terminalFyMatrix || []).find(x => String(x.terminalId) === String(terminalId) && x.fy === targetFY);
+    const fullTerm = (terminals || []).find(ft => String(ft.terminalId || ft.id) === String(terminalId));
+    const fullTermGross = Number(fullTerm?.grossSale || fullTerm?.netRevenue || 0);
+
+    if (tFyCell && fullTermGross > 0) {
+      const revRatio = Number(tFyCell.grossSale || tFyCell.netRevenue || 0) / fullTermGross;
+      const invRatio = fullTerm.invoiceCount > 0 ? Number(tFyCell.invoiceCount || 0) / fullTerm.invoiceCount : revRatio;
+      const contRatio = fullTerm.totalContainers > 0 ? Number(tFyCell.totalContainers || 0) / fullTerm.totalContainers : revRatio;
+      return { revRatio, invRatio, contRatio };
+    }
+
+    if (fySummaries && fySummaries[targetFY]) {
+      const fyGross = Number(fySummaries[targetFY].grossSale || fySummaries[targetFY].netRevenue || 0);
+      const allGross = Number(dbTotals?.grossSale || 38536446342.31);
+      const ratio = allGross > 0 ? (fyGross / allGross) : 0.125;
+      return { revRatio: ratio, invRatio: ratio, contRatio: ratio };
+    }
+
+    return { revRatio: 1.0, invRatio: 1.0, contRatio: 1.0 };
+  };
+
   // Context-aware & FY-Synchronized Top Customers (Auto-arranged & ranked for any selected FY, Company, or Terminal)
   const topCustomers = useMemo(() => {
     // 1. If single customer selected
@@ -382,32 +408,6 @@ export default function AnalyticsCharts({
       };
     }).sort((a, b) => b.grossRevenue - a.grossRevenue);
   }, [customerEntry, activeCompId, companyCustomers, selectedTerminal, customerTerminalMatrix, rawTopCustomers, selectedFY, fySummaries, dbTotals, terminals, terminalFyMatrix]);
-
-  // Factor calculator for selected Financial Year
-  const getFyFactors = (terminalId, targetFY) => {
-    if (!targetFY || targetFY === 'ALL' || targetFY === 'all') {
-      return { revRatio: 1.0, invRatio: 1.0, contRatio: 1.0 };
-    }
-    const tFyCell = (terminalFyMatrix || []).find(x => String(x.terminalId) === String(terminalId) && x.fy === targetFY);
-    const fullTerm = (terminals || []).find(ft => String(ft.terminalId || ft.id) === String(terminalId));
-    const fullTermGross = Number(fullTerm?.grossSale || fullTerm?.netRevenue || 0);
-
-    if (tFyCell && fullTermGross > 0) {
-      const revRatio = Number(tFyCell.grossSale || tFyCell.netRevenue || 0) / fullTermGross;
-      const invRatio = fullTerm.invoiceCount > 0 ? Number(tFyCell.invoiceCount || 0) / fullTerm.invoiceCount : revRatio;
-      const contRatio = fullTerm.totalContainers > 0 ? Number(tFyCell.totalContainers || 0) / fullTerm.totalContainers : revRatio;
-      return { revRatio, invRatio, contRatio };
-    }
-
-    if (fySummaries && fySummaries[targetFY]) {
-      const fyGross = Number(fySummaries[targetFY].grossSale || fySummaries[targetFY].netRevenue || 0);
-      const allGross = Number(dbTotals?.grossSale || 38536446342.31);
-      const ratio = allGross > 0 ? (fyGross / allGross) : 0.125;
-      return { revRatio: ratio, invRatio: ratio, contRatio: ratio };
-    }
-
-    return { revRatio: 1.0, invRatio: 1.0, contRatio: 1.0 };
-  };
 
   // 1. DYNAMIC CASCADING TERMINAL MATRIX (Level 1: Company -> Level 2: Customer -> Level 3: Terminal -> Level 4: FY)
   const displayTerminals = useMemo(() => {
