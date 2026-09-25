@@ -377,6 +377,54 @@ export default function AnalyticsCharts({
         if (!realCustInFY) {
           return [];
         }
+
+        // If real terminals exist for this customer in this FY from Oracle DB
+        if (Array.isArray(realCustInFY.terminals) && realCustInFY.terminals.length > 0) {
+          let termList = realCustInFY.terminals;
+          if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+            const targetTermLower = String(selectedTerminal).toLowerCase().trim();
+            termList = termList.filter(t => 
+              String(t.terminalId).toLowerCase() === targetTermLower ||
+              (t.terminalName && String(t.terminalName).toLowerCase() === targetTermLower) ||
+              (t.terminalName && String(t.terminalName).toLowerCase().includes(targetTermLower))
+            );
+          }
+          if (searchTerminal) {
+            const q = searchTerminal.toLowerCase();
+            termList = termList.filter(t => (t.terminalName || '').toLowerCase().includes(q) || String(t.terminalId).includes(q));
+          }
+
+          return termList.map(t => {
+            const fullTerm = terminals.find(ft => String(ft.terminalId || ft.id) === String(t.terminalId));
+            const u40 = Math.round(t.containerCount * 0.9);
+            const u20 = t.containerCount - u40;
+            return {
+              terminalId: t.terminalId,
+              terminalName: t.terminalName || fullTerm?.terminalName || ('Terminal ' + t.terminalId),
+              terminalCode: fullTerm?.terminalCode || `T-${t.terminalId}`,
+              location: fullTerm?.location || 'India Logistics Hub',
+              invoiceCount: t.invoiceCount,
+              billAmount: t.baseAmount,
+              taxAmount: t.taxAmount,
+              grossSale: t.grossRevenue,
+              creditCount: 0,
+              creditAmount: 0,
+              netRevenue: t.grossRevenue,
+              displayJobs: t.invoiceCount,
+              displayContainers: t.containerCount,
+              displayTeus: (u20 * 1) + (u40 * 2),
+              display40ft: u40,
+              display20ft: u20
+            };
+          }).sort((a, b) => {
+            if (sortBy === 'terminalName') {
+              return sortOrder === 'asc' ? a.terminalName.localeCompare(b.terminalName) : b.terminalName.localeCompare(a.terminalName);
+            }
+            const valA = Number(a[sortBy]) || 0;
+            const valB = Number(b[sortBy]) || 0;
+            return sortOrder === 'asc' ? valA - valB : valB - valA;
+          });
+        }
       }
 
       const totalCustAllTimeGross = customerEntry.terminals.reduce((sum, t) => sum + Number(t.netRevenue || t.totalAmount || 0), 0) || 1;
@@ -389,14 +437,7 @@ export default function AnalyticsCharts({
         let bill = Math.round((gross / 1.18) * 100) / 100;
         let tax = Math.round((gross - bill) * 100) / 100;
 
-        if (realCustInFY) {
-          const termShare = Number(t.netRevenue || t.totalAmount || 0) / totalCustAllTimeGross;
-          gross = Math.round(realCustInFY.grossRevenue * termShare * 100) / 100;
-          invs = Math.max(1, Math.round(realCustInFY.invoiceCount * termShare));
-          conts = Math.max(0, Math.round(realCustInFY.containerCount * termShare));
-          bill = Math.round(realCustInFY.baseAmount * termShare * 100) / 100;
-          tax = Math.round(realCustInFY.taxAmount * termShare * 100) / 100;
-        } else if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
+        if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
           const factors = getFyFactors(t.terminalId, selectedFY);
           gross = Math.round(gross * factors.revRatio * 100) / 100;
           invs = Math.round(invs * factors.invRatio);

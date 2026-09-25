@@ -317,446 +317,290 @@ export default function App() {
     }
   }, [fetchCIRData, authToken, currentUser]);
 
-  // Dynamic Synchronized Sales KPIs across all cascading levels (Company -> Customer -> Terminal -> FY)
-  const activeSalesKPIs = useMemo(() => {
+  // Dynamic Real-Time Filter Calculation Engine across all 4 Cascading Levels (FY -> Company -> Customer -> Terminal)
+  const getFilteredCustomerData = useCallback(() => {
     const canonFY = getCanonicalFY(selectedFY);
+    const fyKeys = canonFY 
+      ? [canonFY] 
+      : Object.keys(realOracleFYData?.fyCustomers || {});
 
-    // 1. If customer selected
-    if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') {
-      const s = String(selectedCustomer).toLowerCase().trim();
-      
-      let realCustInFY = null;
-      if (canonFY && realOracleFYData?.fyCustomers?.[canonFY]) {
-        realCustInFY = realOracleFYData.fyCustomers[canonFY].find(c =>
-          (c.customerName || '').toLowerCase().includes(s) || s.includes((c.customerName || '').toLowerCase())
-        );
-      }
+    // Collect and aggregate all customer records across target financial years
+    const custMap = new Map();
 
-      const match = (masters.customerTerminalMatrix || []).find(c =>
-        String(c.customerId).toLowerCase() === s ||
-        (c.customerName && c.customerName.toLowerCase() === s) ||
-        (c.customerName && c.customerName.toLowerCase().includes(s))
-      );
+    fyKeys.forEach(fy => {
+      const list = realOracleFYData?.fyCustomers?.[fy] || [];
+      list.forEach(c => {
+        const key = (c.customerName || '').toLowerCase().trim();
+        if (!key) return;
 
-      // If customer has NO invoices in Oracle DB for chosen FY
-      if (canonFY && !realCustInFY && match) {
-        return {
-          grossRevenue: 0,
-          totalGrossAmount: 0,
-          netRevenue: 0,
-          totalBillAmount: 0,
-          taxableRevenue: 0,
-          totalTax: 0,
-          gstTax: 0,
-          totalCreditAmount: 0,
-          creditNotes: 0,
-          invoiceCount: 0,
-          containerCount: 0,
-          teuCount: 0,
-          totalRecords: 0,
-          customerWise: [{
-            customerId: match.customerId,
-            customerName: match.customerName,
+        if (!custMap.has(key)) {
+          custMap.set(key, {
+            customerId: c.customerId,
+            customerName: c.customerName,
+            customerCode: c.customerCode,
             invoiceCount: 0,
-            billAmount: 0,
+            jobCount: 0,
+            containerCount: 0,
+            units40ft: 0,
+            units20ft: 0,
+            teus: 0,
+            baseAmount: 0,
             taxAmount: 0,
-            grossAmount: 0,
-            terminalCount: match.terminals ? match.terminals.length : 1,
-            terminals: (match.terminals || []).map(t => t.terminalName)
-          }]
-        };
-      }
-
-      if (match && match.terminals) {
-        let list = match.terminals;
-        if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-          list = list.filter(t => String(t.terminalId) === String(selectedTerminal) || (t.terminalName && t.terminalName.toLowerCase().includes(String(selectedTerminal).toLowerCase())));
+            grossRevenue: 0,
+            terminalsMap: new Map()
+          });
         }
 
-        let gross = realCustInFY ? realCustInFY.grossRevenue : list.reduce((acc, t) => acc + (t.netRevenue || t.totalAmount || 0), 0);
-        let invs = realCustInFY ? realCustInFY.invoiceCount : list.reduce((acc, t) => acc + (t.invoiceCount || 0), 0);
-        let conts = realCustInFY ? realCustInFY.containerCount : list.reduce((acc, t) => acc + (t.totalContainers || (t.invoiceCount > 0 ? Math.round(t.invoiceCount * 1.14) : 0)), 0);
-        let bill = realCustInFY ? realCustInFY.baseAmount : Math.round((gross / 1.18) * 100) / 100;
-        let tax = realCustInFY ? realCustInFY.taxAmount : Math.round((gross - bill) * 100) / 100;
+        const entry = custMap.get(key);
+        entry.jobCount += (c.jobCount || 0);
 
-        return {
-          grossRevenue: gross,
-          totalGrossAmount: gross,
-          netRevenue: gross,
-          totalBillAmount: bill,
-          taxableRevenue: bill,
-          totalTax: tax,
-          gstTax: tax,
-          totalCreditAmount: 0,
-          creditNotes: 0,
-          invoiceCount: invs,
-          containerCount: conts,
-          teuCount: Math.round(conts * 1.9),
-          totalRecords: invs,
-          customerWise: [{
-            customerId: match.customerId,
-            customerName: match.customerName,
-            invoiceCount: invs,
-            billAmount: bill,
-            taxAmount: tax,
-            grossAmount: gross,
-            terminalCount: list.length,
-            terminals: list.map(t => t.terminalName)
-          }]
-        };
-      }
-    }
+        (c.terminals || []).forEach(t => {
+          const tKey = String(t.terminalId);
+          if (!entry.terminalsMap.has(tKey)) {
+            entry.terminalsMap.set(tKey, {
+              terminalId: t.terminalId,
+              terminalName: t.terminalName || ('Terminal ' + t.terminalId),
+              invoiceCount: 0,
+              containerCount: 0,
+              units40ft: 0,
+              units20ft: 0,
+              baseAmount: 0,
+              taxAmount: 0,
+              grossRevenue: 0
+            });
+          }
+          const tEntry = entry.terminalsMap.get(tKey);
+          tEntry.invoiceCount += (t.invoiceCount || 0);
+          tEntry.containerCount += (t.containerCount || 0);
+          tEntry.units40ft += (t.units40ft || (t.containerCount ? Math.round(t.containerCount * 0.9) : 0));
+          tEntry.units20ft += (t.units20ft || (t.containerCount ? t.containerCount - Math.round(t.containerCount * 0.9) : 0));
+          tEntry.baseAmount += (t.baseAmount || 0);
+          tEntry.taxAmount += (t.taxAmount || 0);
+          tEntry.grossRevenue += (t.grossRevenue || 0);
+        });
+      });
+    });
 
-    // 2. If company selected
+    // Convert map to customer list with aggregated totals
+    let result = Array.from(custMap.values()).map(c => {
+      const termList = Array.from(c.terminalsMap.values());
+      const invs = termList.reduce((s, t) => s + t.invoiceCount, 0);
+      const conts = termList.reduce((s, t) => s + t.containerCount, 0);
+      const u40 = termList.reduce((s, t) => s + t.units40ft, 0);
+      const u20 = termList.reduce((s, t) => s + t.units20ft, 0);
+      const base = termList.reduce((s, t) => s + t.baseAmount, 0);
+      const tax = termList.reduce((s, t) => s + t.taxAmount, 0);
+      const gross = termList.reduce((s, t) => s + t.grossRevenue, 0);
+
+      return {
+        ...c,
+        invoiceCount: invs,
+        containerCount: conts,
+        units40ft: u40,
+        units20ft: u20,
+        teus: (u20 * 1) + (u40 * 2),
+        baseAmount: base,
+        taxAmount: tax,
+        grossRevenue: gross,
+        terminals: termList
+      };
+    });
+
+    // 1. Filter by Company
     if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') {
       const s = String(selectedCompany).toUpperCase().trim();
       let compId = '3';
       if (s === '2' || s === 'SPJ') compId = '2';
       else if (s === '1' || s === 'SJ') compId = '1';
       else if (s === '5' || s === 'PJ') compId = '5';
-      else if (s === '4' || s === 'SPJ-MUM' || s.includes('MUM')) compId = '4';
+      else if (s === '4' || s.includes('MUM')) compId = '4';
 
-      const terms = (masters.companyTerminals || {})[compId] || [];
-      let list = terms;
-      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-        list = list.filter(t => String(t.terminalId) === String(selectedTerminal) || (t.terminalName && t.terminalName.toLowerCase().includes(String(selectedTerminal).toLowerCase())));
+      if (masters.companyCustomers && masters.companyCustomers[compId] && masters.companyCustomers[compId].length > 0) {
+        const compCustNames = new Set(masters.companyCustomers[compId].map(c => (c.name || c.customerName || '').toLowerCase().trim()));
+        result = result.filter(c => compCustNames.has((c.customerName || '').toLowerCase().trim()) ||
+          Array.from(compCustNames).some(ccn => ccn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(ccn))
+        );
       }
-      let gross = list.reduce((acc, t) => acc + (t.totalAmount || t.netRevenue || 0), 0);
-      let invs = list.reduce((acc, t) => acc + (t.invoiceCount || 0), 0);
-      let conts = Math.round(invs * 1.14);
-
-      let fyRatio = 1.0;
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-        const fyCell = (terminalFyMatrix || []).filter(m => m.fy === selectedFY);
-        const fySum = fyCell.reduce((acc, m) => acc + (m.grossSale || 0), 0);
-        const allSum = 38536360360.24;
-        fyRatio = allSum > 0 ? (fySum / allSum) : 0.125;
-        gross = Math.round(gross * fyRatio * 100) / 100;
-        invs = Math.round(invs * fyRatio);
-        conts = Math.round(conts * fyRatio);
-      }
-
-      const bill = Math.round((gross / 1.18) * 100) / 100;
-      const tax = Math.round((gross - bill) * 100) / 100;
-
-      // Extract and scale company clients
-      const companyMatrixClients = (masters.customerTerminalMatrix || []).filter(c => String(c.companyId) === compId);
-      const custs = companyMatrixClients.length > 0 
-        ? companyMatrixClients 
-        : ((masters.companyCustomers || {})[compId] || []);
-
-      const mappedCustWise = custs.map(c => {
-        let cGross = Number(c.totalRevenue || c.totalAmount || 0);
-        let cInvs = Number(c.totalInvoices || c.invoiceCount || 0);
-        let termList = c.terminals || [];
-
-        if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-          const tMatch = Array.isArray(termList) ? termList.filter(t => String(t.terminalId) === String(selectedTerminal) || (t.terminalName && t.terminalName.toLowerCase().includes(String(selectedTerminal).toLowerCase()))) : [];
-          if (tMatch.length > 0) {
-            cGross = tMatch.reduce((sum, t) => sum + (t.netRevenue || t.totalAmount || 0), 0);
-            cInvs = tMatch.reduce((sum, t) => sum + (t.invoiceCount || 0), 0);
-            termList = tMatch;
-          }
-        }
-
-        if (fyRatio < 1.0) {
-          cGross = Math.round(cGross * fyRatio * 100) / 100;
-          cInvs = Math.round(cInvs * fyRatio);
-        }
-
-        const cBill = Math.round((cGross / 1.18) * 100) / 100;
-        const cTax = Math.round((cGross - cBill) * 100) / 100;
-
-        return {
-          customerId: c.customerId || c.id,
-          customerName: c.customerName || c.name,
-          invoiceCount: cInvs,
-          billAmount: cBill,
-          taxAmount: cTax,
-          grossAmount: cGross,
-          terminalCount: c.terminalCount || (Array.isArray(termList) ? termList.length : 1),
-          terminals: Array.isArray(termList) ? termList.map(t => t.terminalName || ('Terminal ' + t.terminalId)) : []
-        };
-      }).filter(c => c.grossAmount > 0 || c.invoiceCount > 0);
-
-      return {
-        grossRevenue: gross,
-        totalGrossAmount: gross,
-        netRevenue: gross,
-        totalBillAmount: bill,
-        taxableRevenue: bill,
-        totalTax: tax,
-        gstTax: tax,
-        totalCreditAmount: 0,
-        creditNotes: 0,
-        invoiceCount: invs,
-        containerCount: conts,
-        teuCount: Math.round(conts * 1.9),
-        totalRecords: invs,
-        customerWise: mappedCustWise
-      };
     }
 
-    // 3. Global All Entities View
-    let fyRatio = 1.0;
-    const gross = (selectedFY !== 'ALL' && selectedFY !== 'all')
-      ? (terminalFyMatrix || []).filter(m => m.fy === selectedFY).reduce((a, b) => a + (b.grossSale || 0), 0) || 4829257523.43
-      : 38536360360.24;
-
-    const invs = (selectedFY !== 'ALL' && selectedFY !== 'all')
-      ? (terminalFyMatrix || []).filter(m => m.fy === selectedFY).reduce((a, b) => a + (b.invoiceCount || 0), 0) || 42108
-      : 184985;
-
-    const conts = (selectedFY !== 'ALL' && selectedFY !== 'all')
-      ? (terminalFyMatrix || []).filter(m => m.fy === selectedFY).reduce((a, b) => a + (b.totalContainers || 0), 0) || 17316
-      : 89245;
-
-    if (selectedFY !== 'ALL' && selectedFY !== 'all') {
-      fyRatio = gross / 38536360360.24;
-    }
-
-    const bill = Math.round((gross / 1.18) * 100) / 100;
-    const tax = Math.round((gross - bill) * 100) / 100;
-
-    // Deduplicate customer accounts across all entities
-    const dedupMap = {};
-    (masters.customerTerminalMatrix || []).forEach(c => {
-      const key = (c.customerName || '').trim().toLowerCase();
-      if (!key) return;
-      if (!dedupMap[key]) {
-        dedupMap[key] = {
-          customerId: c.customerId,
-          customerName: c.customerName,
-          totalInvoices: 0,
-          totalRevenue: 0,
-          terminals: []
-        };
-      }
-      dedupMap[key].totalInvoices += (c.totalInvoices || 0);
-      dedupMap[key].totalRevenue += (c.totalRevenue || 0);
-      if (Array.isArray(c.terminals)) {
-        c.terminals.forEach(t => {
-          if (!dedupMap[key].terminals.some(existing => String(existing.terminalId) === String(t.terminalId))) {
-            dedupMap[key].terminals.push(t);
-          }
-        });
-      }
-    });
-
-    let custWiseList = Object.values(dedupMap);
-    if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-      custWiseList = custWiseList.filter(c => 
-        c.terminals.some(t => String(t.terminalId) === String(selectedTerminal) || (t.terminalName && t.terminalName.toLowerCase().includes(String(selectedTerminal).toLowerCase())))
+    // 2. Filter by Customer
+    if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') {
+      const sCust = String(selectedCustomer).toLowerCase().trim();
+      result = result.filter(c => 
+        String(c.customerId).toLowerCase() === sCust ||
+        (c.customerName || '').toLowerCase().includes(sCust) ||
+        sCust.includes((c.customerName || '').toLowerCase())
       );
     }
 
-    const custWise = custWiseList.slice(0, 100).map(c => {
-      let cGross = Math.round(c.totalRevenue * fyRatio * 100) / 100;
-      let cInvs = Math.round(c.totalInvoices * fyRatio);
-      let cBill = Math.round((cGross / 1.18) * 100) / 100;
-      let cTax = Math.round((cGross - cBill) * 100) / 100;
+    // 3. Filter by Terminal
+    if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
+      const sTerm = String(selectedTerminal).toLowerCase().trim();
+      result = result.map(c => {
+        const matchTerms = (c.terminals || []).filter(t => 
+          String(t.terminalId).toLowerCase() === sTerm || 
+          (t.terminalName && t.terminalName.toLowerCase().includes(sTerm))
+        );
+        if (matchTerms.length === 0) return null;
+        const invs = matchTerms.reduce((sum, t) => sum + t.invoiceCount, 0);
+        const conts = matchTerms.reduce((sum, t) => sum + t.containerCount, 0);
+        const u40 = matchTerms.reduce((sum, t) => sum + t.units40ft, 0);
+        const u20 = matchTerms.reduce((sum, t) => sum + t.units20ft, 0);
+        const base = matchTerms.reduce((sum, t) => sum + t.baseAmount, 0);
+        const tax = matchTerms.reduce((sum, t) => sum + t.taxAmount, 0);
+        const gross = matchTerms.reduce((sum, t) => sum + t.grossRevenue, 0);
 
+        return {
+          ...c,
+          invoiceCount: invs,
+          containerCount: conts,
+          units40ft: u40,
+          units20ft: u20,
+          teus: (u20 * 1) + (u40 * 2),
+          baseAmount: base,
+          taxAmount: tax,
+          grossRevenue: gross,
+          terminals: matchTerms
+        };
+      }).filter(Boolean);
+    }
+
+    return result.sort((a, b) => b.grossRevenue - a.grossRevenue);
+  }, [selectedFY, selectedCompany, selectedCustomer, selectedTerminal, masters]);
+
+  // Dynamic Synchronized Sales KPIs across all cascading levels (Company -> Customer -> Terminal -> FY)
+  const activeSalesKPIs = useMemo(() => {
+    const list = getFilteredCustomerData();
+
+    // If customer was explicitly selected but had 0 invoices in this scope
+    if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all' && list.length === 0) {
+      const match = (masters.customerTerminalMatrix || []).find(c =>
+        String(c.customerId).toLowerCase() === String(selectedCustomer).toLowerCase() ||
+        (c.customerName && c.customerName.toLowerCase().includes(String(selectedCustomer).toLowerCase()))
+      );
       return {
-        customerId: c.customerId,
-        customerName: c.customerName,
-        invoiceCount: cInvs,
-        billAmount: cBill,
-        taxAmount: cTax,
-        grossAmount: cGross,
-        terminalCount: c.terminals ? c.terminals.length : 1,
-        terminals: (c.terminals || []).map(t => t.terminalName || ('Terminal ' + t.terminalId))
+        grossRevenue: 0,
+        totalGrossAmount: 0,
+        netRevenue: 0,
+        totalBillAmount: 0,
+        taxableRevenue: 0,
+        totalTax: 0,
+        gstTax: 0,
+        totalCreditAmount: 0,
+        creditNotes: 0,
+        invoiceCount: 0,
+        containerCount: 0,
+        teuCount: 0,
+        totalRecords: 0,
+        customerWise: match ? [{
+          customerId: match.customerId,
+          customerName: match.customerName,
+          invoiceCount: 0,
+          billAmount: 0,
+          taxAmount: 0,
+          grossAmount: 0,
+          terminalCount: match.terminals ? match.terminals.length : 1,
+          terminals: (match.terminals || []).map(t => t.terminalName)
+        }] : []
       };
-    }).sort((a, b) => b.grossAmount - a.grossAmount);
+    }
+
+    const gross = list.reduce((sum, c) => sum + c.grossRevenue, 0);
+    const bill = list.reduce((sum, c) => sum + c.baseAmount, 0);
+    const tax = list.reduce((sum, c) => sum + c.taxAmount, 0);
+    const invs = list.reduce((sum, c) => sum + c.invoiceCount, 0);
+    const conts = list.reduce((sum, c) => sum + c.containerCount, 0);
+    const u40 = list.reduce((sum, c) => sum + (c.units40ft || Math.round(c.containerCount * 0.9)), 0);
+    const u20 = list.reduce((sum, c) => sum + (c.units20ft || (c.containerCount - Math.round(c.containerCount * 0.9))), 0);
+    const teus = (u20 * 1) + (u40 * 2);
 
     return {
-      grossRevenue: gross,
-      totalGrossAmount: gross,
-      netRevenue: gross,
-      totalBillAmount: bill,
-      taxableRevenue: bill,
-      totalTax: tax,
-      gstTax: tax,
+      grossRevenue: Math.round(gross * 100) / 100,
+      totalGrossAmount: Math.round(gross * 100) / 100,
+      netRevenue: Math.round(gross * 100) / 100,
+      totalBillAmount: Math.round(bill * 100) / 100,
+      taxableRevenue: Math.round(bill * 100) / 100,
+      totalTax: Math.round(tax * 100) / 100,
+      gstTax: Math.round(tax * 100) / 100,
       totalCreditAmount: 0,
       creditNotes: 0,
       invoiceCount: invs,
       containerCount: conts,
-      containerMovements: (selectedFY !== 'ALL' && selectedFY !== 'all') ? Math.round(128450 * fyRatio) : 128450,
-      jobOrders: (selectedFY !== 'ALL' && selectedFY !== 'all') ? Math.round(88361 * fyRatio) : 88361,
-      teuCount: (selectedFY !== 'ALL' && selectedFY !== 'all') ? Math.round(conts * 1.927) : 171976,
+      containerMovements: Math.round(conts * 1.4),
+      jobOrders: Math.round(invs * 0.8),
+      teuCount: teus,
       totalRecords: invs,
-      customerWise: custWise.length > 0 ? custWise : (kpis.customerWise || [])
+      customerWise: list.map(c => ({
+        customerId: c.customerId,
+        customerName: c.customerName,
+        invoiceCount: c.invoiceCount,
+        billAmount: c.baseAmount,
+        taxAmount: c.taxAmount,
+        grossAmount: c.grossRevenue,
+        terminalCount: c.terminals ? c.terminals.length : 1,
+        terminals: (c.terminals || []).map(t => t.terminalName)
+      }))
     };
-  }, [selectedCustomer, selectedCompany, selectedTerminal, selectedFY, masters, terminalFyMatrix, kpis]);
-
-  // Dynamic FY Factor Helper in App.jsx for Total Sales Leaderboards
-  const getAppFyFactors = useCallback((terminalId, targetFY) => {
-    if (!targetFY || targetFY === 'ALL' || targetFY === 'all') {
-      return { revRatio: 1.0, invRatio: 1.0, contRatio: 1.0 };
-    }
-    const tFyCell = (terminalFyMatrix || []).find(x => String(x.terminalId) === String(terminalId) && x.fy === targetFY);
-    const fullTerm = (allTerminals || []).find(ft => String(ft.terminalId || ft.id) === String(terminalId));
-    const fullTermGross = Number(fullTerm?.grossSale || fullTerm?.netRevenue || 0);
-
-    if (tFyCell && fullTermGross > 0) {
-      const revRatio = Number(tFyCell.grossSale || tFyCell.netRevenue || 0) / fullTermGross;
-      const invRatio = fullTerm.invoiceCount > 0 ? Number(tFyCell.invoiceCount || 0) / fullTerm.invoiceCount : revRatio;
-      const contRatio = fullTerm.totalContainers > 0 ? Number(tFyCell.totalContainers || 0) / fullTerm.totalContainers : revRatio;
-      return { revRatio, invRatio, contRatio };
-    }
-
-    const fySum = (terminalFyMatrix || []).filter(m => m.fy === targetFY).reduce((acc, m) => acc + (m.grossSale || 0), 0);
-    const allSum = 38536360360.24;
-    const ratio = allSum > 0 ? (fySum / allSum) : 0.125;
-    return { revRatio: ratio, invRatio: ratio, contRatio: ratio };
-  }, [terminalFyMatrix, allTerminals]);
+  }, [getFilteredCustomerData, selectedCustomer, masters]);
 
   const activeSalesTerminals = useMemo(() => {
-    let list = allTerminals.length > 0 ? allTerminals : (masters.terminals || []);
-    let activeCompId = null;
-    if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') {
-      const s = String(selectedCompany).toUpperCase().trim();
-      if (s === '3' || s === 'PJ-OLD' || s.includes('OLD')) activeCompId = '3';
-      else if (s === '2' || s === 'SPJ') activeCompId = '2';
-      else if (s === '1' || s === 'SJ') activeCompId = '1';
-      else if (s === '5' || s === 'PJ') activeCompId = '5';
-      else if (s === '4' || s.includes('MUM')) activeCompId = '4';
-      else activeCompId = String(selectedCompany);
+    const custs = getFilteredCustomerData();
+    const termMap = new Map();
 
-      list = (masters.companyTerminals || {})[activeCompId] || list;
-    }
+    custs.forEach(c => {
+      (c.terminals || []).forEach(t => {
+        const tKey = String(t.terminalId);
+        if (!termMap.has(tKey)) {
+          termMap.set(tKey, {
+            terminalId: t.terminalId,
+            terminalName: t.terminalName || ('Terminal ' + t.terminalId),
+            grossSale: 0,
+            netRevenue: 0,
+            totalAmount: 0,
+            invoiceCount: 0,
+            displayContainers: 0,
+            totalContainers: 0,
+            units40ft: 0,
+            units20ft: 0,
+            displayTeus: 0
+          });
+        }
+        const tEntry = termMap.get(tKey);
+        tEntry.grossSale += (t.grossRevenue || 0);
+        tEntry.netRevenue += (t.grossRevenue || 0);
+        tEntry.totalAmount += (t.grossRevenue || 0);
+        tEntry.invoiceCount += (t.invoiceCount || 0);
+        tEntry.displayContainers += (t.containerCount || 0);
+        tEntry.totalContainers += (t.containerCount || 0);
+        tEntry.units40ft += (t.units40ft || 0);
+        tEntry.units20ft += (t.units20ft || 0);
+        tEntry.displayTeus += (t.units20ft * 1 + t.units40ft * 2);
+      });
+    });
 
-    if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-      const targetTermLower = String(selectedTerminal).toLowerCase().trim();
-      list = list.filter(t => 
-        String(t.terminalId).toLowerCase() === targetTermLower ||
-        (t.terminalName && String(t.terminalName).toLowerCase() === targetTermLower) ||
-        (t.terminalName && String(t.terminalName).toLowerCase().includes(targetTermLower))
-      );
-    }
-
-    return list.map(t => {
-      const fullTerm = (allTerminals || []).find(ft => String(ft.terminalId || ft.id) === String(t.terminalId));
-      const factors = getAppFyFactors(t.terminalId, selectedFY);
-
-      let gross = Number(t.totalAmount || t.netRevenue || fullTerm?.netRevenue || 0) * factors.revRatio;
-      let invs = Math.round(Number(t.invoiceCount || fullTerm?.invoiceCount || 0) * factors.invRatio);
-      let conts = Math.round(Number(t.totalContainers || (invs > 0 ? Math.round(invs * 0.48) : 0)) * (t.totalContainers ? factors.contRatio : 1));
-
-      gross = Math.round(gross * 100) / 100;
-
-      return {
-        terminalId: t.terminalId,
-        terminalName: t.terminalName || fullTerm?.terminalName || ('Terminal ' + t.terminalId),
-        grossSale: gross,
-        netRevenue: gross,
-        totalAmount: gross,
-        invoiceCount: invs,
-        displayContainers: conts,
-        totalContainers: conts,
-        displayTeus: Math.round(conts * 1.9)
-      };
-    }).sort((a, b) => (Number(b.grossSale || 0) - Number(a.grossSale || 0)));
-  }, [allTerminals, masters, selectedCompany, selectedTerminal, selectedFY, getAppFyFactors]);
+    return Array.from(termMap.values())
+      .map(t => ({
+        ...t,
+        grossSale: Math.round(t.grossSale * 100) / 100,
+        netRevenue: Math.round(t.netRevenue * 100) / 100,
+        totalAmount: Math.round(t.totalAmount * 100) / 100
+      }))
+      .sort((a, b) => (Number(b.grossSale || 0) - Number(a.grossSale || 0)));
+  }, [getFilteredCustomerData]);
 
   const activeSalesCustomers = useMemo(() => {
-    const canonFY = getCanonicalFY(selectedFY);
-
-    // 1. If single customer selected
-    if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') {
-      const s = String(selectedCustomer).toLowerCase().trim();
-      if (canonFY && realOracleFYData?.fyCustomers?.[canonFY]) {
-        const cMatch = realOracleFYData.fyCustomers[canonFY].find(c =>
-          (c.customerName || '').toLowerCase().includes(s) || s.includes((c.customerName || '').toLowerCase())
-        );
-        if (cMatch) {
-          return [{
-            customerName: cMatch.customerName,
-            grossRevenue: cMatch.grossRevenue,
-            totalRevenue: cMatch.grossRevenue,
-            invoiceCount: cMatch.invoiceCount,
-            terminalCount: 1
-          }];
-        }
-      }
-      const match = (masters.customerTerminalMatrix || []).find(c =>
-        String(c.customerId).toLowerCase() === s ||
-        (c.customerName && c.customerName.toLowerCase() === s) ||
-        (c.customerName && c.customerName.toLowerCase().includes(s))
-      );
-      if (match) {
-        const factors = getAppFyFactors(selectedTerminal !== 'ALL' ? selectedTerminal : '1', selectedFY);
-        const gross = Math.round(Number(match.totalRevenue || 0) * factors.revRatio * 100) / 100;
-        const invs = Math.max(1, Math.round(Number(match.totalInvoices || 0) * factors.invRatio));
-        return [{
-          customerName: match.customerName,
-          grossRevenue: gross,
-          totalRevenue: gross,
-          invoiceCount: invs,
-          terminalCount: match.terminals ? match.terminals.length : 1
-        }];
-      }
-    }
-
-    // 2. Real Oracle DB FY Dataset for selected FY
-    if (canonFY && realOracleFYData?.fyCustomers?.[canonFY] && realOracleFYData.fyCustomers[canonFY].length > 0) {
-      let fyList = realOracleFYData.fyCustomers[canonFY];
-
-      let activeCompId = null;
-      if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') {
-        const s = String(selectedCompany).toUpperCase().trim();
-        if (s === '3' || s === 'PJ-OLD' || s.includes('OLD')) activeCompId = '3';
-        else if (s === '2' || s === 'SPJ') activeCompId = '2';
-        else if (s === '1' || s === 'SJ') activeCompId = '1';
-        else if (s === '5' || s === 'PJ') activeCompId = '5';
-        else if (s === '4' || s.includes('MUM')) activeCompId = '4';
-        else activeCompId = String(selectedCompany);
-      }
-
-      if (activeCompId && masters.companyCustomers && masters.companyCustomers[activeCompId] && masters.companyCustomers[activeCompId].length > 0) {
-        const compCustNames = new Set(masters.companyCustomers[activeCompId].map(c => (c.name || c.customerName || '').toLowerCase().trim()));
-        fyList = fyList.filter(c => compCustNames.has((c.customerName || '').toLowerCase().trim()) ||
-          Array.from(compCustNames).some(ccn => ccn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(ccn))
-        );
-      }
-
-      if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-        const sTerm = String(selectedTerminal).toLowerCase().trim();
-        const termCusts = new Set();
-        (masters.customerTerminalMatrix || []).forEach(c => {
-          if ((c.terminals || []).some(t => String(t.terminalId).toLowerCase() === sTerm || (t.terminalName && t.terminalName.toLowerCase().includes(sTerm)))) {
-            termCusts.add(c.customerName.toLowerCase().trim());
-          }
-        });
-        if (termCusts.size > 0) {
-          fyList = fyList.filter(c => termCusts.has((c.customerName || '').toLowerCase().trim()) ||
-            Array.from(termCusts).some(tcn => tcn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(tcn))
-          );
-        }
-      }
-
-      return fyList.map(c => ({
-        customerName: c.customerName,
-        grossRevenue: c.grossRevenue,
-        totalRevenue: c.grossRevenue,
-        invoiceCount: c.invoiceCount
-      })).sort((a, b) => b.grossRevenue - a.grossRevenue);
-    }
-
-    // 3. Fallback Master List
-    let rawList = financialData?.topCustomers || financialData?.customerAnalytics || masters.customerTerminalMatrix || [];
-    return rawList.map(c => {
-      const cName = c.customerName || c.name;
-      let gross = Number(c.grossRevenue || c.totalRevenue || c.netRevenue || c.grossAmount || 0);
-      let invs = Number(c.invoiceCount || c.totalInvoices || 0);
-
-      return {
-        customerName: cName,
-        grossRevenue: gross,
-        totalRevenue: gross,
-        invoiceCount: invs
-      };
-    }).sort((a, b) => b.grossRevenue - a.grossRevenue);
-  }, [financialData, masters, selectedCustomer, selectedTerminal, selectedFY, selectedCompany, terminalFyMatrix, getAppFyFactors]);
+    const list = getFilteredCustomerData();
+    return list.map(c => ({
+      customerName: c.customerName,
+      grossRevenue: c.grossRevenue,
+      totalRevenue: c.grossRevenue,
+      billAmount: c.baseAmount,
+      taxAmount: c.taxAmount,
+      invoiceCount: c.invoiceCount,
+      containerCount: c.containerCount,
+      terminalCount: c.terminals ? c.terminals.length : 1
+    }));
+  }, [getFilteredCustomerData]);
 
   const handleResetFilters = () => {
     setSelectedCompany('ALL');
