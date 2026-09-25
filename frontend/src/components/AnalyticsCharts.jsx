@@ -684,10 +684,10 @@ export default function AnalyticsCharts({
         taxableRevenue: 32657932508.68,
         gstTax: 5878427851.56,
         invoiceCount: 184985,
-        containerCount: 85313,
+        containerCount: 89245,
         containerMovements: 128450,
-        jobOrders: 88358,
-        teuCount: 162095
+        jobOrders: 88361,
+        teuCount: 171976
       };
     }
 

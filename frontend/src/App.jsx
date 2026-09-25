@@ -425,7 +425,7 @@ export default function App() {
 
     const conts = (selectedFY !== 'ALL' && selectedFY !== 'all')
       ? (terminalFyMatrix || []).filter(m => m.fy === selectedFY).reduce((a, b) => a + (b.totalContainers || 0), 0) || 17316
-      : 85313;
+      : 89245;
 
     if (selectedFY !== 'ALL' && selectedFY !== 'all') {
       fyRatio = gross / 38536360360.24;
@@ -496,7 +496,9 @@ export default function App() {
       creditNotes: 0,
       invoiceCount: invs,
       containerCount: conts,
-      teuCount: Math.round(conts * 1.9),
+      containerMovements: (selectedFY !== 'ALL' && selectedFY !== 'all') ? Math.round(128450 * fyRatio) : 128450,
+      jobOrders: (selectedFY !== 'ALL' && selectedFY !== 'all') ? Math.round(88361 * fyRatio) : 88361,
+      teuCount: (selectedFY !== 'ALL' && selectedFY !== 'all') ? Math.round(conts * 1.927) : 171976,
       totalRecords: invs,
       customerWise: custWise.length > 0 ? custWise : (kpis.customerWise || [])
     };
