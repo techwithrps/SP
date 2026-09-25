@@ -438,7 +438,7 @@ export default function AnalyticsCharts({
 
         let gross = Number(t.netRevenue || t.totalAmount || 0) * factors.revRatio;
         let invs = Math.round(Number(t.invoiceCount || 0) * factors.invRatio);
-        let conts = Math.round(Number(t.totalContainers || (t.invoiceCount > 0 ? Math.round(t.invoiceCount * 1.14) : 0)) * factors.contRatio);
+        let conts = Math.round(Number(t.totalContainers || (invs > 0 ? Math.round(invs * 0.48) : 0)) * (t.totalContainers ? factors.contRatio : 1));
 
         gross = Math.round(gross * 100) / 100;
         const bill = Math.round((gross / 1.18) * 100) / 100;
@@ -496,9 +496,9 @@ export default function AnalyticsCharts({
         const fullTerm = terminals.find(ft => String(ft.terminalId || ft.id) === String(t.terminalId));
         const factors = getFyFactors(t.terminalId, selectedFY);
 
-        let gross = Number(t.totalAmount || t.netRevenue || fullTerm?.netRevenue || 0) * factors.revRatio;
-        let invs = Math.round(Number(t.invoiceCount || fullTerm?.invoiceCount || 0) * factors.invRatio);
-        let conts = Math.round(Number(t.totalContainers || fullTerm?.totalContainers || (invs > 0 ? Math.round(invs * 1.14) : 0)) * factors.contRatio);
+        let gross = Number(t.totalAmount || t.netRevenue || 0) * factors.revRatio;
+        let invs = Math.round(Number(t.invoiceCount || 0) * factors.invRatio);
+        let conts = Math.round(Number(t.totalContainers || (invs > 0 ? Math.round(invs * 0.48) : 0)) * (t.totalContainers ? factors.contRatio : 1));
 
         gross = Math.round(gross * 100) / 100;
         const bill = Math.round((gross / 1.18) * 100) / 100;
@@ -843,9 +843,9 @@ export default function AnalyticsCharts({
     const bill = dynamicMetrics.billAmount || Math.round((gross / 1.18) * 100) / 100;
     const tax = dynamicMetrics.taxAmount || Math.round((gross - bill) * 100) / 100;
     const invs = dynamicMetrics.invoiceCount || 0;
-    const conts = dynamicMetrics.totalContainers || Math.round(invs * 0.461);
-    const moves = Math.round(conts * 1.505);
-    const jobs = Math.round(conts * 1.035);
+    const conts = dynamicMetrics.totalContainers !== undefined && dynamicMetrics.totalContainers !== null ? dynamicMetrics.totalContainers : Math.round(invs * 0.48);
+    const moves = Math.round(conts * 1.45);
+    const jobs = invs;
     const teus = dynamicMetrics.teus || Math.round(conts * 1.9);
 
     return {
