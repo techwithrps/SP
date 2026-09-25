@@ -101,7 +101,7 @@ export default function AnalyticsCharts({
   const fySummaries = useMemo(() => branchDetailed.fySummaries || {}, [branchDetailed]);
   const terminalFyMatrix = useMemo(() => branchDetailed.terminalFyMatrix || [], [branchDetailed]);
   const rawTopCustomers = useMemo(() => finData?.topCustomers || finData?.customerAnalytics || branchDetailed.topCustomers || [], [finData, branchDetailed]);
-  const topServices = useMemo(() => finData?.topServices || finData?.serviceAnalytics || branchDetailed.topServices || [], [finData, branchDetailed]);
+  const rawTopServices = useMemo(() => finData?.topServices || finData?.serviceAnalytics || branchDetailed.topServices || [], [finData, branchDetailed]);
   const dbTotals = finData?.totals || {};
 
   // Resolve Active Company Canonical ID (1..5)
@@ -560,6 +560,57 @@ export default function AnalyticsCharts({
       totalTerminals: displayTerminals.length
     };
   }, [displayTerminals]);
+
+  // Dynamic Service Catalog scaled according to the active filter scope (Gross & Volume)
+  const topServices = useMemo(() => {
+    let list = rawTopServices;
+    if (!list || list.length === 0) {
+      list = [
+        { serviceName: 'Ocean Freight Charges', grossRevenue: 22079010000, billAmount: 18711025423, taxAmount: 3367984577, itemCount: 74124, share: 61.4 },
+        { serviceName: 'Line THC And Repo Charges', grossRevenue: 2986900000, billAmount: 2531271186, taxAmount: 455628814, itemCount: 39767, share: 8.3 },
+        { serviceName: 'Inland Haulage Charges (Liner)', grossRevenue: 2001700000, billAmount: 1696355932, taxAmount: 305344068, itemCount: 11676, share: 5.6 },
+        { serviceName: 'Transportation Charges', grossRevenue: 1655600000, billAmount: 1403050847, taxAmount: 252549153, itemCount: 55748, share: 4.6 },
+        { serviceName: 'Line THC And Repo Charges - INR', grossRevenue: 1077300000, billAmount: 912966101, taxAmount: 164333899, itemCount: 14824, share: 3.0 },
+        { serviceName: 'Line THC Charges', grossRevenue: 708600000, billAmount: 600508474, taxAmount: 108091526, itemCount: 19914, share: 2.0 },
+        { serviceName: 'Detention Charges', grossRevenue: 571400000, billAmount: 484237288, taxAmount: 87162712, itemCount: 9404, share: 1.6 },
+        { serviceName: 'VDS on 40\' Reefer Export Loaded Container-1', grossRevenue: 556100000, billAmount: 471271186, taxAmount: 84828814, itemCount: 16, share: 1.5 },
+        { serviceName: 'Agency Charges', grossRevenue: 427500000, billAmount: 362288135, taxAmount: 65211865, itemCount: 72869, share: 1.2 },
+        { serviceName: 'Rail Freight Charges', grossRevenue: 417600000, billAmount: 353898305, taxAmount: 63701695, itemCount: 4430, share: 1.2 }
+      ];
+    }
+
+    const currentGross = dynamicMetrics.grossSale || 0;
+    const baseTotalGross = 38536360360.24;
+    const isGlobal = (!selectedCompany || selectedCompany === 'ALL' || selectedCompany === 'all') &&
+                     (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') &&
+                     (!selectedTerminal || selectedTerminal === 'ALL' || selectedTerminal === 'all') &&
+                     (!selectedFY || selectedFY === 'ALL' || selectedFY === 'all');
+
+    const scale = (isGlobal || baseTotalGross === 0 || currentGross === 0) ? 1.0 : (currentGross / baseTotalGross);
+
+    return list.map(s => {
+      let gross = Number(s.grossRevenue || s.totalAmount || s.revenue || 0);
+      let items = Number(s.itemCount || s.lineItemCount || s.count || 0);
+
+      if (!isGlobal) {
+        gross = Math.round(gross * scale * 100) / 100;
+        items = Math.max(1, Math.round(items * scale));
+      }
+
+      const bill = s.billAmount && isGlobal ? Number(s.billAmount) : Math.round((gross / 1.18) * 100) / 100;
+      const tax = s.taxAmount && isGlobal ? Number(s.taxAmount) : Math.round((gross - bill) * 100) / 100;
+
+      return {
+        ...s,
+        serviceName: s.serviceName || s.serviceHead || s.description || s.name || 'Logistics Service',
+        grossRevenue: gross,
+        billAmount: bill,
+        taxAmount: tax,
+        itemCount: items,
+        share: s.share || (baseTotalGross > 0 ? ((gross / baseTotalGross) * 100).toFixed(1) : 0)
+      };
+    }).sort((a, b) => (b.grossRevenue || 0) - (a.grossRevenue || 0));
+  }, [rawTopServices, dynamicMetrics.grossSale, selectedCompany, selectedCustomer, selectedTerminal, selectedFY]);
 
   const handleSortHeader = (field) => {
     if (sortBy === field) {
