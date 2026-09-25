@@ -11,11 +11,33 @@ import AnimatedCounter from './components/AnimatedCounter';
 import LiveMarqueeTicker from './components/LiveMarqueeTicker';
 import { authFetch, getAuthToken } from './utils/api';
 
-// Code-splitting heavy dashboard views to reduce initial bundle size
-const AnalyticsCharts = React.lazy(() => import('./components/AnalyticsCharts'));
-const ContainerFleetView = React.lazy(() => import('./components/ContainerFleetView'));
-const FleetView = React.lazy(() => import('./components/FleetView'));
-const OperationsView = React.lazy(() => import('./components/OperationsView'));
+// Auto-recovery wrapper for dynamic imports when new code is deployed to Vercel/production
+function lazyWithRetry(componentImport) {
+  return React.lazy(async () => {
+    const pageHasBeenRefreshed = JSON.parse(
+      window.sessionStorage.getItem('page-chunk-refreshed') || 'false'
+    );
+    try {
+      const component = await componentImport();
+      window.sessionStorage.setItem('page-chunk-refreshed', 'false');
+      return component;
+    } catch (error) {
+      console.warn('Chunk loading failed, attempting auto-refresh for new deployment...', error);
+      if (!pageHasBeenRefreshed) {
+        window.sessionStorage.setItem('page-chunk-refreshed', 'true');
+        window.location.reload();
+        return { default: () => <TabLoadingSkeleton /> };
+      }
+      throw error;
+    }
+  });
+}
+
+// Code-splitting heavy dashboard views with auto-retry on new deployments
+const AnalyticsCharts = lazyWithRetry(() => import('./components/AnalyticsCharts'));
+const ContainerFleetView = lazyWithRetry(() => import('./components/ContainerFleetView'));
+const FleetView = lazyWithRetry(() => import('./components/FleetView'));
+const OperationsView = lazyWithRetry(() => import('./components/OperationsView'));
 
 function TabLoadingSkeleton() {
   return (
@@ -48,24 +70,46 @@ class ErrorBoundary extends React.Component {
   }
   render() {
     if (this.state.hasError) {
+      const isChunkError = 
+        this.state.error?.message?.includes('MIME type') || 
+        this.state.error?.message?.includes('dynamically imported module') ||
+        this.state.error?.message?.includes('Failed to fetch') ||
+        this.state.error?.message?.includes('Loading chunk');
+
       return (
         <div className="py-12 flex items-center justify-center">
           <div className="max-w-md w-full bg-white p-6 rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-600 font-bold">
-              ⚠️
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 font-bold text-xl">
+              🔄
             </div>
-            <h3 className="text-base font-bold text-slate-900">Dashboard View Render Notice</h3>
-            <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono">
-              {this.state.error?.message || 'An unexpected rendering state occurred.'}
+            <h3 className="text-base font-bold text-slate-900">
+              {isChunkError ? 'New Dashboard Version Available' : 'Dashboard View Render Notice'}
+            </h3>
+            <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              {isChunkError 
+                ? 'A fresh update was just deployed. Please reload the page to load the latest dashboard components.'
+                : (this.state.error?.message || 'An unexpected rendering state occurred.')}
             </p>
-            <button
-              onClick={() => {
-                this.setState({ hasError: false, error: null });
-              }}
-              className="px-4 py-2 bg-[#2b1f55] hover:bg-[#3b2b73] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
-            >
-              Reset View
-            </button>
+            <div className="flex items-center justify-center gap-2">
+              <button
+                onClick={() => {
+                  window.location.reload();
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-[#2b1f55] to-[#4338ca] hover:opacity-95 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+              >
+                Reload Latest Version
+              </button>
+              {!isChunkError && (
+                <button
+                  onClick={() => {
+                    this.setState({ hasError: false, error: null });
+                  }}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all border border-slate-200 cursor-pointer"
+                >
+                  Reset View
+                </button>
+              )}
+            </div>
           </div>
         </div>
       );
