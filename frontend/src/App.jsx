@@ -582,7 +582,7 @@ export default function App() {
       />
 
       {/* Real-time Enterprise Live Marquee Ticker (Revenue, Top Clients & Yard Ops) */}
-      <LiveMarqueeTicker stats={kpis} />
+      <LiveMarqueeTicker stats={activeSalesKPIs || kpis} />
 
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-3 sm:space-y-6">
