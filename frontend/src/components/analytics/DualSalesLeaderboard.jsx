@@ -12,17 +12,24 @@ export default function DualSalesLeaderboard({
   onSelectCustomer,
 }) {
   const calculatedTotalGross = useMemo(() => {
-    return totalGross || displayTerminals.reduce((s, t) => s + Number(t.grossSale || t.netRevenue || t.totalAmount || 0), 0) || topCustomers.reduce((s, c) => s + Number(c.grossRevenue || c.grossAmount || c.totalRevenue || 0), 0) || 38536360360.24;
+    if (typeof totalGross === 'number' && totalGross >= 0) return totalGross;
+    const termSum = (displayTerminals || []).reduce((s, t) => s + Number(t.grossSale || t.netRevenue || t.totalAmount || 0), 0);
+    if (termSum > 0) return termSum;
+    const custSum = (topCustomers || []).reduce((s, c) => s + Number(c.grossRevenue || c.grossAmount || c.totalRevenue || 0), 0);
+    if (custSum > 0) return custSum;
+    return 0;
   }, [totalGross, displayTerminals, topCustomers]);
 
   const top10Branches = useMemo(() => {
-    return [...displayTerminals]
+    return [...(displayTerminals || [])]
+      .filter(b => (Number(b.grossSale || b.netRevenue || b.totalAmount || 0) > 0 || Number(b.invoiceCount || 0) > 0))
       .sort((a, b) => (Number(b.grossSale || b.netRevenue || b.totalAmount || 0) - Number(a.grossSale || a.netRevenue || a.totalAmount || 0)))
       .slice(0, 10);
   }, [displayTerminals]);
 
   const top10Customers = useMemo(() => {
     return [...(topCustomers || [])]
+      .filter(c => (Number(c.grossRevenue || c.grossAmount || c.totalRevenue || 0) > 0 || Number(c.invoiceCount || 0) > 0))
       .sort((a, b) => (Number(b.grossRevenue || b.grossAmount || b.totalRevenue || 0) - Number(a.grossRevenue || a.grossAmount || a.totalRevenue || 0)))
       .slice(0, 10);
   }, [topCustomers]);
@@ -94,7 +101,7 @@ export default function DualSalesLeaderboard({
           </div>
           <span className="text-[10px] px-2.5 py-0.5 bg-purple-100 text-[#2b1f55] rounded-full font-bold shrink-0 flex items-center gap-1">
             <MousePointerClick className="w-3 h-3 text-purple-600 hidden sm:inline" />
-            {displayTerminals.length > 0 ? displayTerminals.length : 29} Active Branches
+            {top10Branches.length} Active Branches
           </span>
         </div>
         <p className="text-xs text-slate-500 mb-4 flex items-center justify-between">
@@ -103,53 +110,61 @@ export default function DualSalesLeaderboard({
         </p>
 
         <div className="space-y-2.5">
-          {top10Branches.map((b, idx) => {
-            const gross = Number(b.grossSale || b.netRevenue || b.totalAmount || 0);
-            const share = ((gross / calculatedTotalGross) * 100).toFixed(1);
-            const containers = Number(b.displayContainers || b.totalContainers || (b.invoiceCount ? Math.round(b.invoiceCount * 1.14) : 0));
-            const invoices = Number(b.invoiceCount || 0);
-            const isSelected = isTerminalSelected(b);
+          {top10Branches.length === 0 ? (
+            <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              <Building2 className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-xs font-semibold text-slate-600">No branch operations in this filter selection</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">0 Active Hub Invoices</p>
+            </div>
+          ) : (
+            top10Branches.map((b, idx) => {
+              const gross = Number(b.grossSale || b.netRevenue || b.totalAmount || 0);
+              const share = calculatedTotalGross > 0 ? Math.min(100, Math.max(0, (gross / calculatedTotalGross) * 100)).toFixed(1) : (gross > 0 ? '100.0' : '0.0');
+              const containers = Number(b.displayContainers || b.totalContainers || (b.invoiceCount ? Math.round(b.invoiceCount * 1.14) : 0));
+              const invoices = Number(b.invoiceCount || 0);
+              const isSelected = isTerminalSelected(b);
 
-            return (
-              <div 
-                key={idx} 
-                onClick={() => handleBranchClick(b)}
-                className={`p-3 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer group ${
-                  isSelected 
-                    ? 'bg-purple-50/90 border-[#2b1f55] ring-2 ring-[#2b1f55]/30 shadow-md transform scale-[1.01]' 
-                    : 'bg-slate-50 hover:bg-purple-50/40 hover:border-purple-200 border-slate-100 hover:shadow-xs active:scale-[0.99]'
-                }`}
-                title={`Click to filter dashboard by ${b.terminalName}`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 transition-colors ${
-                    isSelected ? 'bg-purple-900 text-amber-300 ring-2 ring-amber-400' : 'bg-[#2b1f55] text-white group-hover:bg-purple-800'
-                  }`}>
-                    {idx + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <p className={`font-bold text-xs truncate uppercase flex items-center gap-1.5 ${
-                      isSelected ? 'text-purple-950 font-black' : 'text-slate-900 group-hover:text-purple-900'
-                    }`} title={b.terminalName}>
-                      {b.terminalName}
-                      {isSelected && (
-                        <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-purple-700 text-white font-bold">
-                          <CheckCircle2 className="w-2.5 h-2.5" /> Filtered
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-[10px] text-slate-500 group-hover:text-slate-700">
-                      {formatNumber(containers)} Containers · {formatNumber(invoices)} Invoices
-                    </p>
+              return (
+                <div 
+                  key={idx} 
+                  onClick={() => handleBranchClick(b)}
+                  className={`p-3 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer group ${
+                    isSelected 
+                      ? 'bg-purple-50/90 border-[#2b1f55] ring-2 ring-[#2b1f55]/30 shadow-md transform scale-[1.01]' 
+                      : 'bg-slate-50 hover:bg-purple-50/40 hover:border-purple-200 border-slate-100 hover:shadow-xs active:scale-[0.99]'
+                  }`}
+                  title={`Click to filter dashboard by ${b.terminalName}`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 transition-colors ${
+                      isSelected ? 'bg-purple-900 text-amber-300 ring-2 ring-amber-400' : 'bg-[#2b1f55] text-white group-hover:bg-purple-800'
+                    }`}>
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className={`font-bold text-xs truncate uppercase flex items-center gap-1.5 ${
+                        isSelected ? 'text-purple-950 font-black' : 'text-slate-900 group-hover:text-purple-900'
+                      }`} title={b.terminalName}>
+                        {b.terminalName}
+                        {isSelected && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-purple-700 text-white font-bold">
+                            <CheckCircle2 className="w-2.5 h-2.5" /> Filtered
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[10px] text-slate-500 group-hover:text-slate-700">
+                        {formatNumber(containers)} Containers · {formatNumber(invoices)} Invoices
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`font-mono font-bold text-xs ${isSelected ? 'text-purple-950' : 'text-slate-900'}`}>{formatCurrency(gross)}</p>
+                    <p className="text-[10px] text-emerald-600 font-semibold">{share}% Share</p>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <p className={`font-mono font-bold text-xs ${isSelected ? 'text-purple-950' : 'text-slate-900'}`}>{formatCurrency(gross)}</p>
-                  <p className="text-[10px] text-emerald-600 font-semibold">{share}% Share</p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -176,7 +191,7 @@ export default function DualSalesLeaderboard({
           </div>
           <span className="text-[10px] px-2.5 py-0.5 bg-orange-100 text-[#ff6a00] rounded-full font-bold shrink-0 flex items-center gap-1">
             <MousePointerClick className="w-3 h-3 text-[#ea580c] hidden sm:inline" />
-            {topCustomers.length > 0 ? topCustomers.length : 674} Active Clients
+            {top10Customers.length} Active Clients
           </span>
         </div>
         <p className="text-xs text-slate-500 mb-4 flex items-center justify-between">
@@ -185,52 +200,60 @@ export default function DualSalesLeaderboard({
         </p>
 
         <div className="space-y-2.5">
-          {top10Customers.map((c, idx) => {
-            const gross = Number(c.grossRevenue || c.grossAmount || c.totalRevenue || 0);
-            const share = ((gross / calculatedTotalGross) * 100).toFixed(1);
-            const invoices = Number(c.invoiceCount || 0);
-            const isSelected = isCustomerSelected(c);
+          {top10Customers.length === 0 ? (
+            <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-xs font-semibold text-slate-600">No billed client transactions in this filter selection</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">0 Active Invoices for Chosen Scope</p>
+            </div>
+          ) : (
+            top10Customers.map((c, idx) => {
+              const gross = Number(c.grossRevenue || c.grossAmount || c.totalRevenue || 0);
+              const share = calculatedTotalGross > 0 ? Math.min(100, Math.max(0, (gross / calculatedTotalGross) * 100)).toFixed(1) : (gross > 0 ? '100.0' : '0.0');
+              const invoices = Number(c.invoiceCount || 0);
+              const isSelected = isCustomerSelected(c);
 
-            return (
-              <div 
-                key={idx} 
-                onClick={() => handleCustomerClick(c)}
-                className={`p-3 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer group ${
-                  isSelected 
-                    ? 'bg-orange-50/90 border-[#ff6a00] ring-2 ring-[#ff6a00]/30 shadow-md transform scale-[1.01]' 
-                    : 'bg-slate-50 hover:bg-orange-50/40 hover:border-orange-200 border-slate-100 hover:shadow-xs active:scale-[0.99]'
-                }`}
-                title={`Click to filter dashboard by ${c.customerName || c.name}`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 transition-colors ${
-                    isSelected ? 'bg-orange-600 text-white ring-2 ring-orange-400' : 'bg-[#ff6a00] text-white group-hover:bg-orange-600'
-                  }`}>
-                    {idx + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <p className={`font-bold text-xs truncate uppercase flex items-center gap-1.5 ${
-                      isSelected ? 'text-orange-950 font-black' : 'text-slate-900 group-hover:text-orange-950'
-                    }`} title={c.customerName || c.name}>
-                      {c.customerName || c.name}
-                      {isSelected && (
-                        <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-orange-600 text-white font-bold">
-                          <CheckCircle2 className="w-2.5 h-2.5" /> Filtered
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-[10px] text-slate-500 group-hover:text-slate-700">
-                      {formatNumber(invoices)} Invoices Audited
-                    </p>
+              return (
+                <div 
+                  key={idx} 
+                  onClick={() => handleCustomerClick(c)}
+                  className={`p-3 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer group ${
+                    isSelected 
+                      ? 'bg-orange-50/90 border-[#ff6a00] ring-2 ring-[#ff6a00]/30 shadow-md transform scale-[1.01]' 
+                      : 'bg-slate-50 hover:bg-orange-50/40 hover:border-orange-200 border-slate-100 hover:shadow-xs active:scale-[0.99]'
+                  }`}
+                  title={`Click to filter dashboard by ${c.customerName || c.name}`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 transition-colors ${
+                      isSelected ? 'bg-orange-600 text-white ring-2 ring-orange-400' : 'bg-[#ff6a00] text-white group-hover:bg-orange-600'
+                    }`}>
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className={`font-bold text-xs truncate uppercase flex items-center gap-1.5 ${
+                        isSelected ? 'text-orange-950 font-black' : 'text-slate-900 group-hover:text-orange-950'
+                      }`} title={c.customerName || c.name}>
+                        {c.customerName || c.name}
+                        {isSelected && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-orange-600 text-white font-bold">
+                            <CheckCircle2 className="w-2.5 h-2.5" /> Filtered
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[10px] text-slate-500 group-hover:text-slate-700">
+                        {formatNumber(invoices)} Invoices Audited
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`font-mono font-bold text-xs ${isSelected ? 'text-orange-950' : 'text-slate-900'}`}>{formatCurrency(gross)}</p>
+                    <p className="text-[10px] text-emerald-600 font-semibold">{share}% Share</p>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <p className={`font-mono font-bold text-xs ${isSelected ? 'text-orange-950' : 'text-slate-900'}`}>{formatCurrency(gross)}</p>
-                  <p className="text-[10px] text-emerald-600 font-semibold">{share}% Share</p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
     </div>
