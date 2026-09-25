@@ -31,7 +31,6 @@ export default function Navbar({
     { id: 'analytics', label: 'Branch Wise Analytics', shortLabel: 'Branch Wise', icon: TrendingUp },
     { id: 'sales', label: 'Total Sales', shortLabel: 'Total Sales', icon: Receipt },
     { id: 'containers', label: 'Container / Volumes', shortLabel: 'Containers', icon: Container },
-    { id: 'vessels', label: 'Vessel Schedules', shortLabel: 'Vessel Radar', icon: Ship },
     { id: 'fleet', label: 'Fleet Operations', shortLabel: 'Fleet', icon: Truck },
     { id: 'operations', label: 'Yard Operations', shortLabel: 'Yard Ops', icon: Layers },
   ];
