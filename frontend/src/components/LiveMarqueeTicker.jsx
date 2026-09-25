@@ -11,7 +11,20 @@ import {
   Clock
 } from 'lucide-react';
 
+function formatCurrency(val) {
+  const num = Number(val) || 0;
+  if (Math.abs(num) >= 10000000) return `₹ ${(num / 10000000).toFixed(2)} Cr`;
+  if (Math.abs(num) >= 100000) return `₹ ${(num / 100000).toFixed(2)} Lakh`;
+  return `₹ ${num.toLocaleString('en-IN')}`;
+}
+
 export default function LiveMarqueeTicker({ stats = {} }) {
+  const gross = Number(stats.grossRevenue || stats.totalGrossAmount || 38536360360.24);
+  const containers = Number(stats.containerCount || stats.totalContainers || 89245);
+  const teus = Number(stats.teuCount || stats.totalTeus || 171976);
+  const jobs = Number(stats.jobOrders || stats.totalJobOrders || 88361);
+  const invoices = Number(stats.invoiceCount || 184985);
+
   const tickerItems = [
     // 1. SALES & ENTERPRISE HIGHLIGHTS
     {
@@ -20,15 +33,15 @@ export default function LiveMarqueeTicker({ stats = {} }) {
       icon: TrendingUp,
       iconColor: 'text-emerald-400',
       label: 'Gross Sales',
-      value: '₹ 3,853.64 Cr'
+      value: formatCurrency(gross)
     },
     {
       category: 'SALES',
       badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
       icon: Building2,
       iconColor: 'text-purple-400',
-      label: '29 Terminals',
-      value: '100% Active'
+      label: 'Branch Terminals',
+      value: '29 Active Hubs'
     },
     {
       category: 'SALES',
@@ -36,33 +49,41 @@ export default function LiveMarqueeTicker({ stats = {} }) {
       icon: Container,
       iconColor: 'text-emerald-400',
       label: 'Containers Handled',
-      value: '85,313 Units (1,62,095 TEUs)'
+      value: `${containers.toLocaleString('en-IN')} Units (${teus.toLocaleString('en-IN')} TEUs)`
+    },
+    {
+      category: 'SALES',
+      badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      icon: Ship,
+      iconColor: 'text-blue-400',
+      label: 'Invoices Audited',
+      value: `${invoices.toLocaleString('en-IN')} Invoices`
     },
 
     // 2. TOP CLIENTS & BILLING
     {
-      category: 'TOP CLIENT',
-      badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-      icon: Ship,
-      iconColor: 'text-blue-400',
+      category: 'TOP HUB',
+      badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+      icon: Building2,
+      iconColor: 'text-purple-400',
       label: 'Transworld-Dadri',
-      value: '₹ 4,969.8 Cr (49,412 TEU)'
+      value: '₹ 1,421.50 Cr (36,440 Cont)'
     },
     {
       category: 'TOP CLIENT',
       badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
       icon: Users,
       iconColor: 'text-cyan-400',
-      label: 'Allcargo Logistics',
-      value: '₹ 842.1 Cr (14,210 TEU)'
+      label: 'Fair Exports (UP)',
+      value: '₹ 273.66 Cr (20,460 Invs)'
     },
     {
       category: 'TOP CLIENT',
       badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-      icon: Building2,
+      icon: Users,
       iconColor: 'text-indigo-400',
-      label: 'Concor Intermodal',
-      value: '₹ 612.4 Cr Invoiced'
+      label: 'IFF India Frozen Foods',
+      value: '₹ 250.49 Cr (14,761 Invs)'
     },
 
     // 3. REAL-TIME YARD & FLEET OPERATIONS
@@ -71,16 +92,16 @@ export default function LiveMarqueeTicker({ stats = {} }) {
       badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
       icon: Truck,
       iconColor: 'text-[#ff8a3d]',
-      label: 'Fleet Deployment',
-      value: '1,272 Multi-Axle Vehicles'
+      label: 'Dedicated Fleet',
+      value: '1,272 Multi-Axle Trucks'
     },
     {
       category: 'YARD OPS',
       badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
       icon: Zap,
       iconColor: 'text-amber-400',
-      label: 'Job Orders Mapped',
-      value: '88,361 Dispatches'
+      label: 'Job Orders (JO)',
+      value: `${jobs.toLocaleString('en-IN')} Jobs Active`
     },
     {
       category: 'YARD OPS',
@@ -95,7 +116,7 @@ export default function LiveMarqueeTicker({ stats = {} }) {
       badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
       icon: CheckCircle2,
       iconColor: 'text-purple-400',
-      label: 'Cold Chain Status',
+      label: 'Cold Chain Fleet',
       value: '100% Temp Verified'
     }
   ];
