@@ -306,35 +306,65 @@ export default function App() {
 
   // Dynamic Synchronized Sales KPIs across all cascading levels (Company -> Customer -> Terminal -> FY)
   const activeSalesKPIs = useMemo(() => {
+    const canonFY = getCanonicalFY(selectedFY);
+
     // 1. If customer selected
     if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') {
       const s = String(selectedCustomer).toLowerCase().trim();
+      
+      let realCustInFY = null;
+      if (canonFY && realOracleFYData?.fyCustomers?.[canonFY]) {
+        realCustInFY = realOracleFYData.fyCustomers[canonFY].find(c =>
+          (c.customerName || '').toLowerCase().includes(s) || s.includes((c.customerName || '').toLowerCase())
+        );
+      }
+
       const match = (masters.customerTerminalMatrix || []).find(c =>
         String(c.customerId).toLowerCase() === s ||
         (c.customerName && c.customerName.toLowerCase() === s) ||
         (c.customerName && c.customerName.toLowerCase().includes(s))
       );
+
+      // If customer has NO invoices in Oracle DB for chosen FY
+      if (canonFY && !realCustInFY && match) {
+        return {
+          grossRevenue: 0,
+          totalGrossAmount: 0,
+          netRevenue: 0,
+          totalBillAmount: 0,
+          taxableRevenue: 0,
+          totalTax: 0,
+          gstTax: 0,
+          totalCreditAmount: 0,
+          creditNotes: 0,
+          invoiceCount: 0,
+          containerCount: 0,
+          teuCount: 0,
+          totalRecords: 0,
+          customerWise: [{
+            customerId: match.customerId,
+            customerName: match.customerName,
+            invoiceCount: 0,
+            billAmount: 0,
+            taxAmount: 0,
+            grossAmount: 0,
+            terminalCount: match.terminals ? match.terminals.length : 1,
+            terminals: (match.terminals || []).map(t => t.terminalName)
+          }]
+        };
+      }
+
       if (match && match.terminals) {
         let list = match.terminals;
         if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
           list = list.filter(t => String(t.terminalId) === String(selectedTerminal) || (t.terminalName && t.terminalName.toLowerCase().includes(String(selectedTerminal).toLowerCase())));
         }
-        let gross = list.reduce((acc, t) => acc + (t.netRevenue || t.totalAmount || 0), 0);
-        let invs = list.reduce((acc, t) => acc + (t.invoiceCount || 0), 0);
-        let conts = list.reduce((acc, t) => acc + (t.totalContainers || (t.invoiceCount > 0 ? Math.round(t.invoiceCount * 1.14) : 0)), 0);
 
-        if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-          const fyCell = (terminalFyMatrix || []).filter(m => m.fy === selectedFY);
-          const fySum = fyCell.reduce((acc, m) => acc + (m.grossSale || 0), 0);
-          const allSum = 38536360360.24;
-          const ratio = allSum > 0 ? (fySum / allSum) : 0.125;
-          gross = Math.round(gross * ratio * 100) / 100;
-          invs = Math.round(invs * ratio);
-          conts = Math.round(conts * ratio);
-        }
-
-        const bill = Math.round((gross / 1.18) * 100) / 100;
-        const tax = Math.round((gross - bill) * 100) / 100;
+        let gross = realCustInFY ? realCustInFY.grossRevenue : list.reduce((acc, t) => acc + (t.netRevenue || t.totalAmount || 0), 0);
+        let invs = realCustInFY ? realCustInFY.invoiceCount : list.reduce((acc, t) => acc + (t.invoiceCount || 0), 0);
+        let conts = realCustInFY ? realCustInFY.containerCount : list.reduce((acc, t) => acc + (t.totalContainers || (t.invoiceCount > 0 ? Math.round(t.invoiceCount * 1.14) : 0)), 0);
+        let bill = realCustInFY ? realCustInFY.baseAmount : Math.round((gross / 1.18) * 100) / 100;
+        let tax = realCustInFY ? realCustInFY.taxAmount : Math.round((gross - bill) * 100) / 100;
 
         return {
           grossRevenue: gross,

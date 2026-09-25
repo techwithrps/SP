@@ -343,6 +343,8 @@ export default function AnalyticsCharts({
 
   // 1. DYNAMIC CASCADING TERMINAL MATRIX (Level 1: Company -> Level 2: Customer -> Level 3: Terminal -> Level 4: FY)
   const displayTerminals = useMemo(() => {
+    const canonFY = getCanonicalFY(selectedFY);
+
     // ═════════════════════════════════════════════════════════════════════
     // LEVEL 2 & 3: CUSTOMER SPECIFIC SCOPE (Customer is selected)
     // ═════════════════════════════════════════════════════════════════════
@@ -364,17 +366,44 @@ export default function AnalyticsCharts({
         list = list.filter(t => (t.terminalName || '').toLowerCase().includes(q) || String(t.terminalId).includes(q));
       }
 
+      // Check if real Oracle FY Customer dataset has this customer for the chosen FY
+      let realCustInFY = null;
+      if (canonFY && realOracleFYData?.fyCustomers?.[canonFY]) {
+        realCustInFY = realOracleFYData.fyCustomers[canonFY].find(c =>
+          (c.customerName || '').toLowerCase().includes(customerEntry.customerName.toLowerCase()) ||
+          customerEntry.customerName.toLowerCase().includes((c.customerName || '').toLowerCase())
+        );
+        // If customer had NO invoices in this financial year in Oracle DB
+        if (!realCustInFY) {
+          return [];
+        }
+      }
+
+      const totalCustAllTimeGross = customerEntry.terminals.reduce((sum, t) => sum + Number(t.netRevenue || t.totalAmount || 0), 0) || 1;
+
       return list.map(t => {
         const fullTerm = terminals.find(ft => String(ft.terminalId || ft.id) === String(t.terminalId));
-        const factors = getFyFactors(t.terminalId, selectedFY);
+        let gross = Number(t.netRevenue || t.totalAmount || 0);
+        let invs = Number(t.invoiceCount || 0);
+        let conts = Number(t.totalContainers || (invs > 0 ? Math.round(invs * 0.48) : 0));
+        let bill = Math.round((gross / 1.18) * 100) / 100;
+        let tax = Math.round((gross - bill) * 100) / 100;
 
-        let gross = Number(t.netRevenue || t.totalAmount || 0) * factors.revRatio;
-        let invs = Math.round(Number(t.invoiceCount || 0) * factors.invRatio);
-        let conts = Math.round(Number(t.totalContainers || (invs > 0 ? Math.round(invs * 0.48) : 0)) * (t.totalContainers ? factors.contRatio : 1));
-
-        gross = Math.round(gross * 100) / 100;
-        const bill = Math.round((gross / 1.18) * 100) / 100;
-        const tax = Math.round((gross - bill) * 100) / 100;
+        if (realCustInFY) {
+          const termShare = Number(t.netRevenue || t.totalAmount || 0) / totalCustAllTimeGross;
+          gross = Math.round(realCustInFY.grossRevenue * termShare * 100) / 100;
+          invs = Math.max(1, Math.round(realCustInFY.invoiceCount * termShare));
+          conts = Math.max(0, Math.round(realCustInFY.containerCount * termShare));
+          bill = Math.round(realCustInFY.baseAmount * termShare * 100) / 100;
+          tax = Math.round(realCustInFY.taxAmount * termShare * 100) / 100;
+        } else if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
+          const factors = getFyFactors(t.terminalId, selectedFY);
+          gross = Math.round(gross * factors.revRatio * 100) / 100;
+          invs = Math.round(invs * factors.invRatio);
+          conts = Math.round(conts * (t.totalContainers ? factors.contRatio : 1));
+          bill = Math.round((gross / 1.18) * 100) / 100;
+          tax = Math.round((gross - bill) * 100) / 100;
+        }
 
         return {
           terminalId: t.terminalId,
