@@ -340,9 +340,9 @@ export default function App() {
           terminals: masterJson.data.terminals?.length || 0,
           companies: masterJson.data.companies?.length || 0,
         } : (masters ? {
-          customers: masters.customers?.length || 0,
-          terminals: masters.terminals?.length || 0,
-          companies: masters.companies?.length || 0,
+          customers: masters?.customers?.length || 0,
+          terminals: masters?.terminals?.length || 0,
+          companies: masters?.companies?.length || 0,
         } : { customers: 0, terminals: 0, companies: 0 }),
         topCustomer0: finJson?.data?.topCustomers?.[0] || null,
         kpis: finJson?.data?.kpis || null,
@@ -433,7 +433,7 @@ export default function App() {
   }, [financialData]);
 
   const activeSalesCustomers = useMemo(() => {
-    const topList = financialData?.topCustomers || masters.customers || [];
+    const topList = financialData?.topCustomers || masters?.customers || [];
     return topList.map(c => {
       const gross = Number(c.grossRevenue || c.totalRevenue || c.totalAmount || 0);
       const bill = c.baseAmount !== undefined ? Number(c.baseAmount) : Math.round((gross / 1.18) * 100) / 100;
