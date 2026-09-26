@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Globe2, Ship, Truck, Users } from 'lucide-react';
 import Navbar from './components/Navbar';
 import GlobalFilterBar from './components/GlobalFilterBar';
