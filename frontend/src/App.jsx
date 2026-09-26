@@ -132,14 +132,15 @@ export default function App() {
     setCurrentUser(null);
   };
 
-  // Default Initial Page: Branch Wise Analytics
   const [activeTab, setActiveTab] = useState('analytics');
   const [loading, setLoading] = useState(true);
-  const [masters, setMasters] = useState({});
+  const [masters, setMasters] = useState(null);
   const [records, setRecords] = useState([]);
   const [kpis, setKpis] = useState({});
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   // Global State for Company, Customer, Terminal and Financial Year across all tabs
   const [selectedCompany, setSelectedCompany] = useState('ALL');
@@ -264,12 +265,15 @@ export default function App() {
         queryParams.append('customerId', filters.customerId);
       }
 
-      if (selectedFY && selectedFY !== 'all' && selectedFY !== 'ALL') {
+      if (selectedFY && selectedFY !== 'all' && selectedFY !== 'ALL' && selectedFY !== 'All Financial Years') {
         queryParams.append('financialYear', selectedFY);
       }
 
-      if (customFromDate) queryParams.append('fromDate', customFromDate);
-      if (customToDate) queryParams.append('toDate', customToDate);
+      // ONLY append custom fromDate and toDate if selectedFY is explicitly 'CUSTOM_RANGE' or 'Custom Date Range'
+      if (selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM') {
+        if (customFromDate) queryParams.append('fromDate', customFromDate);
+        if (customToDate) queryParams.append('toDate', customToDate);
+      }
 
       if (filters.serviceId && filters.serviceId !== 'all' && filters.serviceId !== 'ALL') queryParams.append('serviceId', filters.serviceId);
       if (filters.tripType && filters.tripType !== 'all' && filters.tripType !== 'ALL') queryParams.append('tripType', filters.tripType);
@@ -282,13 +286,16 @@ export default function App() {
       cirParams.append('page', String(cirPage));
       cirParams.append('limit', String(cirLimit));
 
+      const finUrl = `/api/financial-analytics?${queryParams.toString()}`;
+      const cirUrl = `/api/cir-report?${cirParams.toString()}`;
+
       if (process.env.NODE_ENV !== 'production') {
         console.log(`[SPJ Frontend Sync #${currentReqId}] Requesting APIs with params:`, queryParams.toString());
       }
 
       const [cirRes, finRes, masterRes] = await Promise.all([
-        authFetch(`/api/cir-report?${cirParams.toString()}`),
-        authFetch(`/api/financial-analytics?${queryParams.toString()}`),
+        authFetch(cirUrl),
+        authFetch(finUrl),
         masters ? Promise.resolve(null) : authFetch('/api/masters')
       ]);
 
@@ -320,6 +327,27 @@ export default function App() {
       if (finJson.success && finJson.data) {
         setFinancialData(finJson.data);
       }
+
+      // Record debug info for dev inspection panel
+      setDebugInfo({
+        timestamp: new Date().toLocaleTimeString(),
+        finUrl,
+        cirUrl,
+        sentParams: Object.fromEntries(queryParams.entries()),
+        finResponse: finJson,
+        mastersCount: masterJson?.data ? {
+          customers: masterJson.data.customers?.length || 0,
+          terminals: masterJson.data.terminals?.length || 0,
+          companies: masterJson.data.companies?.length || 0,
+        } : (masters ? {
+          customers: masters.customers?.length || 0,
+          terminals: masters.terminals?.length || 0,
+          companies: masters.companies?.length || 0,
+        } : { customers: 0, terminals: 0, companies: 0 }),
+        topCustomer0: finJson?.data?.topCustomers?.[0] || null,
+        kpis: finJson?.data?.kpis || null,
+        overallKPIs: finJson?.data?.overallKPIs || null
+      });
 
       setLastUpdated(new Date().toLocaleTimeString());
     } catch (e) {
@@ -542,19 +570,18 @@ export default function App() {
             setCustomFromDate={setCustomFromDate}
             customToDate={customToDate}
             setCustomToDate={setCustomToDate}
-            companies={masters.companies || []}
-            customers={masters.customers || []}
+            companies={masters?.companies || []}
+            customers={masters?.customers || []}
             topCustomers={financialData?.topCustomers || []}
-            terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+            terminals={allTerminals.length > 0 ? allTerminals : (masters?.terminals || [])}
             financialYears={financialYears}
             terminalFyMatrix={terminalFyMatrix}
-            customerTerminalMatrix={masters.customerTerminalMatrix || []}
-            companyCustomers={masters.companyCustomers || {}}
-            companyTerminals={masters.companyTerminals || {}}
-            triMatrix={masters.triMatrix || []}
+            customerTerminalMatrix={masters?.customerTerminalMatrix || []}
+            companyCustomers={masters?.companyCustomers || {}}
+            companyTerminals={masters?.companyTerminals || {}}
+            triMatrix={masters?.triMatrix || []}
             onRefresh={() => {
-              fetchCIRData();
-              fetchInitialData();
+              fetchSynchronizedAnalytics();
             }}
             onExport={handleExportExcel}
             loading={loading}
@@ -645,9 +672,9 @@ export default function App() {
                   selectedFY={selectedFY}
                   setSelectedFY={setSelectedFY}
                   financialData={financialData}
-                  customerTerminalMatrix={masters.customerTerminalMatrix || []}
-                  companyTerminals={masters.companyTerminals || {}}
-                  companyCustomers={masters.companyCustomers || {}}
+                  customerTerminalMatrix={masters?.customerTerminalMatrix || []}
+                  companyTerminals={masters?.companyTerminals || {}}
+                  companyCustomers={masters?.companyCustomers || {}}
                   kpis={kpis}
                   loading={finLoading}
                 />
@@ -676,13 +703,13 @@ export default function App() {
                   filters={filters}
                   setFilters={setFilters}
                   masters={{
-                    ...masters,
-                    terminals: allTerminals.length > 0 ? allTerminals : (masters.terminals || [])
+                    ...(masters || {}),
+                    terminals: allTerminals.length > 0 ? allTerminals : (masters?.terminals || [])
                   }}
                   records={records}
                   selectedCompany={selectedCompany}
-                  companyCustomers={masters.companyCustomers || {}}
-                  customerTerminalMatrix={masters.customerTerminalMatrix || []}
+                  companyCustomers={masters?.companyCustomers || {}}
+                  customerTerminalMatrix={masters?.customerTerminalMatrix || []}
                   selectedTerminal={selectedTerminal}
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}
@@ -726,7 +753,7 @@ export default function App() {
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}
                   setSelectedFY={setSelectedFY}
-                  terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+                  terminals={allTerminals.length > 0 ? allTerminals : (masters?.terminals || [])}
                   financialYears={financialYears}
                 />
               </div>
@@ -740,7 +767,7 @@ export default function App() {
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}
                   setSelectedFY={setSelectedFY}
-                  terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+                  terminals={allTerminals.length > 0 ? allTerminals : (masters?.terminals || [])}
                   financialYears={financialYears}
                 />
               </div>
@@ -754,13 +781,85 @@ export default function App() {
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}
                   setSelectedFY={setSelectedFY}
-                  terminals={allTerminals.length > 0 ? allTerminals : (masters.terminals || [])}
+                  terminals={allTerminals.length > 0 ? allTerminals : (masters?.terminals || [])}
                   financialYears={financialYears}
                 />
               </div>
             )}
           </React.Suspense>
         </ErrorBoundary>
+
+        {/* STEP 12: TEMPORARY DEV DEBUG INSPECTION PANEL */}
+        <div className="mt-8 border border-slate-300 bg-slate-900 text-slate-100 rounded-2xl p-4 text-xs font-mono shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-700 pb-2 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="font-bold text-slate-200">🔍 Live API Contract Debug Inspection Panel (Dev Mode)</span>
+            </div>
+            <button
+              onClick={() => setShowDebugPanel(prev => !prev)}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold transition-all cursor-pointer"
+            >
+              {showDebugPanel ? 'Hide Debug Details ▲' : 'Show Debug Details ▼'}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] mb-3">
+            <div><span className="text-slate-400">Company:</span> <strong className="text-amber-300">{selectedCompany}</strong></div>
+            <div><span className="text-slate-400">Customer:</span> <strong className="text-amber-300">{selectedCustomer}</strong></div>
+            <div><span className="text-slate-400">Terminal:</span> <strong className="text-amber-300">{selectedTerminal}</strong></div>
+            <div><span className="text-slate-400">FY Selection:</span> <strong className="text-amber-300">{selectedFY}</strong></div>
+          </div>
+
+          {showDebugPanel && debugInfo && (
+            <div className="space-y-3 border-t border-slate-800 pt-3 animate-fade-in">
+              <div>
+                <p className="text-slate-400 font-bold mb-1">1. Requested API Endpoint & URL:</p>
+                <code className="block p-2 bg-black rounded text-emerald-400 break-all">{debugInfo.finUrl}</code>
+              </div>
+
+              <div>
+                <p className="text-slate-400 font-bold mb-1">2. Sent Parameter Object:</p>
+                <pre className="p-2 bg-black rounded text-cyan-300 overflow-x-auto text-[10px]">
+                  {JSON.stringify(debugInfo.sentParams, null, 2)}
+                </pre>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-slate-400 font-bold mb-1">3. Masters Records Count:</p>
+                  <pre className="p-2 bg-black rounded text-purple-300 text-[10px]">
+                    {JSON.stringify(debugInfo.mastersCount, null, 2)}
+                  </pre>
+                </div>
+
+                <div>
+                  <p className="text-slate-400 font-bold mb-1">4. Oracle Execution Mode & Performance:</p>
+                  <div className="p-2 bg-black rounded text-yellow-300 text-[10px] space-y-1">
+                    <div>Source: {debugInfo.finResponse?.data?.source || debugInfo.finResponse?.source}</div>
+                    <div>ExecutionMode: {debugInfo.finResponse?.data?.executionMode || debugInfo.finResponse?.executionMode}</div>
+                    <div>Matched Rows: {debugInfo.finResponse?.data?.matchedRowCount ?? debugInfo.finResponse?.matchedRows}</div>
+                    <div>Execution Time: {debugInfo.finResponse?.data?.executionTimeMs ?? 0} ms</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-slate-400 font-bold mb-1">5. API overallKPIs Response:</p>
+                <pre className="p-2 bg-black rounded text-emerald-300 text-[10px] overflow-x-auto">
+                  {JSON.stringify(debugInfo.overallKPIs || debugInfo.kpis, null, 2)}
+                </pre>
+              </div>
+
+              <div>
+                <p className="text-slate-400 font-bold mb-1">6. API topCustomers[0] Sample Structure:</p>
+                <pre className="p-2 bg-black rounded text-orange-300 text-[10px] overflow-x-auto">
+                  {JSON.stringify(debugInfo.topCustomer0, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+        </div>
 
       </main>
 
