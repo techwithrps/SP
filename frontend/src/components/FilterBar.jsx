@@ -31,13 +31,17 @@ export default function FilterBar({
   setSelectedTerminal,
   selectedFY = 'ALL',
   setSelectedFY,
+  customFromDate = '2026-04-01',
+  setCustomFromDate,
+  customToDate = '2026-09-26',
+  setCustomToDate,
   financialYears = [
     'All Financial Years', 
     'FY 2026-27', 
     'FY 2025-26', 
     'FY 2024-25', 
     'FY 2023-24', 
-    'FY 2022-23 & Earlier'
+    'Custom Date Range'
   ],
   companyCustomers = {},
   customerTerminalMatrix = [],

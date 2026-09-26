@@ -165,6 +165,8 @@ export default function App() {
     return 'ALL';
   });
   const [selectedFY, setSelectedFY] = useState('ALL');
+  const [customFromDate, setCustomFromDate] = useState('2026-04-01');
+  const [customToDate, setCustomToDate] = useState('2026-09-26');
   const [allTerminals, setAllTerminals] = useState([]);
   const [terminalFyMatrix, setTerminalFyMatrix] = useState([]);
   const [financialYears, setFinancialYears] = useState([
@@ -173,7 +175,7 @@ export default function App() {
     'FY 2025-26', 
     'FY 2024-25', 
     'FY 2023-24', 
-    'FY 2022-23 & Earlier'
+    'Custom Date Range'
   ]);
 
   // Server-side pagination & single financial analytics state
@@ -228,7 +230,7 @@ export default function App() {
   // Reset page when filters or FY change
   useEffect(() => {
     setCirPage(1);
-  }, [filters, selectedFY]);
+  }, [filters, selectedFY, customFromDate, customToDate]);
 
   // Fetch Masters & Analytics Meta for Global Filter Bar (Authenticated only)
   // Single-fetch architecture: fetches /api/financial-analytics ONCE and shares with AnalyticsCharts
@@ -249,7 +251,11 @@ export default function App() {
         const bd = fRes.data.branchDetailed;
         if (bd) {
           if (bd.terminals) setAllTerminals(bd.terminals);
-          if (bd.financialYears) setFinancialYears(bd.financialYears);
+          if (bd.financialYears) {
+            const cleaned = bd.financialYears.filter(fy => fy !== 'FY 2022-23 & Earlier');
+            if (!cleaned.includes('Custom Date Range')) cleaned.push('Custom Date Range');
+            setFinancialYears(cleaned);
+          }
           if (bd.terminalFyMatrix) setTerminalFyMatrix(bd.terminalFyMatrix);
         }
       }
@@ -274,7 +280,13 @@ export default function App() {
       if (filters.serviceId && filters.serviceId !== 'all' && filters.serviceId !== 'ALL') queryParams.append('serviceId', filters.serviceId);
       if (filters.tripType && filters.tripType !== 'all' && filters.tripType !== 'ALL') queryParams.append('tripType', filters.tripType);
       if (filters.size && filters.size !== 'all' && filters.size !== 'ALL') queryParams.append('size', filters.size);
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') queryParams.append('financialYear', selectedFY);
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
+        queryParams.append('financialYear', selectedFY);
+        if (selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range') {
+          if (customFromDate) queryParams.append('fromDate', customFromDate);
+          if (customToDate) queryParams.append('toDate', customToDate);
+        }
+      }
       if (filters.contNo && filters.contNo.trim() !== '') queryParams.append('contNo', filters.contNo.trim());
       if (filters.blNo && filters.blNo.trim() !== '') queryParams.append('blNo', filters.blNo.trim());
       if (filters.search && filters.search.trim() !== '') queryParams.append('search', filters.search.trim());
@@ -299,7 +311,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [filters, selectedFY, cirPage, cirLimit, authToken, currentUser]);
+  }, [filters, selectedFY, customFromDate, customToDate, cirPage, cirLimit, authToken, currentUser]);
 
   // Execute authenticated data fetching only when authenticated
   useEffect(() => {
@@ -707,6 +719,8 @@ export default function App() {
     setSelectedCustomer('ALL');
     setSelectedTerminal('ALL');
     setSelectedFY('ALL');
+    setCustomFromDate('2026-04-01');
+    setCustomToDate('2026-09-26');
     setCirPage(1);
     setFilters({
       companyId: 'all',
@@ -814,6 +828,10 @@ export default function App() {
             setSelectedTerminal={handleSetSelectedTerminal}
             selectedFY={selectedFY}
             setSelectedFY={setSelectedFY}
+            customFromDate={customFromDate}
+            setCustomFromDate={setCustomFromDate}
+            customToDate={customToDate}
+            setCustomToDate={setCustomToDate}
             companies={masters.companies || []}
             customers={masters.customers || []}
             topCustomers={financialData?.topCustomers || []}
@@ -959,6 +977,10 @@ export default function App() {
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}
                   setSelectedFY={setSelectedFY}
+                  customFromDate={customFromDate}
+                  setCustomFromDate={setCustomFromDate}
+                  customToDate={customToDate}
+                  setCustomToDate={setCustomToDate}
                   financialYears={financialYears}
                   onReset={handleResetFilters}
                   onExport={handleExportExcel}

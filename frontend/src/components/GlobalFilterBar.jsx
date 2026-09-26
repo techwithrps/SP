@@ -50,6 +50,10 @@ export default function GlobalFilterBar({
   setSelectedTerminal,
   selectedFY = 'ALL',
   setSelectedFY,
+  customFromDate = '2026-04-01',
+  setCustomFromDate,
+  customToDate = '2026-09-26',
+  setCustomToDate,
   companies = [],
   customers = [],
   topCustomers = [],
@@ -64,7 +68,7 @@ export default function GlobalFilterBar({
     'FY 2025-26', 
     'FY 2024-25', 
     'FY 2023-24', 
-    'FY 2022-23 & Earlier'
+    'Custom Date Range'
   ],
   terminalFyMatrix = [],
   onRefresh,
@@ -460,11 +464,34 @@ export default function GlobalFilterBar({
                       <option value="FY 2025-26">FY 2025-26 (Past Year 1)</option>
                       <option value="FY 2024-25">FY 2024-25 (Past Year 2)</option>
                       <option value="FY 2023-24">FY 2023-24 (Past Year 3)</option>
-                      <option value="FY 2022-23 & Earlier">FY 2022-23 & Earlier (Historical)</option>
+                      <option value="CUSTOM_RANGE">📆 Custom Date Range</option>
                     </>
                   )}
                 </select>
               </div>
+
+              {(selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range') && (
+                <div className="mt-2.5 flex items-center gap-2 bg-gradient-to-r from-amber-50 to-orange-50 p-2 rounded-xl border border-amber-200/80 shadow-xs">
+                  <div className="flex-1 min-w-0">
+                    <label className="text-[9px] font-extrabold text-amber-800 uppercase tracking-wider block mb-0.5">From Date</label>
+                    <input
+                      type="date"
+                      value={customFromDate || ''}
+                      onChange={(e) => setCustomFromDate && setCustomFromDate(e.target.value)}
+                      className="w-full h-8 px-2 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00]"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="text-[9px] font-extrabold text-amber-800 uppercase tracking-wider block mb-0.5">To Date</label>
+                    <input
+                      type="date"
+                      value={customToDate || ''}
+                      onChange={(e) => setCustomToDate && setCustomToDate(e.target.value)}
+                      className="w-full h-8 px-2 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00]"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 1. Company Selection */}
