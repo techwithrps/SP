@@ -515,39 +515,8 @@ export default function App() {
                          (!selectedFY || selectedFY === 'ALL' || selectedFY === 'all');
 
   const activeSalesKPIs = useMemo(() => {
-    // If Global default scope, deliver 100% verified and reconciled Oracle audited metrics (matching Branch Wise Analytics)
-    if (isGlobalScope) {
-      return {
-        grossRevenue: 38536360360.24,
-        totalGrossAmount: 38536360360.24,
-        netRevenue: 38536360360.24,
-        totalBillAmount: 32657932508.68,
-        taxableRevenue: 32657932508.68,
-        totalTax: 5878427851.56,
-        gstTax: 5878427851.56,
-        totalCreditAmount: 0,
-        creditNotes: 0,
-        invoiceCount: 184985,
-        containerCount: 89245,
-        containerMovements: 128450,
-        jobOrders: 88361,
-        teuCount: 171976,
-        totalRecords: 184985,
-        customerWise: (financialData?.topCustomers || masters.customers || []).map(c => ({
-          customerId: c.customerId || c.id,
-          customerName: c.customerName || c.name,
-          invoiceCount: c.invoiceCount || 0,
-          billAmount: c.billAmount || (c.grossRevenue ? Math.round((c.grossRevenue / 1.18) * 100) / 100 : 0),
-          taxAmount: c.taxAmount || (c.grossRevenue ? Math.round((c.grossRevenue - (c.grossRevenue / 1.18)) * 100) / 100 : 0),
-          grossAmount: c.grossRevenue || c.totalRevenue || 0,
-          terminalCount: c.terminalCount || 1,
-          terminals: c.terminals || []
-        }))
-      };
-    }
-
-    const isCustomFY = selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM';
-    if (isCustomFY && kpis && (kpis.totalGrossAmount > 0 || kpis.grossRevenue > 0 || kpis.totalRecords > 0)) {
+    // 100% Dynamic Database Analytics: prefer live backend computed KPIs if available
+    if (kpis && (kpis.totalGrossAmount > 0 || kpis.grossRevenue > 0 || kpis.totalRecords > 0 || kpis.invoiceCount > 0)) {
       return {
         ...kpis,
         grossRevenue: kpis.grossRevenue || kpis.totalGrossAmount || 0,

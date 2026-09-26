@@ -747,26 +747,14 @@ export default function AnalyticsCharts({
       ];
     }
 
-    const currentGross = dynamicMetrics.grossSale || 0;
-    const baseTotalGross = 38536360360.24;
-    const isGlobal = (!selectedCompany || selectedCompany === 'ALL' || selectedCompany === 'all') &&
-                     (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') &&
-                     (!selectedTerminal || selectedTerminal === 'ALL' || selectedTerminal === 'all') &&
-                     (!selectedFY || selectedFY === 'ALL' || selectedFY === 'all');
-
-    const scale = (isGlobal || baseTotalGross === 0 || currentGross === 0) ? 1.0 : (currentGross / baseTotalGross);
+    const totalGross = dynamicMetrics.grossSale || (kpis?.grossRevenue) || 0;
 
     return list.map(s => {
       let gross = Number(s.grossRevenue || s.totalAmount || s.revenue || 0);
       let items = Number(s.itemCount || s.lineItemCount || s.count || 0);
 
-      if (!isGlobal) {
-        gross = Math.round(gross * scale * 100) / 100;
-        items = Math.max(1, Math.round(items * scale));
-      }
-
-      const bill = s.billAmount && isGlobal ? Number(s.billAmount) : Math.round((gross / 1.18) * 100) / 100;
-      const tax = s.taxAmount && isGlobal ? Number(s.taxAmount) : Math.round((gross - bill) * 100) / 100;
+      const bill = s.billAmount ? Number(s.billAmount) : Math.round((gross / 1.18) * 100) / 100;
+      const tax = s.taxAmount ? Number(s.taxAmount) : Math.round((gross - bill) * 100) / 100;
 
       return {
         ...s,
@@ -775,10 +763,10 @@ export default function AnalyticsCharts({
         billAmount: bill,
         taxAmount: tax,
         itemCount: items,
-        share: s.share || (baseTotalGross > 0 ? ((gross / baseTotalGross) * 100).toFixed(1) : 0)
+        share: totalGross > 0 ? ((gross / totalGross) * 100).toFixed(1) : (s.share || 0)
       };
     }).sort((a, b) => (b.grossRevenue || 0) - (a.grossRevenue || 0));
-  }, [rawTopServices, dynamicMetrics.grossSale, selectedCompany, selectedCustomer, selectedTerminal, selectedFY]);
+  }, [rawTopServices, dynamicMetrics.grossSale, kpis]);
 
   const handleSortHeader = (field) => {
     if (sortBy === field) {
@@ -896,29 +884,9 @@ export default function AnalyticsCharts({
     return sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 inline text-purple-700" /> : <ArrowDown className="w-3 h-3 inline text-purple-700" />;
   };
 
-  // Unified 9 Verified KPIs (Decoupled Job Orders 88,358 from Total Invoices 1,84,985)
-  const isGlobalFilter = (!selectedCompany || selectedCompany === 'ALL' || selectedCompany === 'all') &&
-                         (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') &&
-                         (!selectedTerminal || selectedTerminal === 'ALL' || selectedTerminal === 'all') &&
-                         (!selectedFY || selectedFY === 'ALL' || selectedFY === 'all');
-
+  // Unified 9 Verified KPIs computed dynamically from active database scope
   const chartKPIs = useMemo(() => {
-    if (isGlobalFilter) {
-      return {
-        netRevenue: 38536360360.24,
-        grossRevenue: 38536360360.24,
-        taxableRevenue: 32657932508.68,
-        gstTax: 5878427851.56,
-        invoiceCount: 184985,
-        containerCount: 89245,
-        containerMovements: 128450,
-        jobOrders: 88361,
-        teuCount: 171976
-      };
-    }
-
-    const isCustomFY = selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM';
-    if (isCustomFY && kpis && (kpis.grossRevenue || kpis.totalGrossAmount || kpis.totalRecords || kpis.invoiceCount)) {
+    if (kpis && (kpis.grossRevenue || kpis.totalGrossAmount || kpis.totalRecords || kpis.invoiceCount)) {
       const gross = Number(kpis.grossRevenue || kpis.totalGrossAmount || 0);
       const bill = Number(kpis.totalBillAmount || (gross ? Math.round((gross / 1.18) * 100) / 100 : 0));
       const tax = Number(kpis.totalTax || kpis.gstTax || (gross - bill));

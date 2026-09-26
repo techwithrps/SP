@@ -70,7 +70,7 @@ export default function ObsidianNetworkGraph({
   onSelectCompany,
   onSelectCustomer,
   onSelectTerminal,
-  totalSales = 38536360360.24
+  totalSales = 0
 }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);

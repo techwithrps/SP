@@ -19,11 +19,11 @@ function formatCurrency(val) {
 }
 
 export default function LiveMarqueeTicker({ stats = {} }) {
-  const gross = Number(stats.grossRevenue || stats.totalGrossAmount || 38536360360.24);
-  const containers = Number(stats.containerCount || stats.totalContainers || 89245);
-  const teus = Number(stats.teuCount || stats.totalTeus || 171976);
-  const jobs = Number(stats.jobOrders || stats.totalJobOrders || 88361);
-  const invoices = Number(stats.invoiceCount || 184985);
+  const gross = Number(stats.grossRevenue || stats.totalGrossAmount || 0);
+  const containers = Number(stats.containerCount || stats.totalContainers || 0);
+  const teus = Number(stats.teuCount || stats.totalTeus || 0);
+  const jobs = Number(stats.jobOrders || stats.totalJobOrders || 0);
+  const invoices = Number(stats.invoiceCount || 0);
 
   const tickerItems = [
     // 1. SALES & ENTERPRISE HIGHLIGHTS

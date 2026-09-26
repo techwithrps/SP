@@ -96,7 +96,7 @@ const renderCustomizedLabel = (props) => {
 
 export default function SalesRevenueDonutSection({
   totalSales,
-  totalGrossRevenue = 38536360360.24,
+  totalGrossRevenue = 0,
   selectedCompany = 'ALL',
   selectedCustomer = 'ALL',
   selectedTerminal = 'ALL',
@@ -107,7 +107,7 @@ export default function SalesRevenueDonutSection({
 }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
-  const activeTotal = totalSales || totalGrossRevenue || 38536360360.24;
+  const activeTotal = totalSales || totalGrossRevenue || 0;
 
   // Category Distribution scaled to active total sales
   const categoryData = useMemo(() => {
