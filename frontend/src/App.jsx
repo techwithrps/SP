@@ -174,7 +174,6 @@ export default function App() {
     'FY 2026-27', 
     'FY 2025-26', 
     'FY 2024-25', 
-    'FY 2023-24', 
     'Custom Date Range'
   ]);
 
