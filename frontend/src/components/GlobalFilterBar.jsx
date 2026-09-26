@@ -17,7 +17,7 @@ import * as XLSX from 'xlsx';
 import realOracleFYData from '../data/realOracleFYData.json';
 
 function getCanonicalFY(fy) {
-  if (!fy || fy === 'ALL' || fy === 'all' || fy === 'All Financial Years') return null;
+  if (!fy || fy === 'ALL' || fy === 'all' || fy === 'All Financial Years' || fy === 'CUSTOM_RANGE' || fy === 'Custom Date Range' || fy === 'CUSTOM') return null;
   const s = String(fy).trim();
   if (s.includes('2026-27') || s.includes('2026-2027') || s.includes('26-27')) return '2026-2027';
   if (s.includes('2025-26') || s.includes('2025-2026') || s.includes('25-26')) return '2025-2026';
@@ -26,7 +26,7 @@ function getCanonicalFY(fy) {
   if (s.includes('2022-23') || s.includes('2022-2023') || s.includes('22-23')) return '2022-2023';
   if (s.includes('2021-22') || s.includes('2021-2022') || s.includes('21-22')) return '2021-2022';
   if (s.includes('2020-21') || s.includes('2020-2021') || s.includes('20-21')) return '2020-2021';
-  return s;
+  return null;
 }
 
 function formatCurrency(val) {
@@ -260,11 +260,12 @@ export default function GlobalFilterBar({
 
   // Compute terminal stats specifically for current selectedFY
   const getTerminalStats = (t) => {
-    if (selectedFY === 'ALL' || selectedFY === 'all') {
+    const isCustom = selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM';
+    if (selectedFY === 'ALL' || selectedFY === 'all' || isCustom) {
       return {
-        totalContainers: t.totalContainers || 0,
-        netRevenue: t.netRevenue || 0,
-        totalJobs: t.totalJobs || 0,
+        totalContainers: t.totalContainers || t.displayContainers || 0,
+        netRevenue: t.netRevenue || t.grossSale || 0,
+        totalJobs: t.totalJobs || t.invoiceCount || 0,
         invoiceCount: t.invoiceCount || 0
       };
     }
