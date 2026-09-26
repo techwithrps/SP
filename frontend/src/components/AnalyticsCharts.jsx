@@ -96,7 +96,7 @@ export default function AnalyticsCharts({
   const branchDetailed = finData?.branchDetailed || {};
   const terminals = useMemo(() => branchDetailed.terminals || [], [branchDetailed]);
   const financialYears = useMemo(() => branchDetailed.financialYears || [
-    'All Financial Years', 'FY 2026-27', 'FY 2025-26', 'FY 2024-25', 'FY 2023-24', 'FY 2022-23 & Earlier'
+    'All Financial Years', 'FY 2026-27', 'FY 2025-26', 'FY 2024-25', 'FY 2022-23 & Earlier'
   ], [branchDetailed]);
   const fySummaries = useMemo(() => branchDetailed.fySummaries || {}, [branchDetailed]);
   const terminalFyMatrix = useMemo(() => branchDetailed.terminalFyMatrix || [], [branchDetailed]);
@@ -354,7 +354,6 @@ export default function AnalyticsCharts({
   // Year over Year Chart Data
   const yoyChartData = useMemo(() => {
     const list = [
-      { fy: 'FY 2023-24', label: '2023-24' },
       { fy: 'FY 2024-25', label: '2024-25' },
       { fy: 'FY 2025-26', label: '2025-26' },
       { fy: 'FY 2026-27', label: '2026-27' },

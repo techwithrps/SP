@@ -80,7 +80,6 @@ export default function CompactFilterGroup({
             <option value="FY 2026-27">FY 2026-27</option>
             <option value="FY 2025-26">FY 2025-26</option>
             <option value="FY 2024-25">FY 2024-25</option>
-            <option value="FY 2023-24">FY 2023-24</option>
             <option value="CUSTOM_RANGE">📆 Custom Date Range</option>
           </select>
         </div>

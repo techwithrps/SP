@@ -415,7 +415,6 @@ export default function GlobalFilterBar({
                       <option value="FY 2026-27">FY 2026-27 (Current Fiscal)</option>
                       <option value="FY 2025-26">FY 2025-26 (Past Year 1)</option>
                       <option value="FY 2024-25">FY 2024-25 (Past Year 2)</option>
-                      <option value="FY 2023-24">FY 2023-24 (Past Year 3)</option>
                       <option value="CUSTOM_RANGE">📆 Custom Date Range</option>
                     </>
                   )}
