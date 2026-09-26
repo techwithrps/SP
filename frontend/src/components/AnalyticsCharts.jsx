@@ -503,7 +503,7 @@ export default function AnalyticsCharts({
       jobOrders: jobs,
       teuCount: teus
     };
-  }, [isGlobalFilter, dynamicMetrics, kpis, selectedFY]);
+  }, [dynamicMetrics, kpis, selectedFY]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
