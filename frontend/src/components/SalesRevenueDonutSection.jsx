@@ -109,51 +109,24 @@ export default function SalesRevenueDonutSection({
 
   const activeTotal = totalSales || totalGrossRevenue || 0;
 
-  // Category Distribution scaled to active total sales
+  // Category & Service Breakdown computed dynamically from active backend analytics scope
   const categoryData = useMemo(() => {
-    const total = activeTotal;
-
-    const baseCategories = [
-      {
-        name: 'Electronics & Reefer Cargo',
-        shortName: 'Electronics',
-        share: 0.4812,
-        invoicesPct: 0.46,
-        description: 'Cold storage, temperature-controlled pharma, electronics & meat exports'
-      },
-      {
-        name: 'Solar & Multimodal Rail Ops',
-        shortName: 'Solar',
-        share: 0.2641,
-        invoicesPct: 0.28,
-        description: 'Dedicated container train movements & heavy multimodal haulage'
-      },
-      {
-        name: 'Appliances & ICD Terminals',
-        shortName: 'Appliances',
-        share: 0.2081,
-        invoicesPct: 0.21,
-        description: 'Yard operations, CFS handling, stuffing & de-stuffing at Dadri/Kanpur'
-      },
-      {
-        name: 'Industrial Consumables & Port',
-        shortName: 'Industrial Consum...',
-        share: 0.0466,
-        invoicesPct: 0.05,
-        description: 'Port clearance, line demurrage, bonded warehousing & documentation'
-      }
-    ];
-
-    return baseCategories.map((cat, idx) => {
-      const catSales = Math.round(total * cat.share * 100) / 100;
-      return {
-        ...cat,
-        value: catSales,
-        salesFormatted: formatCurrency(catSales),
-        color: COLORS[idx % COLORS.length]
-      };
-    });
-  }, [activeTotal]);
+    if (topServices && topServices.length > 0) {
+      return topServices.slice(0, 5).map((svc, idx) => {
+        const val = Number(svc.grossRevenue || svc.grossAmount || 0);
+        const nameStr = svc.serviceName || 'Logistics Service';
+        return {
+          name: nameStr,
+          shortName: nameStr.length > 18 ? nameStr.substring(0, 16) + '..' : nameStr,
+          share: svc.share ? (svc.share / 100) : (activeTotal > 0 ? val / activeTotal : 0),
+          value: val,
+          salesFormatted: formatCurrency(val),
+          color: COLORS[idx % COLORS.length]
+        };
+      });
+    }
+    return [];
+  }, [topServices, activeTotal]);
 
   const centerTotalFormatted = (activeTotal >= 10000000)
     ? `₹ ${(activeTotal / 10000000).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Cr`

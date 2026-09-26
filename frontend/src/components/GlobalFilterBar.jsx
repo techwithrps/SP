@@ -14,8 +14,6 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
-import realOracleFYData from '../data/realOracleFYData.json';
-
 function getCanonicalFY(fy) {
   if (!fy || fy === 'ALL' || fy === 'all' || fy === 'All Financial Years' || fy === 'CUSTOM_RANGE' || fy === 'Custom Date Range' || fy === 'CUSTOM') return null;
   const s = String(fy).trim();
@@ -130,68 +128,41 @@ export default function GlobalFilterBar({
   const selectedCompanyObj = useMemo(() => resolveCompany(selectedCompany), [selectedCompany, companyList]);
   const activeCompId = selectedCompanyObj ? String(selectedCompanyObj.id || selectedCompanyObj.companyId) : null;
 
-  // STRICT CASCADING CUSTOMERS: Filtered by selectedCompany & selectedFY, Sorted Alphabetically (A-Z)
+  // STRICT CASCADING CUSTOMERS: Filtered by selectedCompany, Sorted Alphabetically (A-Z)
   const availableCustomers = useMemo(() => {
-    const canonFY = getCanonicalFY(selectedFY);
-    const fyKeys = canonFY ? [canonFY] : Object.keys(realOracleFYData?.fyCustomers || {});
-
-    // 1. Gather all active customers with metrics in the selected FY(s) from Oracle DB
     const custMap = new Map();
 
-    fyKeys.forEach(fy => {
-      const list = realOracleFYData?.fyCustomers?.[fy] || [];
-      list.forEach(c => {
-        const key = (c.customerName || '').trim().toLowerCase();
-        if (!key) return;
+    // Gather from master customers array
+    (customers || []).forEach(c => {
+      const key = (c.customerName || c.name || '').trim().toLowerCase();
+      if (!key) return;
 
-        if (!custMap.has(key)) {
-          custMap.set(key, {
-            id: c.customerId,
-            customerId: c.customerId,
-            name: c.customerName,
-            customerName: c.customerName,
-            code: c.customerCode || '',
-            city: '',
-            invoiceCount: 0,
-            containerCount: 0,
-            grossRevenue: 0,
-            netRevenue: 0,
-            terminalsMap: {}
-          });
-        }
-
-        const entry = custMap.get(key);
-        entry.invoiceCount += (c.invoiceCount || 0);
-        entry.containerCount += (c.containerCount || 0);
-        entry.grossRevenue += (c.grossRevenue || 0);
-        entry.netRevenue += (c.grossRevenue || 0);
-
-        (c.terminals || []).forEach(t => {
-          const tId = String(t.terminalId);
-          if (!entry.terminalsMap[tId]) {
-            entry.terminalsMap[tId] = t;
-          }
+      if (!custMap.has(key)) {
+        custMap.set(key, {
+          id: c.customerId || c.id,
+          customerId: c.customerId || c.id,
+          name: c.customerName || c.name,
+          customerName: c.customerName || c.name,
+          code: c.code || '',
+          city: c.city || '',
+          terminalsMap: {}
         });
-      });
+      }
     });
 
-    // 2. Also incorporate registered master accounts that might have 0 invoices in this specific FY
+    // Incorporate registered matrix entries
     (customerTerminalMatrix || []).forEach(c => {
       const key = (c.customerName || c.name || '').trim().toLowerCase();
       if (!key) return;
 
       if (!custMap.has(key)) {
         custMap.set(key, {
-          id: c.customerId,
-          customerId: c.customerId,
+          id: c.customerId || c.id,
+          customerId: c.customerId || c.id,
           name: c.customerName || c.name,
           customerName: c.customerName || c.name,
           code: c.code || '',
           city: c.city || '',
-          invoiceCount: 0,
-          containerCount: 0,
-          grossRevenue: 0,
-          netRevenue: 0,
           terminalsMap: {}
         });
       }
@@ -207,12 +178,10 @@ export default function GlobalFilterBar({
     let result = Array.from(custMap.values()).map(c => ({
       ...c,
       terminalCount: Object.keys(c.terminalsMap).length || 1,
-      terminals: Object.values(c.terminalsMap),
-      grossRevenue: Math.round(c.grossRevenue * 100) / 100,
-      netRevenue: Math.round(c.netRevenue * 100) / 100
+      terminals: Object.values(c.terminalsMap)
     }));
 
-    // 3. Filter by selected company if applicable
+    // Filter by selected company if applicable
     if (activeCompId) {
       if (companyCustomers && companyCustomers[activeCompId] && companyCustomers[activeCompId].length > 0) {
         const compNames = new Set(companyCustomers[activeCompId].map(c => (c.name || c.customerName || '').toLowerCase().trim()));
@@ -232,16 +201,15 @@ export default function GlobalFilterBar({
       }
     }
 
-    // 4. Sort ALPHABETICALLY (A to Z) by customerName
+    // Sort ALPHABETICALLY (A to Z) by customerName
     return result.sort((a, b) => (a.customerName || '').localeCompare(b.customerName || ''));
-  }, [activeCompId, selectedCompanyObj, companyCustomers, customerTerminalMatrix, selectedFY]);
+  }, [activeCompId, companyCustomers, customerTerminalMatrix, customers]);
 
   // Look up selected customer's matrix details
   const customerMatrixEntry = useMemo(() => {
     if (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') return null;
     const sLower = String(selectedCustomer).toLowerCase().trim();
 
-    // Look in currently available customers first
     const directMatch = availableCustomers.find(c => 
       String(c.customerId || c.id).toLowerCase() === sLower ||
       String(c.customerName || c.name).toLowerCase() === sLower ||
@@ -249,7 +217,6 @@ export default function GlobalFilterBar({
     );
     if (directMatch && directMatch.terminals && directMatch.terminals.length > 0) return directMatch;
 
-    // Look in global customerTerminalMatrix
     const matrixMatch = (customerTerminalMatrix || []).find(c => 
       String(c.customerId).toLowerCase() === sLower ||
       String(c.customerName).toLowerCase() === sLower ||
@@ -258,33 +225,18 @@ export default function GlobalFilterBar({
     return matrixMatch || directMatch || null;
   }, [selectedCustomer, availableCustomers, customerTerminalMatrix]);
 
-  // Compute terminal stats specifically for current selectedFY
-  const getTerminalStats = (t) => {
-    const isCustom = selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM';
-    if (selectedFY === 'ALL' || selectedFY === 'all' || isCustom) {
-      return {
+  const terminalsWithStats = useMemo(() => {
+    return (terminals || []).map(t => ({
+      ...t,
+      currentStats: {
         totalContainers: t.totalContainers || t.displayContainers || 0,
         netRevenue: t.netRevenue || t.grossSale || 0,
         totalJobs: t.totalJobs || t.invoiceCount || 0,
         invoiceCount: t.invoiceCount || 0
-      };
-    }
-    const cell = (terminalFyMatrix || []).find(m => String(m.terminalId) === String(t.terminalId) && m.fy === selectedFY);
-    if (cell) {
-      return {
-        totalContainers: cell.totalContainers || 0,
-        netRevenue: cell.netRevenue || 0,
-        totalJobs: cell.totalJobs || 0,
-        invoiceCount: cell.invoiceCount || 0
-      };
-    }
-    return { totalContainers: 0, netRevenue: 0, totalJobs: 0, invoiceCount: 0 };
-  };
+      }
+    }));
+  }, [terminals]);
 
-  const terminalsWithStats = terminals.map(t => ({
-    ...t,
-    currentStats: getTerminalStats(t)
-  }));
 
   // STRICT CASCADING TERMINALS:
   // 1. If Customer selected -> Only that customer's operating terminals

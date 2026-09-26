@@ -16,7 +16,6 @@ import ContainerFleetView from './components/ContainerFleetView';
 import FleetView from './components/FleetView';
 import OperationsView from './components/OperationsView';
 import DualSalesLeaderboard from './components/analytics/DualSalesLeaderboard';
-import realOracleFYData from './data/realOracleFYData.json';
 
 function TabLoadingSkeleton() {
   return (
@@ -234,476 +233,196 @@ export default function App() {
 
   // Fetch Masters & Analytics Meta for Global Filter Bar (Authenticated only)
   // Single-fetch architecture: fetches /api/financial-analytics ONCE and shares with AnalyticsCharts
-  const fetchInitialData = async () => {
-    if (!authToken || !currentUser) return; // Never fetch before login
-    try {
-      // 1. Masters
-      const mRes = await authFetch('/api/masters').then(r => r.json()).catch(() => ({}));
-      if (mRes.success) {
-        setMasters(mRes.data || {});
-      }
+  const reqIdRef = useRef(0);
 
-      // 2. Financial Analytics Terminals & FYs
-      setFinLoading(true);
-      const fRes = await authFetch('/api/financial-analytics').then(r => r.json()).catch(() => ({}));
-      if (fRes.success && fRes.data) {
-        setFinancialData(fRes.data);
-        const bd = fRes.data.branchDetailed;
-        if (bd) {
-          if (bd.terminals) setAllTerminals(bd.terminals);
-          if (bd.financialYears) {
-            const cleaned = bd.financialYears.filter(fy => fy !== 'FY 2022-23 & Earlier');
-            if (!cleaned.includes('Custom Date Range')) cleaned.push('Custom Date Range');
-            setFinancialYears(cleaned);
-          }
-          if (bd.terminalFyMatrix) setTerminalFyMatrix(bd.terminalFyMatrix);
-        }
-      }
-      setFinLoading(false);
-    } catch (e) {
-      console.error('Failed to load initial metadata:', e);
-      setFinLoading(false);
-    }
-  };
+  // Synchronized Real-Time Analytics & CIR Report Fetcher
+  const fetchSynchronizedAnalytics = useCallback(async () => {
+    if (!authToken || !currentUser) return;
 
-  // Fetch Live CIR Report Data with Server-Side Pagination (Authenticated only)
-  const fetchCIRData = useCallback(async () => {
-    if (!authToken || !currentUser) return; // Never fetch before login
+    const currentReqId = ++reqIdRef.current;
     setLoading(true);
+    setFinLoading(true);
+
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append('page', String(cirPage));
-      queryParams.append('limit', String(cirLimit));
-      if (filters.companyId && filters.companyId !== 'all' && filters.companyId !== 'ALL') queryParams.append('companyId', filters.companyId);
-      if (filters.terminalId && filters.terminalId !== 'all' && filters.terminalId !== 'ALL') queryParams.append('terminalId', filters.terminalId);
-      if (filters.customerId && filters.customerId !== 'all' && filters.customerId !== 'ALL') queryParams.append('customerId', filters.customerId);
+      
+      if (selectedCompany && selectedCompany !== 'all' && selectedCompany !== 'ALL') {
+        queryParams.append('companyId', selectedCompany);
+      } else if (filters.companyId && filters.companyId !== 'all' && filters.companyId !== 'ALL') {
+        queryParams.append('companyId', filters.companyId);
+      }
+
+      if (selectedTerminal && selectedTerminal !== 'all' && selectedTerminal !== 'ALL') {
+        queryParams.append('terminalId', selectedTerminal);
+      } else if (filters.terminalId && filters.terminalId !== 'all' && filters.terminalId !== 'ALL') {
+        queryParams.append('terminalId', filters.terminalId);
+      }
+
+      if (selectedCustomer && selectedCustomer !== 'all' && selectedCustomer !== 'ALL') {
+        queryParams.append('customerId', selectedCustomer);
+      } else if (filters.customerId && filters.customerId !== 'all' && filters.customerId !== 'ALL') {
+        queryParams.append('customerId', filters.customerId);
+      }
+
+      if (selectedFY && selectedFY !== 'all' && selectedFY !== 'ALL') {
+        queryParams.append('financialYear', selectedFY);
+      }
+
+      if (customFromDate) queryParams.append('fromDate', customFromDate);
+      if (customToDate) queryParams.append('toDate', customToDate);
+
       if (filters.serviceId && filters.serviceId !== 'all' && filters.serviceId !== 'ALL') queryParams.append('serviceId', filters.serviceId);
       if (filters.tripType && filters.tripType !== 'all' && filters.tripType !== 'ALL') queryParams.append('tripType', filters.tripType);
       if (filters.size && filters.size !== 'all' && filters.size !== 'ALL') queryParams.append('size', filters.size);
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
-        queryParams.append('financialYear', selectedFY);
-        if (selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range') {
-          if (customFromDate) queryParams.append('fromDate', customFromDate);
-          if (customToDate) queryParams.append('toDate', customToDate);
-        }
-      }
       if (filters.contNo && filters.contNo.trim() !== '') queryParams.append('contNo', filters.contNo.trim());
       if (filters.blNo && filters.blNo.trim() !== '') queryParams.append('blNo', filters.blNo.trim());
       if (filters.search && filters.search.trim() !== '') queryParams.append('search', filters.search.trim());
 
-      const res = await authFetch(`/api/cir-report?${queryParams.toString()}`);
-      if (res.status === 401) {
+      const cirParams = new URLSearchParams(queryParams);
+      cirParams.append('page', String(cirPage));
+      cirParams.append('limit', String(cirLimit));
+
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[SPJ Frontend Sync #${currentReqId}] Requesting APIs with params:`, queryParams.toString());
+      }
+
+      const [cirRes, finRes, masterRes] = await Promise.all([
+        authFetch(`/api/cir-report?${cirParams.toString()}`),
+        authFetch(`/api/financial-analytics?${queryParams.toString()}`),
+        masters ? Promise.resolve(null) : authFetch('/api/masters')
+      ]);
+
+      if (cirRes.status === 401 || finRes.status === 401) {
         handleLogout();
         return;
       }
-      const json = await res.json();
-      if (json.success) {
-        setRecords(json.records || []);
-        setKpis(json.kpis || {});
-        setCirPagination({
-          totalRecords: json.totalRecords || json.total || (json.records || []).length,
-          totalPages: json.totalPages || 1,
-        });
-        setLastUpdated(new Date().toLocaleTimeString());
-      }
-    } catch (e) {
-      console.error('Error fetching live CIR report:', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [filters, selectedFY, customFromDate, customToDate, cirPage, cirLimit, authToken, currentUser]);
 
-  // Execute authenticated data fetching only when authenticated
-  useEffect(() => {
-    if (authToken && currentUser) {
-      fetchInitialData();
+      const cirJson = await cirRes.json();
+      const finJson = await finRes.json();
+      const masterJson = masterRes ? await masterRes.json() : null;
+
+      // Prevent race conditions: discard response if newer request was dispatched
+      if (currentReqId !== reqIdRef.current) return;
+
+      if (masterJson && masterJson.success) {
+        setMasters(masterJson.data || {});
+      }
+
+      if (cirJson.success) {
+        setRecords(cirJson.records || []);
+        setKpis(cirJson.kpis || {});
+        setCirPagination({
+          totalRecords: cirJson.totalRecords || cirJson.total || (cirJson.records || []).length,
+          totalPages: cirJson.totalPages || 1,
+        });
+      }
+
+      if (finJson.success && finJson.data) {
+        setFinancialData(finJson.data);
+      }
+
+      setLastUpdated(new Date().toLocaleTimeString());
+    } catch (e) {
+      console.error('Error fetching synchronized analytics:', e);
+    } finally {
+      if (currentReqId === reqIdRef.current) {
+        setLoading(false);
+        setFinLoading(false);
+      }
     }
-  }, [authToken, currentUser]);
+  }, [
+    authToken,
+    currentUser,
+    selectedCompany,
+    selectedTerminal,
+    selectedCustomer,
+    selectedFY,
+    customFromDate,
+    customToDate,
+    filters,
+    cirPage,
+    cirLimit,
+    masters
+  ]);
 
   useEffect(() => {
     if (authToken && currentUser) {
       const timer = setTimeout(() => {
-        fetchCIRData();
+        fetchSynchronizedAnalytics();
       }, 250);
       return () => clearTimeout(timer);
     }
-  }, [fetchCIRData, authToken, currentUser]);
+  }, [fetchSynchronizedAnalytics, authToken, currentUser]);
 
-  // Dynamic Real-Time Filter Calculation Engine across all 4 Cascading Levels (FY -> Company -> Customer -> Terminal)
-  const getFilteredCustomerData = useCallback(() => {
-    const isCustomFY = selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM';
-    const canonFY = isCustomFY ? null : getCanonicalFY(selectedFY);
-    const fyKeys = (isCustomFY || !canonFY) 
-      ? Object.keys(realOracleFYData?.fyCustomers || {})
-      : [canonFY];
-
-    // Collect and aggregate all customer records across target financial years
-    const custMap = new Map();
-
-    fyKeys.forEach(fy => {
-      const list = realOracleFYData?.fyCustomers?.[fy] || [];
-      list.forEach(c => {
-        const key = (c.customerName || '').toLowerCase().trim();
-        if (!key) return;
-
-        if (!custMap.has(key)) {
-          custMap.set(key, {
-            customerId: c.customerId,
-            customerName: c.customerName,
-            customerCode: c.customerCode,
-            invoiceCount: 0,
-            jobCount: 0,
-            containerCount: 0,
-            units40ft: 0,
-            units20ft: 0,
-            teus: 0,
-            baseAmount: 0,
-            taxAmount: 0,
-            grossRevenue: 0,
-            terminalsMap: new Map()
-          });
-        }
-
-        const entry = custMap.get(key);
-        entry.jobCount += (c.jobCount || 0);
-
-        (c.terminals || []).forEach(t => {
-          const tKey = String(t.terminalId);
-          if (!entry.terminalsMap.has(tKey)) {
-            entry.terminalsMap.set(tKey, {
-              terminalId: t.terminalId,
-              terminalName: t.terminalName || ('Terminal ' + t.terminalId),
-              invoiceCount: 0,
-              containerCount: 0,
-              units40ft: 0,
-              units20ft: 0,
-              baseAmount: 0,
-              taxAmount: 0,
-              grossRevenue: 0
-            });
-          }
-          const tEntry = entry.terminalsMap.get(tKey);
-          tEntry.invoiceCount += (t.invoiceCount || 0);
-          tEntry.containerCount += (t.containerCount || 0);
-          tEntry.units40ft += (t.units40ft || (t.containerCount ? Math.round(t.containerCount * 0.9) : 0));
-          tEntry.units20ft += (t.units20ft || (t.containerCount ? t.containerCount - Math.round(t.containerCount * 0.9) : 0));
-          tEntry.baseAmount += (t.baseAmount || 0);
-          tEntry.taxAmount += (t.taxAmount || 0);
-          tEntry.grossRevenue += (t.grossRevenue || 0);
-        });
-      });
-    });
-
-    // Convert map to customer list with aggregated totals
-    let result = Array.from(custMap.values()).map(c => {
-      const termList = Array.from(c.terminalsMap.values());
-      const invs = termList.reduce((s, t) => s + t.invoiceCount, 0);
-      const conts = termList.reduce((s, t) => s + t.containerCount, 0);
-      const u40 = termList.reduce((s, t) => s + t.units40ft, 0);
-      const u20 = termList.reduce((s, t) => s + t.units20ft, 0);
-      const base = termList.reduce((s, t) => s + t.baseAmount, 0);
-      const tax = termList.reduce((s, t) => s + t.taxAmount, 0);
-      const gross = termList.reduce((s, t) => s + t.grossRevenue, 0);
-
-      return {
-        ...c,
-        invoiceCount: invs,
-        containerCount: conts,
-        units40ft: u40,
-        units20ft: u20,
-        teus: (u20 * 1) + (u40 * 2),
-        baseAmount: base,
-        taxAmount: tax,
-        grossRevenue: gross,
-        terminals: termList
-      };
-    });
-
-    // 1. Filter by Company
-    if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') {
-      const s = String(selectedCompany).toUpperCase().trim();
-      let compId = '3';
-      if (s === '2' || s === 'SPJ') compId = '2';
-      else if (s === '1' || s === 'SJ') compId = '1';
-      else if (s === '5' || s === 'PJ') compId = '5';
-      else if (s === '4' || s.includes('MUM')) compId = '4';
-
-      if (masters.companyCustomers && masters.companyCustomers[compId] && masters.companyCustomers[compId].length > 0) {
-        const compCustNames = new Set(masters.companyCustomers[compId].map(c => (c.name || c.customerName || '').toLowerCase().trim()));
-        result = result.filter(c => compCustNames.has((c.customerName || '').toLowerCase().trim()) ||
-          Array.from(compCustNames).some(ccn => ccn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(ccn))
-        );
-      }
-    }
-
-    // 2. Filter by Customer with Corporate Group / Base Entity Intelligence
-    if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') {
-      const sCust = String(selectedCustomer).toLowerCase().trim();
-      
-      // Direct / exact customer match
-      let custMatches = result.filter(c => 
-        String(c.customerId).toLowerCase() === sCust ||
-        (c.customerName || '').toLowerCase() === sCust ||
-        (c.customerName || '').toLowerCase().includes(sCust) ||
-        sCust.includes((c.customerName || '').toLowerCase())
-      );
-
-      // If direct match has 0 records in current scope (e.g. FAIR (UP) in FY 2026-27),
-      // seamlessly roll up all sister accounts under the same Corporate Parent Group
-      if (custMatches.length === 0) {
-        const getBaseGroupName = (name) => {
-          return String(name || '')
-            .toLowerCase()
-            .replace(/[\(\[\{].*?[\)\]\}]/g, ' ')
-            .replace(/-(up|hr|dl|mh|tn|punjab|karnataka|bihar|mumbai|delhi|sahibabad|rampur|barabanki|aligarh|nuh|kerala|import|imp|exp).*$/g, ' ')
-            .replace(/[^a-z0-9]/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-        };
-
-        const targetBase = getBaseGroupName(selectedCustomer);
-        if (targetBase.length > 3) {
-          custMatches = result.filter(c => {
-            const candBase = getBaseGroupName(c.customerName);
-            return (candBase.length > 3 && (candBase === targetBase || candBase.includes(targetBase) || targetBase.includes(candBase)));
-          });
-        }
-      }
-
-      result = custMatches;
-    }
-
-    // 3. Filter by Terminal
-    if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') {
-      const sTerm = String(selectedTerminal).toLowerCase().trim();
-      result = result.map(c => {
-        const matchTerms = (c.terminals || []).filter(t => 
-          String(t.terminalId).toLowerCase() === sTerm || 
-          (t.terminalName && t.terminalName.toLowerCase().includes(sTerm))
-        );
-        if (matchTerms.length === 0) return null;
-        const invs = matchTerms.reduce((sum, t) => sum + t.invoiceCount, 0);
-        const conts = matchTerms.reduce((sum, t) => sum + t.containerCount, 0);
-        const u40 = matchTerms.reduce((sum, t) => sum + t.units40ft, 0);
-        const u20 = matchTerms.reduce((sum, t) => sum + t.units20ft, 0);
-        const base = matchTerms.reduce((sum, t) => sum + t.baseAmount, 0);
-        const tax = matchTerms.reduce((sum, t) => sum + t.taxAmount, 0);
-        const gross = matchTerms.reduce((sum, t) => sum + t.grossRevenue, 0);
-
-        return {
-          ...c,
-          invoiceCount: invs,
-          containerCount: conts,
-          units40ft: u40,
-          units20ft: u20,
-          teus: (u20 * 1) + (u40 * 2),
-          baseAmount: base,
-          taxAmount: tax,
-          grossRevenue: gross,
-          terminals: matchTerms
-        };
-      }).filter(Boolean);
-    }
-
-    return result.sort((a, b) => b.grossRevenue - a.grossRevenue);
-  }, [selectedFY, selectedCompany, selectedCustomer, selectedTerminal, masters]);
-
-  // Dynamic Synchronized Sales KPIs across all cascading levels (Company -> Customer -> Terminal -> FY)
-  const isGlobalScope = (!selectedCompany || selectedCompany === 'ALL' || selectedCompany === 'all') &&
-                         (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') &&
-                         (!selectedTerminal || selectedTerminal === 'ALL' || selectedTerminal === 'all') &&
-                         (!selectedFY || selectedFY === 'ALL' || selectedFY === 'all');
-
+  // Dynamic Sales KPIs directly mapped from live backend analytics response
   const activeSalesKPIs = useMemo(() => {
-    // 100% Dynamic Database Analytics: prefer live backend computed KPIs if available
-    if (kpis && (kpis.totalGrossAmount > 0 || kpis.grossRevenue > 0 || kpis.totalRecords > 0 || kpis.invoiceCount > 0)) {
-      return {
-        ...kpis,
-        grossRevenue: kpis.grossRevenue || kpis.totalGrossAmount || 0,
-        totalGrossAmount: kpis.totalGrossAmount || kpis.grossRevenue || 0,
-        netRevenue: kpis.netRevenue || kpis.grossRevenue || 0,
-        totalBillAmount: kpis.totalBillAmount || 0,
-        taxableRevenue: kpis.totalBillAmount || 0,
-        totalTax: kpis.totalTax || 0,
-        gstTax: kpis.totalTax || 0,
-        invoiceCount: kpis.invoiceCount || kpis.totalRecords || 0,
-        containerCount: kpis.containerCount || 0,
-        containerMovements: kpis.containerMovements || Math.round((kpis.containerCount || 0) * 1.4),
-        jobOrders: kpis.jobOrders || Math.round((kpis.invoiceCount || 0) * 0.8),
-        teuCount: kpis.teuCount || 0,
-        totalRecords: kpis.totalRecords || kpis.invoiceCount || 0,
-        customerWise: kpis.customerWise || []
-      };
-    }
-
-    const list = getFilteredCustomerData();
-
-    // If customer was explicitly selected but had 0 invoices in this scope
-    if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all' && list.length === 0) {
-      const match = (masters.customerTerminalMatrix || []).find(c =>
-        String(c.customerId).toLowerCase() === String(selectedCustomer).toLowerCase() ||
-        (c.customerName && c.customerName.toLowerCase().includes(String(selectedCustomer).toLowerCase()))
-      );
-      return {
-        grossRevenue: 0,
-        totalGrossAmount: 0,
-        netRevenue: 0,
-        totalBillAmount: 0,
-        taxableRevenue: 0,
-        totalTax: 0,
-        gstTax: 0,
-        totalCreditAmount: 0,
-        creditNotes: 0,
-        invoiceCount: 0,
-        containerCount: 0,
-        teuCount: 0,
-        totalRecords: 0,
-        customerWise: match ? [{
-          customerId: match.customerId,
-          customerName: match.customerName,
-          invoiceCount: 0,
-          billAmount: 0,
-          taxAmount: 0,
-          grossAmount: 0,
-          terminalCount: match.terminals ? match.terminals.length : 1,
-          terminals: (match.terminals || []).map(t => t.terminalName)
-        }] : []
-      };
-    }
-
-    const gross = list.reduce((sum, c) => sum + c.grossRevenue, 0);
-    const bill = list.reduce((sum, c) => sum + c.baseAmount, 0);
-    const tax = list.reduce((sum, c) => sum + c.taxAmount, 0);
-    const invs = list.reduce((sum, c) => sum + c.invoiceCount, 0);
-    const conts = list.reduce((sum, c) => sum + c.containerCount, 0);
-    const u40 = list.reduce((sum, c) => sum + (c.units40ft || Math.round(c.containerCount * 0.9)), 0);
-    const u20 = list.reduce((sum, c) => sum + (c.units20ft || (c.containerCount - Math.round(c.containerCount * 0.9))), 0);
-    const teus = (u20 * 1) + (u40 * 2);
+    const fk = financialData?.kpis || kpis || {};
+    const ft = financialData?.totals || {};
+    const gross = Number(fk.totalGrossAmount || fk.grossRevenue || ft.grandSystemRevenue || 0);
+    const bill = Number(fk.totalBillAmount || fk.taxableRevenue || ft.liveInvoicedRevenue || (gross ? Math.round((gross / 1.18) * 100) / 100 : 0));
+    const tax = Number(fk.totalTax || fk.gstTax || ft.liveTaxOutput || (gross - bill));
+    const invs = Number(fk.invoiceCount || fk.totalRecords || ft.validActiveInvoices || 0);
+    const conts = Number(fk.containerCount || ft.totalContainers || 0);
+    const moves = Number(fk.containerMovements || Math.round(conts * 1.4));
+    const jobs = Number(fk.jobOrders || ft.totalBranchJobs || Math.round(invs * 0.8));
+    const teus = Number(fk.teuCount || ft.totalTeus || 0);
 
     return {
-      grossRevenue: Math.round(gross * 100) / 100,
-      totalGrossAmount: Math.round(gross * 100) / 100,
-      netRevenue: Math.round(gross * 100) / 100,
-      totalBillAmount: Math.round(bill * 100) / 100,
-      taxableRevenue: Math.round(bill * 100) / 100,
-      totalTax: Math.round(tax * 100) / 100,
-      gstTax: Math.round(tax * 100) / 100,
-      totalCreditAmount: 0,
-      creditNotes: 0,
+      grossRevenue: gross,
+      totalGrossAmount: gross,
+      netRevenue: gross,
+      totalBillAmount: bill,
+      taxableRevenue: bill,
+      totalTax: tax,
+      gstTax: tax,
+      totalCreditAmount: Number(fk.totalCreditAmount || 0),
+      creditNotes: Number(fk.creditNoteCount || 0),
       invoiceCount: invs,
       containerCount: conts,
-      containerMovements: Math.round(conts * 1.4),
-      jobOrders: Math.round(invs * 0.8),
+      containerMovements: moves,
+      jobOrders: jobs,
       teuCount: teus,
       totalRecords: invs,
-      customerWise: list.map(c => ({
-        customerId: c.customerId,
-        customerName: c.customerName,
-        invoiceCount: c.invoiceCount,
-        billAmount: c.baseAmount,
-        taxAmount: c.taxAmount,
-        grossAmount: c.grossRevenue,
-        terminalCount: c.terminals ? c.terminals.length : 1,
-        terminals: (c.terminals || []).map(t => t.terminalName)
-      }))
+      customerWise: financialData?.topCustomers || fk.customerWise || []
     };
-  }, [isGlobalScope, financialData, getFilteredCustomerData, selectedCustomer, masters, kpis, selectedFY]);
+  }, [financialData, kpis]);
 
   const activeSalesTerminals = useMemo(() => {
-    if (isGlobalScope && allTerminals && allTerminals.length > 0) {
-      return allTerminals.map(t => ({
-        terminalId: t.terminalId,
-        terminalName: t.terminalName || ('Terminal ' + t.terminalId),
-        grossSale: Number(t.totalAmount || t.grossSale || t.netRevenue || 0),
-        netRevenue: Number(t.totalAmount || t.grossSale || t.netRevenue || 0),
-        totalAmount: Number(t.totalAmount || t.grossSale || t.netRevenue || 0),
-        invoiceCount: Number(t.invoiceCount || 0),
-        displayContainers: Number(t.totalContainers || t.displayContainers || 0),
-        totalContainers: Number(t.totalContainers || t.displayContainers || 0),
-        units40ft: Math.round(Number(t.totalContainers || t.displayContainers || 0) * 0.9),
-        units20ft: Math.round(Number(t.totalContainers || t.displayContainers || 0) * 0.1),
-        displayTeus: Math.round(Number(t.totalContainers || t.displayContainers || 0) * 1.9)
-      })).sort((a, b) => (Number(b.grossSale || 0) - Number(a.grossSale || 0)));
-    }
-
-    const custs = getFilteredCustomerData();
-    const termMap = new Map();
-
-    custs.forEach(c => {
-      (c.terminals || []).forEach(t => {
-        const tKey = String(t.terminalId);
-        if (!termMap.has(tKey)) {
-          termMap.set(tKey, {
-            terminalId: t.terminalId,
-            terminalName: t.terminalName || ('Terminal ' + t.terminalId),
-            grossSale: 0,
-            netRevenue: 0,
-            totalAmount: 0,
-            invoiceCount: 0,
-            displayContainers: 0,
-            totalContainers: 0,
-            units40ft: 0,
-            units20ft: 0,
-            displayTeus: 0
-          });
-        }
-        const tEntry = termMap.get(tKey);
-        tEntry.grossSale += (t.grossRevenue || 0);
-        tEntry.netRevenue += (t.grossRevenue || 0);
-        tEntry.totalAmount += (t.grossRevenue || 0);
-        tEntry.invoiceCount += (t.invoiceCount || 0);
-        tEntry.displayContainers += (t.containerCount || 0);
-        tEntry.totalContainers += (t.containerCount || 0);
-        tEntry.units40ft += (t.units40ft || 0);
-        tEntry.units20ft += (t.units20ft || 0);
-        tEntry.displayTeus += (t.units20ft * 1 + t.units40ft * 2);
-      });
-    });
-
-    return Array.from(termMap.values())
-      .map(t => ({
-        ...t,
-        grossSale: Math.round(t.grossSale * 100) / 100,
-        netRevenue: Math.round(t.netRevenue * 100) / 100,
-        totalAmount: Math.round(t.totalAmount * 100) / 100
-      }))
-      .sort((a, b) => (Number(b.grossSale || 0) - Number(a.grossSale || 0)));
-  }, [isGlobalScope, allTerminals, getFilteredCustomerData]);
+    const list = financialData?.terminalAnalytics || financialData?.topBranches || [];
+    return list.map(t => ({
+      terminalId: t.terminalId || t.id || 0,
+      terminalName: t.terminalName || t.name || 'Terminal',
+      grossSale: Number(t.grossSale || t.grossRevenue || t.revenue || t.netRevenue || 0),
+      netRevenue: Number(t.grossSale || t.grossRevenue || t.revenue || t.netRevenue || 0),
+      totalAmount: Number(t.grossSale || t.grossRevenue || t.revenue || t.netRevenue || 0),
+      invoiceCount: Number(t.invoiceCount || t.invoices || 0),
+      displayContainers: Number(t.containerCount || t.containers || 0),
+      totalContainers: Number(t.containerCount || t.containers || 0),
+      units40ft: Math.round(Number(t.containerCount || t.containers || 0) * 0.9),
+      units20ft: Math.round(Number(t.containerCount || t.containers || 0) * 0.1),
+      displayTeus: Number(t.teus || Math.round(Number(t.containerCount || t.containers || 0) * 1.9))
+    })).sort((a, b) => b.grossSale - a.grossSale);
+  }, [financialData]);
 
   const activeSalesCustomers = useMemo(() => {
-    if (isGlobalScope) {
-      const topList = financialData?.topCustomers || masters.customers || [];
-      if (topList.length > 0) {
-        return topList.map(c => {
-          const gross = Number(c.grossRevenue || c.totalRevenue || c.totalAmount || 0);
-          const bill = c.baseAmount ? Number(c.baseAmount) : Math.round((gross / 1.18) * 100) / 100;
-          const tax = c.taxAmount ? Number(c.taxAmount) : Math.round((gross - bill) * 100) / 100;
-          return {
-            customerName: c.customerName || c.name,
-            grossRevenue: gross,
-            totalRevenue: gross,
-            billAmount: bill,
-            taxAmount: tax,
-            invoiceCount: Number(c.invoiceCount || c.totalInvoices || 0),
-            containerCount: Number(c.containerCount || 0),
-            terminalCount: c.terminals ? c.terminals.length : 1
-          };
-        }).sort((a, b) => b.grossRevenue - a.grossRevenue);
-      }
-    }
+    const topList = financialData?.topCustomers || masters.customers || [];
+    return topList.map(c => {
+      const gross = Number(c.grossRevenue || c.totalRevenue || c.totalAmount || 0);
+      const bill = c.baseAmount !== undefined ? Number(c.baseAmount) : Math.round((gross / 1.18) * 100) / 100;
+      const tax = c.taxAmount !== undefined ? Number(c.taxAmount) : Math.round((gross - bill) * 100) / 100;
+      return {
+        customerName: c.customerName || c.name || 'Client',
+        grossRevenue: gross,
+        totalRevenue: gross,
+        billAmount: bill,
+        taxAmount: tax,
+        invoiceCount: Number(c.invoiceCount || c.totalInvoices || 0),
+        containerCount: Number(c.containerCount || 0),
+        terminalCount: c.terminals ? c.terminals.length : 1
+      };
+    }).sort((a, b) => b.grossRevenue - a.grossRevenue);
+  }, [financialData, masters]);
 
-    const list = getFilteredCustomerData();
-    return list.map(c => ({
-      customerName: c.customerName,
-      grossRevenue: c.grossRevenue,
-      totalRevenue: c.grossRevenue,
-      billAmount: c.baseAmount,
-      taxAmount: c.taxAmount,
-      invoiceCount: c.invoiceCount,
-      containerCount: c.containerCount,
-      terminalCount: c.terminals ? c.terminals.length : 1
-    }));
-  }, [isGlobalScope, financialData, masters, getFilteredCustomerData]);
 
   const handleResetFilters = () => {
     setSelectedCompany('ALL');

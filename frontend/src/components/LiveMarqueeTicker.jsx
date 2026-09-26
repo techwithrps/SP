@@ -19,14 +19,19 @@ function formatCurrency(val) {
 }
 
 export default function LiveMarqueeTicker({ stats = {} }) {
-  const gross = Number(stats.grossRevenue || stats.totalGrossAmount || 0);
+  const gross = Number(stats.totalGrossAmount || stats.grossRevenue || 0);
+  const bill = Number(stats.totalBillAmount || stats.taxableRevenue || 0);
+  const tax = Number(stats.totalTax || stats.gstTax || 0);
   const containers = Number(stats.containerCount || stats.totalContainers || 0);
   const teus = Number(stats.teuCount || stats.totalTeus || 0);
-  const jobs = Number(stats.jobOrders || stats.totalJobOrders || 0);
-  const invoices = Number(stats.invoiceCount || 0);
+  const jobs = Number(stats.jobOrders || stats.totalBranchJobs || 0);
+  const invoices = Number(stats.invoiceCount || stats.totalInvoices || 0);
+  const activeTerminals = Number(stats.activeTerminalCount || stats.totalTerminals || 0);
+
+  const topCust = (stats.topCustomers && stats.topCustomers[0]) ? stats.topCustomers[0] : null;
+  const topBranch = (stats.terminalAnalytics && stats.terminalAnalytics[0]) ? stats.terminalAnalytics[0] : null;
 
   const tickerItems = [
-    // 1. SALES & ENTERPRISE HIGHLIGHTS
     {
       category: 'SALES',
       badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
@@ -37,14 +42,22 @@ export default function LiveMarqueeTicker({ stats = {} }) {
     },
     {
       category: 'SALES',
-      badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-      icon: Building2,
-      iconColor: 'text-purple-400',
-      label: 'Branch Terminals',
-      value: '29 Active Hubs'
+      badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+      icon: CheckCircle2,
+      iconColor: 'text-indigo-400',
+      label: 'Taxable Base',
+      value: formatCurrency(bill)
     },
     {
       category: 'SALES',
+      badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+      icon: Zap,
+      iconColor: 'text-rose-400',
+      label: 'Statutory GST',
+      value: formatCurrency(tax)
+    },
+    {
+      category: 'VOLUME',
       badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
       icon: Container,
       iconColor: 'text-emerald-400',
@@ -52,73 +65,45 @@ export default function LiveMarqueeTicker({ stats = {} }) {
       value: `${containers.toLocaleString('en-IN')} Units (${teus.toLocaleString('en-IN')} TEUs)`
     },
     {
-      category: 'SALES',
+      category: 'VOLUME',
       badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
       icon: Ship,
       iconColor: 'text-blue-400',
       label: 'Invoices Audited',
       value: `${invoices.toLocaleString('en-IN')} Invoices`
     },
-
-    // 2. TOP CLIENTS & BILLING
     {
+      category: 'JOBS',
+      badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+      icon: Zap,
+      iconColor: 'text-amber-400',
+      label: 'Job Orders',
+      value: `${jobs.toLocaleString('en-IN')} Active Jobs`
+    },
+    ...(activeTerminals > 0 ? [{
+      category: 'HUBS',
+      badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+      icon: Building2,
+      iconColor: 'text-purple-400',
+      label: 'Active Terminals',
+      value: `${activeTerminals} Hubs in Scope`
+    }] : []),
+    ...(topBranch ? [{
       category: 'TOP HUB',
       badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
       icon: Building2,
       iconColor: 'text-purple-400',
-      label: 'Transworld-Dadri',
-      value: '₹ 1,421.50 Cr (36,440 Cont)'
-    },
-    {
+      label: topBranch.terminalName || 'Top Terminal',
+      value: `${formatCurrency(topBranch.grossSale || topBranch.netRevenue)} (${(topBranch.containerCount || topBranch.containers || 0).toLocaleString('en-IN')} Cont)`
+    }] : []),
+    ...(topCust ? [{
       category: 'TOP CLIENT',
       badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
       icon: Users,
       iconColor: 'text-cyan-400',
-      label: 'Fair Exports (UP)',
-      value: '₹ 273.66 Cr (20,460 Invs)'
-    },
-    {
-      category: 'TOP CLIENT',
-      badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-      icon: Users,
-      iconColor: 'text-indigo-400',
-      label: 'IFF India Frozen Foods',
-      value: '₹ 250.49 Cr (14,761 Invs)'
-    },
-
-    // 3. REAL-TIME YARD & FLEET OPERATIONS
-    {
-      category: 'YARD OPS',
-      badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-      icon: Truck,
-      iconColor: 'text-[#ff8a3d]',
-      label: 'Dedicated Fleet',
-      value: '1,272 Multi-Axle Trucks'
-    },
-    {
-      category: 'YARD OPS',
-      badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-      icon: Zap,
-      iconColor: 'text-amber-400',
-      label: 'Job Orders (JO)',
-      value: `${jobs.toLocaleString('en-IN')} Jobs Active`
-    },
-    {
-      category: 'YARD OPS',
-      badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-      icon: Clock,
-      iconColor: 'text-emerald-400',
-      label: 'Avg Turnaround TAT',
-      value: '18 Mins Gate-to-Yard'
-    },
-    {
-      category: 'YARD OPS',
-      badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-      icon: CheckCircle2,
-      iconColor: 'text-purple-400',
-      label: 'Cold Chain Fleet',
-      value: '100% Temp Verified'
-    }
+      label: topCust.customerName || topCust.name || 'Top Customer',
+      value: `${formatCurrency(topCust.grossAmount || topCust.grossRevenue)} (${topCust.share || 0}% Share)`
+    }] : [])
   ];
 
   return (
