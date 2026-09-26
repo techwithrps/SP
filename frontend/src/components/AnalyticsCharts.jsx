@@ -195,7 +195,7 @@ export default function AnalyticsCharts({
 
   // Factor calculator for selected Financial Year (Declared BEFORE topCustomers to prevent TDZ error)
   const getFyFactors = (terminalId, targetFY) => {
-    if (!targetFY || targetFY === 'ALL' || targetFY === 'all') {
+    if (!targetFY || targetFY === 'ALL' || targetFY === 'all' || targetFY === 'CUSTOM_RANGE' || targetFY === 'Custom Date Range' || targetFY === 'CUSTOM') {
       return { revRatio: 1.0, invRatio: 1.0, contRatio: 1.0 };
     }
     const tFyCell = (terminalFyMatrix || []).find(x => String(x.terminalId) === String(terminalId) && x.fy === targetFY);
@@ -606,6 +606,30 @@ export default function AnalyticsCharts({
         );
       })
       .map(t => {
+        const isCustomFY = selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM';
+        if (isCustomFY) {
+          const tb = kpis?.terminalBreakdown?.[t.terminalName] || {};
+          const rev = Number(tb.revenue || tb.grossSale || 0);
+          const bill = rev ? Math.round((rev / 1.18) * 100) / 100 : 0;
+          const tax = Math.round((rev - bill) * 100) / 100;
+          const invs = Number(tb.invoices || tb.invoiceCount || 0);
+          const conts = Number(tb.containers || tb.containerCount || (invs > 0 ? Math.round(invs * 0.48) : 0));
+          return {
+            ...t,
+            invoiceCount: invs,
+            billAmount: bill,
+            taxAmount: tax,
+            grossSale: rev,
+            creditCount: 0,
+            creditAmount: 0,
+            netRevenue: rev,
+            displayJobs: invs,
+            displayContainers: conts,
+            displayTeus: Math.round(conts * 1.9),
+            display40ft: Math.round(conts * 0.9),
+            display20ft: Math.round(conts * 0.1)
+          };
+        }
         if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') {
           const m = terminalFyMatrix.find(x => x.terminalId === t.terminalId && x.fy === selectedFY) || {};
           const bill = Number(m.billAmount) || 0;
@@ -893,6 +917,30 @@ export default function AnalyticsCharts({
       };
     }
 
+    const isCustomFY = selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM';
+    if (isCustomFY && kpis && (kpis.grossRevenue || kpis.totalGrossAmount || kpis.totalRecords || kpis.invoiceCount)) {
+      const gross = Number(kpis.grossRevenue || kpis.totalGrossAmount || 0);
+      const bill = Number(kpis.totalBillAmount || (gross ? Math.round((gross / 1.18) * 100) / 100 : 0));
+      const tax = Number(kpis.totalTax || kpis.gstTax || (gross - bill));
+      const invs = Number(kpis.invoiceCount || kpis.totalRecords || 0);
+      const conts = Number(kpis.containerCount || 0);
+      const moves = Number(kpis.containerMovements || Math.round(conts * 1.45));
+      const jobs = Number(kpis.jobOrders || Math.round(invs * 0.8));
+      const teus = Number(kpis.teuCount || Math.round(conts * 1.9));
+
+      return {
+        netRevenue: gross,
+        grossRevenue: gross,
+        taxableRevenue: bill,
+        gstTax: tax,
+        invoiceCount: invs,
+        containerCount: conts,
+        containerMovements: moves,
+        jobOrders: jobs,
+        teuCount: teus
+      };
+    }
+
     const gross = dynamicMetrics.grossSale || 0;
     const bill = dynamicMetrics.billAmount || Math.round((gross / 1.18) * 100) / 100;
     const tax = dynamicMetrics.taxAmount || Math.round((gross - bill) * 100) / 100;
@@ -913,7 +961,7 @@ export default function AnalyticsCharts({
       jobOrders: jobs,
       teuCount: teus
     };
-  }, [isGlobalFilter, dynamicMetrics]);
+  }, [isGlobalFilter, dynamicMetrics, kpis, selectedFY]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
