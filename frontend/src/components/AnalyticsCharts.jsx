@@ -459,15 +459,16 @@ export default function AnalyticsCharts({
 
   // Unified 9 Verified KPIs computed dynamically from active database scope
   const chartKPIs = useMemo(() => {
-    if (kpis && (kpis.grossRevenue || kpis.totalGrossAmount || kpis.totalRecords || kpis.invoiceCount)) {
-      const gross = Number(kpis.grossRevenue || kpis.totalGrossAmount || 0);
-      const bill = Number(kpis.totalBillAmount || (gross ? Math.round((gross / 1.18) * 100) / 100 : 0));
-      const tax = Number(kpis.totalTax || kpis.gstTax || (gross - bill));
-      const invs = Number(kpis.invoiceCount || kpis.totalRecords || 0);
-      const conts = Number(kpis.containerCount || 0);
-      const moves = Number(kpis.containerMovements || Math.round(conts * 1.45));
-      const jobs = Number(kpis.jobOrders || Math.round(invs * 0.8));
-      const teus = Number(kpis.teuCount || Math.round(conts * 1.9));
+    const fk = finData?.kpis || (kpis && (kpis.grossRevenue || kpis.totalGrossAmount || kpis.invoiceCount) ? kpis : null);
+    if (fk) {
+      const gross = Number(fk.grossRevenue || fk.totalGrossAmount || 0);
+      const bill = Number(fk.totalBillAmount || (gross ? Math.round((gross / 1.18) * 100) / 100 : 0));
+      const tax = Number(fk.totalTax || fk.gstTax || (gross - bill));
+      const invs = Number(fk.invoiceCount || fk.totalRecords || 0);
+      const conts = Number(fk.containerCount || 0);
+      const moves = Number(fk.containerMovements || Math.round(conts * 1.45));
+      const jobs = Number(fk.jobOrders || Math.round(invs * 0.8));
+      const teus = Number(fk.teuCount || Math.round(conts * 1.9));
 
       return {
         netRevenue: gross,
@@ -502,7 +503,7 @@ export default function AnalyticsCharts({
       jobOrders: jobs,
       teuCount: teus
     };
-  }, [dynamicMetrics, kpis, selectedFY]);
+  }, [finData, dynamicMetrics, kpis, selectedFY]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
