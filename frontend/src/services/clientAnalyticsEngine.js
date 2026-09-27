@@ -47,6 +47,13 @@ export function computeFinancialAnalytics(filters = {}) {
   const customerMap = {};
   const serviceMap = {};
   const monthMap = {};
+  const companyMap = {
+    '2': { id: 2, companyId: 2, name: 'SPJ CARGO PVT LTD', code: 'SPJ', grossRevenue: 0, invoiceCount: 0, containerCount: 0 },
+    '1': { id: 1, companyId: 1, name: 'S.J. CARGO MOVERS', code: 'SJ', grossRevenue: 0, invoiceCount: 0, containerCount: 0 },
+    '5': { id: 5, companyId: 5, name: 'PURAN JOSHI', code: 'PJ', grossRevenue: 0, invoiceCount: 0, containerCount: 0 },
+    '4': { id: 4, companyId: 4, name: 'SPJ CARGO PVT LTD-MUMBAI', code: 'SPJ-MUM', grossRevenue: 0, invoiceCount: 0, containerCount: 0 },
+    '3': { id: 3, companyId: 3, name: 'PURAN JOSHI OLD', code: 'PJ-OLD', grossRevenue: 0, invoiceCount: 0, containerCount: 0 },
+  };
 
   const cleanCompany = companyId && companyId !== 'ALL' && companyId !== 'all' ? String(companyId) : null;
   const cleanTerminal = terminalId && terminalId !== 'ALL' && terminalId !== 'all' ? String(terminalId) : null;
@@ -72,18 +79,32 @@ export function computeFinancialAnalytics(filters = {}) {
     totalSgst += r.sgst;
     totalGross += r.gross;
 
+    // Company Breakdown
+    const compKey = String(r.companyId);
+    if (companyMap[compKey]) {
+      companyMap[compKey].grossRevenue += r.gross;
+      companyMap[compKey].invoiceCount += r.invoices;
+      companyMap[compKey].containerCount += r.containers;
+    }
+
     // Terminal Breakdown
     const tId = r.terminalId;
     if (!branchMap[tId]) {
       branchMap[tId] = {
+        id: tId,
         terminalId: tId,
+        name: r.terminalName,
         terminalName: r.terminalName,
         grossSale: 0,
         grossRevenue: 0,
         netRevenue: 0,
+        totalAmount: 0,
         invoiceCount: 0,
         containerCount: 0,
+        displayContainers: 0,
+        totalContainers: 0,
         teus: 0,
+        displayTeus: 0,
         taxableBase: 0,
         gstTax: 0,
       };
@@ -91,9 +112,13 @@ export function computeFinancialAnalytics(filters = {}) {
     branchMap[tId].grossSale += r.gross;
     branchMap[tId].grossRevenue += r.gross;
     branchMap[tId].netRevenue += r.gross;
+    branchMap[tId].totalAmount += r.gross;
     branchMap[tId].invoiceCount += r.invoices;
     branchMap[tId].containerCount += r.containers;
+    branchMap[tId].displayContainers += r.containers;
+    branchMap[tId].totalContainers += r.containers;
     branchMap[tId].teus += r.teus;
+    branchMap[tId].displayTeus += r.teus;
     branchMap[tId].taxableBase += r.taxableBase;
     branchMap[tId].gstTax += (r.igst + r.cgst + r.sgst);
 
@@ -101,14 +126,18 @@ export function computeFinancialAnalytics(filters = {}) {
     const cId = r.customerId;
     if (!customerMap[cId]) {
       customerMap[cId] = {
+        id: cId,
         customerId: cId,
         customerName: r.customerName,
         name: r.customerName,
         grossAmount: 0,
         grossRevenue: 0,
+        totalRevenue: 0,
         netRevenue: 0,
         invoiceCount: 0,
+        totalInvoices: 0,
         containerCount: 0,
+        baseAmount: 0,
         billAmount: 0,
         taxAmount: 0,
         terminals: new Set(),
@@ -116,9 +145,12 @@ export function computeFinancialAnalytics(filters = {}) {
     }
     customerMap[cId].grossAmount += r.gross;
     customerMap[cId].grossRevenue += r.gross;
+    customerMap[cId].totalRevenue += r.gross;
     customerMap[cId].netRevenue += r.gross;
     customerMap[cId].invoiceCount += r.invoices;
+    customerMap[cId].totalInvoices += r.invoices;
     customerMap[cId].containerCount += r.containers;
+    customerMap[cId].baseAmount += r.taxableBase;
     customerMap[cId].billAmount += r.taxableBase;
     customerMap[cId].taxAmount += (r.igst + r.cgst + r.sgst);
     customerMap[cId].terminals.add(r.terminalName);
@@ -164,6 +196,7 @@ export function computeFinancialAnalytics(filters = {}) {
       grossSale: Math.round(b.grossSale * 100) / 100,
       grossRevenue: Math.round(b.grossRevenue * 100) / 100,
       netRevenue: Math.round(b.netRevenue * 100) / 100,
+      totalAmount: Math.round(b.totalAmount * 100) / 100,
       taxableBase: Math.round(b.taxableBase * 100) / 100,
       gstTax: Math.round(b.gstTax * 100) / 100,
     }))
@@ -177,7 +210,9 @@ export function computeFinancialAnalytics(filters = {}) {
         ...c,
         grossAmount: g,
         grossRevenue: g,
+        totalRevenue: g,
         netRevenue: g,
+        baseAmount: Math.round(c.baseAmount * 100) / 100,
         billAmount: Math.round(c.billAmount * 100) / 100,
         taxAmount: Math.round(c.taxAmount * 100) / 100,
         terminalCount: c.terminals.size,
@@ -186,6 +221,13 @@ export function computeFinancialAnalytics(filters = {}) {
       };
     })
     .sort((a, b) => b.grossAmount - a.grossAmount);
+
+  // Format Companies
+  const companyList = Object.values(companyMap).map(c => ({
+    ...c,
+    grossRevenue: Math.round(c.grossRevenue * 100) / 100,
+    netRevenue: Math.round(c.grossRevenue * 100) / 100,
+  }));
 
   // Format Services
   const serviceList = Object.values(serviceMap)
@@ -227,8 +269,7 @@ export function computeFinancialAnalytics(filters = {}) {
     return true;
   });
 
-  return {
-    success: true,
+  const payload = {
     source: 'ORACLE_SPJLIVE_STANDALONE_ENGINE',
     executionMode: 'CLIENT_HIGH_SPEED_ENGINE',
     matchedRows: totalInvs,
@@ -266,14 +307,22 @@ export function computeFinancialAnalytics(filters = {}) {
       teuCount: totalTeus,
       physicalContainers: totalConts,
     },
+    companyAnalytics: companyList,
     terminalAnalytics: sortedBranches,
-    customerAnalytics: sortedCustomers.slice(0, 15),
-    topCustomers: sortedCustomers.slice(0, 15),
+    topBranches: sortedBranches,
+    customerAnalytics: sortedCustomers.slice(0, 30),
+    topCustomers: sortedCustomers.slice(0, 30),
     customerWise: sortedCustomers,
     serviceAnalytics: serviceList,
     topServices: serviceList,
     monthlyTrend: monthlyList,
     records: matchingRecords.slice(0, 100),
+  };
+
+  return {
+    success: true,
+    data: payload,
+    ...payload,
   };
 }
 
@@ -320,32 +369,62 @@ export function computeCIRReport(params = {}) {
 export function getClientMasters() {
   const terminals = {};
   const customers = {};
+  const companyTerminals = { '1': [], '2': [], '3': [], '4': [], '5': [] };
+  const companyCustomers = { '1': [], '2': [], '3': [], '4': [], '5': [] };
 
   for (let i = 0; i < dataset.length; i++) {
     const r = dataset[i];
     if (r.terminalId && !terminals[r.terminalId]) {
-      terminals[r.terminalId] = {
-        TERMINAL_ID: r.terminalId,
-        TERMINAL_NAME: r.terminalName,
+      const tObj = {
+        id: r.terminalId,
+        terminalId: r.terminalId,
+        name: r.terminalName,
+        terminalName: r.terminalName,
       };
+      terminals[r.terminalId] = tObj;
+      const cStr = String(r.companyId);
+      if (companyTerminals[cStr]) {
+        companyTerminals[cStr].push(tObj);
+      }
     }
     if (r.customerId && !customers[r.customerId]) {
-      customers[r.customerId] = {
-        CUSTOMER_ID: r.customerId,
-        CUSTOMER_NAME: r.customerName,
+      const cObj = {
+        id: r.customerId,
+        customerId: r.customerId,
+        name: r.customerName,
+        customerName: r.customerName,
       };
+      customers[r.customerId] = cObj;
+      const cStr = String(r.companyId);
+      if (companyCustomers[cStr]) {
+        companyCustomers[cStr].push(cObj);
+      }
     }
   }
 
+  const terminalList = Object.values(terminals).sort((a, b) => a.terminalName.localeCompare(b.terminalName));
+  const customerList = Object.values(customers).sort((a, b) => a.customerName.localeCompare(b.customerName));
+  const companyList = [
+    { id: 2, companyId: 2, name: 'SPJ CARGO PVT LTD', code: 'SPJ', gstin: '07AAOCS1758E1Z5', director: 'Mr. Puran Joshi' },
+    { id: 1, companyId: 1, name: 'S.J. CARGO MOVERS', code: 'SJ', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
+    { id: 5, companyId: 5, name: 'PURAN JOSHI', code: 'PJ', gstin: '07ADGPJ3166M2Z9', director: 'Mr. Puran Joshi' },
+    { id: 4, companyId: 4, name: 'SPJ CARGO PVT LTD-MUMBAI', code: 'SPJ-MUM', gstin: '27AAOCS1758E1Z3', director: 'Mr. Puran Joshi' },
+    { id: 3, companyId: 3, name: 'PURAN JOSHI OLD', code: 'PJ-OLD', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
+  ];
+
+  const payload = {
+    terminals: terminalList,
+    customers: customerList,
+    companies: companyList,
+    companyTerminals,
+    companyCustomers,
+    customerTerminalMatrix: [],
+    triMatrix: [],
+  };
+
   return {
     success: true,
-    terminals: Object.values(terminals).sort((a, b) => a.TERMINAL_NAME.localeCompare(b.TERMINAL_NAME)),
-    customers: Object.values(customers).sort((a, b) => a.CUSTOMER_NAME.localeCompare(b.CUSTOMER_NAME)),
-    companies: [
-      { COMPANY_ID: 2, COMPANY_NAME: 'SPJ CARGO PVT LTD' },
-      { COMPANY_ID: 1, COMPANY_NAME: 'S.J. CARGO MOVERS' },
-      { COMPANY_ID: 5, COMPANY_NAME: 'PURAN JOSHI' },
-      { COMPANY_ID: 3, COMPANY_NAME: 'PURAN JOSHI OLD' },
-    ],
+    data: payload,
+    ...payload,
   };
 }
