@@ -569,10 +569,11 @@ export default function App() {
             setCustomFromDate={setCustomFromDate}
             customToDate={customToDate}
             setCustomToDate={setCustomToDate}
+            financialData={financialData}
             companies={masters?.companies || []}
             customers={masters?.customers || []}
             topCustomers={financialData?.topCustomers || []}
-            terminals={allTerminals.length > 0 ? allTerminals : (masters?.terminals || [])}
+            terminals={financialData?.terminalAnalytics || allTerminals || (masters?.terminals || [])}
             financialYears={financialYears}
             terminalFyMatrix={terminalFyMatrix}
             customerTerminalMatrix={masters?.customerTerminalMatrix || []}

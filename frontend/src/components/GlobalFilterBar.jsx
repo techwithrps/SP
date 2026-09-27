@@ -52,6 +52,7 @@ export default function GlobalFilterBar({
   setCustomFromDate,
   customToDate = '2026-09-26',
   setCustomToDate,
+  financialData,
   companies = [],
   customers = [],
   topCustomers = [],
@@ -86,7 +87,7 @@ export default function GlobalFilterBar({
     if (setSelectedFY) setSelectedFY('ALL');
   };
 
-  // 5 Official SPJ Group Companies in exact user requested order with enriched revenue stats
+  // Dynamic Company List: 5 Official SPJ Group Companies with revenue stats dynamically matched to current selected FY / Date Range
   const companyList = useMemo(() => {
     const base = (companies && companies.length > 0) ? companies : [
       { id: 3, companyId: 3, code: 'PJ-OLD', name: 'PURAN JOSHI OLD', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
@@ -96,12 +97,21 @@ export default function GlobalFilterBar({
       { id: 4, companyId: 4, code: 'SPJ-MUM', name: 'SPJ CARGO PVT LTD-MUMBAI', gstin: '27AAOCS1758E1Z3', director: 'Mr. Puran Joshi' }
     ];
 
+    const activeComps = financialData?.companyAnalytics || [];
+    const activeMap = {};
+    activeComps.forEach(ac => {
+      activeMap[String(ac.id || ac.companyId)] = ac;
+    });
+
     return base.map(comp => {
       const cId = String(comp.id || comp.companyId);
+      const activeInfo = activeMap[cId];
+
       const terms = companyTerminals[cId] || [];
       const custs = companyCustomers[cId] || [];
-      const gross = terms.reduce((acc, t) => acc + Number(t.totalAmount || t.netRevenue || 0), 0);
-      const invs = terms.reduce((acc, t) => acc + Number(t.invoiceCount || 0), 0);
+      const gross = activeInfo ? Number(activeInfo.grossRevenue || 0) : terms.reduce((acc, t) => acc + Number(t.totalAmount || t.netRevenue || 0), 0);
+      const invs = activeInfo ? Number(activeInfo.invoiceCount || 0) : terms.reduce((acc, t) => acc + Number(t.invoiceCount || 0), 0);
+
       return {
         ...comp,
         totalRevenue: gross,
@@ -110,7 +120,7 @@ export default function GlobalFilterBar({
         customerCount: custs.length
       };
     });
-  }, [companies, companyTerminals, companyCustomers]);
+  }, [companies, companyTerminals, companyCustomers, financialData]);
 
   // Helper to resolve company object and canonical ID (1..5)
   const resolveCompany = (val) => {
@@ -127,15 +137,31 @@ export default function GlobalFilterBar({
   const selectedCompanyObj = useMemo(() => resolveCompany(selectedCompany), [selectedCompany, companyList]);
   const activeCompId = selectedCompanyObj ? String(selectedCompanyObj.id || selectedCompanyObj.companyId) : null;
 
-  // STRICT CASCADING CUSTOMERS: Filtered by selectedCompany, Sorted Alphabetically (A-Z)
+  // Dynamic Customer List: Filtered by selectedCompany and dynamically enriched with current FY / Date Range metrics
   const availableCustomers = useMemo(() => {
+    const activeCustList = financialData?.customerWise || financialData?.topCustomers || [];
+    const activeCustMap = new Map();
+
+    activeCustList.forEach(c => {
+      const key = (c.customerName || c.name || '').trim().toLowerCase();
+      if (key) {
+        activeCustMap.set(key, {
+          customerId: c.customerId || c.id,
+          customerName: c.customerName || c.name,
+          invoiceCount: Number(c.invoiceCount || c.totalInvoices || 0),
+          containerCount: Number(c.containerCount || 0),
+          grossRevenue: Number(c.grossAmount || c.grossRevenue || c.totalRevenue || 0),
+          netRevenue: Number(c.netRevenue || c.grossAmount || c.grossRevenue || 0)
+        });
+      }
+    });
+
     const custMap = new Map();
 
     // Gather from master customers array
     (customers || []).forEach(c => {
       const key = (c.customerName || c.name || '').trim().toLowerCase();
       if (!key) return;
-
       if (!custMap.has(key)) {
         custMap.set(key, {
           id: c.customerId || c.id,
@@ -143,8 +169,7 @@ export default function GlobalFilterBar({
           name: c.customerName || c.name,
           customerName: c.customerName || c.name,
           code: c.code || '',
-          city: c.city || '',
-          terminalsMap: {}
+          city: c.city || ''
         });
       }
     });
@@ -153,7 +178,6 @@ export default function GlobalFilterBar({
     (customerTerminalMatrix || []).forEach(c => {
       const key = (c.customerName || c.name || '').trim().toLowerCase();
       if (!key) return;
-
       if (!custMap.has(key)) {
         custMap.set(key, {
           id: c.customerId || c.id,
@@ -161,24 +185,46 @@ export default function GlobalFilterBar({
           name: c.customerName || c.name,
           customerName: c.customerName || c.name,
           code: c.code || '',
-          city: c.city || '',
-          terminalsMap: {}
+          city: c.city || ''
         });
       }
-      const entry = custMap.get(key);
-      (c.terminals || []).forEach(t => {
-        const tId = String(t.terminalId);
-        if (!entry.terminalsMap[tId]) {
-          entry.terminalsMap[tId] = t;
-        }
-      });
     });
 
-    let result = Array.from(custMap.values()).map(c => ({
-      ...c,
-      terminalCount: Object.keys(c.terminalsMap).length || 1,
-      terminals: Object.values(c.terminalsMap)
-    }));
+    let result = Array.from(custMap.values()).map(c => {
+      const key = (c.customerName || c.name || '').trim().toLowerCase();
+      const activeData = activeCustMap.get(key);
+
+      const invs = activeData ? activeData.invoiceCount : 0;
+      const conts = activeData ? activeData.containerCount : 0;
+      const gross = activeData ? activeData.grossRevenue : 0;
+      const net = activeData ? activeData.netRevenue : 0;
+
+      return {
+        ...c,
+        invoiceCount: invs,
+        containerCount: conts,
+        grossRevenue: gross,
+        netRevenue: net,
+        hasActivity: invs > 0 || gross > 0
+      };
+    });
+
+    // Also include active customers that might not be in master array
+    activeCustMap.forEach((activeData, key) => {
+      if (!custMap.has(key)) {
+        result.push({
+          id: activeData.customerId,
+          customerId: activeData.customerId,
+          name: activeData.customerName,
+          customerName: activeData.customerName,
+          invoiceCount: activeData.invoiceCount,
+          containerCount: activeData.containerCount,
+          grossRevenue: activeData.grossRevenue,
+          netRevenue: activeData.netRevenue,
+          hasActivity: true
+        });
+      }
+    });
 
     // Filter by selected company if applicable
     if (activeCompId) {
@@ -188,21 +234,17 @@ export default function GlobalFilterBar({
           compNames.has((c.customerName || '').toLowerCase().trim()) ||
           Array.from(compNames).some(cn => cn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(cn))
         );
-      } else {
-        const compMatrixCusts = (customerTerminalMatrix || []).filter(c => String(c.companyId) === activeCompId);
-        if (compMatrixCusts.length > 0) {
-          const compNames = new Set(compMatrixCusts.map(c => (c.customerName || '').toLowerCase().trim()));
-          result = result.filter(c => 
-            compNames.has((c.customerName || '').toLowerCase().trim()) ||
-            Array.from(compNames).some(cn => cn.includes((c.customerName || '').toLowerCase()) || (c.customerName || '').toLowerCase().includes(cn))
-          );
-        }
       }
     }
 
-    // Sort ALPHABETICALLY (A to Z) by customerName
-    return result.sort((a, b) => (a.customerName || '').localeCompare(b.customerName || ''));
-  }, [activeCompId, companyCustomers, customerTerminalMatrix, customers]);
+    // Sort: Active customers first (by grossRevenue desc), then inactive customers alphabetically (A-Z)
+    return result.sort((a, b) => {
+      if (a.hasActivity && !b.hasActivity) return -1;
+      if (!a.hasActivity && b.hasActivity) return 1;
+      if (a.hasActivity && b.hasActivity) return b.grossRevenue - a.grossRevenue;
+      return (a.customerName || '').localeCompare(b.customerName || '');
+    });
+  }, [financialData, customers, customerTerminalMatrix, activeCompId, companyCustomers]);
 
   // Look up selected customer's matrix details
   const customerMatrixEntry = useMemo(() => {
@@ -225,16 +267,37 @@ export default function GlobalFilterBar({
   }, [selectedCustomer, availableCustomers, customerTerminalMatrix]);
 
   const terminalsWithStats = useMemo(() => {
-    return (terminals || []).map(t => ({
-      ...t,
-      currentStats: {
-        totalContainers: t.totalContainers || t.displayContainers || 0,
-        netRevenue: t.netRevenue || t.grossSale || 0,
-        totalJobs: t.totalJobs || t.invoiceCount || 0,
-        invoiceCount: t.invoiceCount || 0
-      }
-    }));
-  }, [terminals]);
+    const activeTerms = financialData?.terminalAnalytics || [];
+    const termMap = new Map();
+    activeTerms.forEach(t => {
+      const tId = String(t.terminalId || t.id || '');
+      const tName = String(t.terminalName || t.name || '').toLowerCase().trim();
+      if (tId) termMap.set(tId, t);
+      if (tName) termMap.set(tName, t);
+    });
+
+    const baseList = (terminals && terminals.length > 0) ? terminals : [];
+
+    return baseList.map(t => {
+      const tId = String(t.terminalId || t.id || '');
+      const tName = String(t.terminalName || t.name || '').toLowerCase().trim();
+      const activeObj = termMap.get(tId) || termMap.get(tName);
+
+      const invs = activeObj ? Number(activeObj.invoiceCount || activeObj.invoices || 0) : 0;
+      const conts = activeObj ? Number(activeObj.containerCount || activeObj.containers || 0) : 0;
+      const rev = activeObj ? Number(activeObj.grossSale || activeObj.grossRevenue || activeObj.netRevenue || 0) : 0;
+
+      return {
+        ...t,
+        currentStats: {
+          totalContainers: conts,
+          netRevenue: rev,
+          totalJobs: invs,
+          invoiceCount: invs
+        }
+      };
+    });
+  }, [terminals, financialData]);
 
 
   // STRICT CASCADING TERMINALS:
