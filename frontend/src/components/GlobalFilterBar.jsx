@@ -445,24 +445,39 @@ export default function GlobalFilterBar({
           {/* Controls Group: 1. Financial Year -> 2. Company -> 3. Branch -> 4. Customer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 w-full lg:w-auto flex-1">
             
-            {/* 1. Custom Date Range Selector (Primary Date Selector - FY Removed) */}
+            {/* 1. Custom Date Range Selector (Primary Date Selector - Clean Prompt Mode) */}
             <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" />
                   Custom Date Range
                 </span>
-                <span className="text-[9px] font-extrabold text-[#ff6a00] bg-orange-50 px-1.5 py-0.5 rounded-md border border-orange-200">
-                  Live Dynamic
-                </span>
+                {(customFromDate || customToDate) ? (
+                  <button
+                    onClick={() => {
+                      if (setCustomFromDate) setCustomFromDate('');
+                      if (setCustomToDate) setCustomToDate('');
+                      if (setSelectedFY) setSelectedFY('ALL');
+                    }}
+                    className="text-[9px] font-extrabold text-rose-600 bg-rose-50 hover:bg-rose-100 px-1.5 py-0.5 rounded-md border border-rose-200 cursor-pointer"
+                    title="Clear Custom Date Range (Show All Time Data)"
+                  >
+                    ✕ Clear (All Time)
+                  </button>
+                ) : (
+                  <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200">
+                    All Time Data
+                  </span>
+                )}
               </label>
 
               <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-300 shadow-xs">
                 <div className="flex-1 min-w-0">
-                  <span className="text-[8px] font-extrabold text-slate-400 block uppercase">From</span>
+                  <span className="text-[8px] font-extrabold text-slate-400 block uppercase">From Date</span>
                   <input
                     type="date"
-                    value={customFromDate || '2026-09-01'}
+                    value={customFromDate || ''}
+                    placeholder="Select From Date"
                     onChange={(e) => {
                       if (setCustomFromDate) setCustomFromDate(e.target.value);
                       if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
@@ -472,10 +487,11 @@ export default function GlobalFilterBar({
                 </div>
                 <span className="text-slate-400 font-bold text-xs mt-3">→</span>
                 <div className="flex-1 min-w-0">
-                  <span className="text-[8px] font-extrabold text-slate-400 block uppercase">To</span>
+                  <span className="text-[8px] font-extrabold text-slate-400 block uppercase">To Date</span>
                   <input
                     type="date"
-                    value={customToDate || '2026-09-26'}
+                    value={customToDate || ''}
+                    placeholder="Select To Date"
                     onChange={(e) => {
                       if (setCustomToDate) setCustomToDate(e.target.value);
                       if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');

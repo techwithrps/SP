@@ -165,8 +165,8 @@ export default function App() {
     return 'ALL';
   });
   const [selectedFY, setSelectedFY] = useState('ALL');
-  const [customFromDate, setCustomFromDate] = useState('2026-04-01');
-  const [customToDate, setCustomToDate] = useState('2026-09-26');
+  const [customFromDate, setCustomFromDate] = useState('');
+  const [customToDate, setCustomToDate] = useState('');
   const [allTerminals, setAllTerminals] = useState([]);
   const [terminalFyMatrix, setTerminalFyMatrix] = useState([]);
   const [financialYears, setFinancialYears] = useState([
@@ -264,14 +264,15 @@ export default function App() {
         queryParams.append('customerId', filters.customerId);
       }
 
-      if (selectedFY && selectedFY !== 'all' && selectedFY !== 'ALL' && selectedFY !== 'All Financial Years') {
+      if (selectedFY && selectedFY !== 'all' && selectedFY !== 'ALL' && selectedFY !== 'All Financial Years' && selectedFY !== 'CUSTOM_RANGE') {
         queryParams.append('financialYear', selectedFY);
       }
 
-      // ONLY append custom fromDate and toDate if selectedFY is explicitly 'CUSTOM_RANGE' or 'Custom Date Range'
-      if (selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM') {
-        if (customFromDate) queryParams.append('fromDate', customFromDate);
-        if (customToDate) queryParams.append('toDate', customToDate);
+      if (customFromDate && customFromDate.trim() !== '') {
+        queryParams.append('fromDate', customFromDate);
+      }
+      if (customToDate && customToDate.trim() !== '') {
+        queryParams.append('toDate', customToDate);
       }
 
       if (filters.serviceId && filters.serviceId !== 'all' && filters.serviceId !== 'ALL') queryParams.append('serviceId', filters.serviceId);

@@ -297,17 +297,21 @@ export default function CIRTable({
                 className="p-3 text-right cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center justify-end gap-1">
-                  Bill Amount (₹)
+                  Amount (₹)
                   <ArrowUpDown className="w-3 h-3 text-slate-400" />
                 </div>
               </th>
+
+              <th className="p-3 text-right">IGST (₹)</th>
+              <th className="p-3 text-right">CGST (₹)</th>
+              <th className="p-3 text-right">SGST (₹)</th>
 
               <th 
                 onClick={() => handleSort('TAX')}
                 className="p-3 text-right cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center justify-end gap-1">
-                  Tax (₹)
+                  Total Tax (₹)
                   <ArrowUpDown className="w-3 h-3 text-slate-400" />
                 </div>
               </th>
@@ -317,7 +321,7 @@ export default function CIRTable({
                 className="p-3 text-right cursor-pointer hover:text-[#2b1f55] transition-colors"
               >
                 <div className="flex items-center justify-end gap-1">
-                  Total Amount (₹)
+                  Total (₹)
                   <ArrowUpDown className="w-3 h-3 text-slate-400" />
                 </div>
               </th>
@@ -330,7 +334,7 @@ export default function CIRTable({
           <tbody className="divide-y divide-slate-200">
             {loading ? (
               <tr>
-                <td colSpan={14} className="p-12 text-center text-slate-500">
+                <td colSpan={16} className="p-12 text-center text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <div className="w-8 h-8 border-3 border-[#2b1f55] border-t-transparent rounded-full animate-spin" />
                     <span className="text-xs font-semibold text-slate-600">Loading Live Data...</span>
@@ -339,7 +343,7 @@ export default function CIRTable({
               </tr>
             ) : paginatedRecords.length === 0 ? (
               <tr>
-                <td colSpan={14} className="p-12 text-center text-slate-500">
+                <td colSpan={16} className="p-12 text-center text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <AlertCircle className="w-8 h-8 text-amber-500" />
                     <span className="text-sm font-bold text-slate-800">No Matching Records Found</span>
@@ -378,19 +382,11 @@ export default function CIRTable({
                           Inv: {row.INVOICE_NO}
                         </div>
                       )}
-                      {row.PARTY_INV_NO && row.PARTY_INV_NO !== row.INVOICE_REF_NO && (
-                        <div className="text-[10px] text-slate-400 font-mono font-normal">
-                          Party: {row.PARTY_INV_NO}
-                        </div>
-                      )}
                     </td>
 
                     {/* Date */}
                     <td className="p-3 text-slate-600 font-mono text-xs whitespace-nowrap font-medium">
                       <div>{row.INVOICE_DATE || '-'}</div>
-                      {row.LINE_HANDOVER_DATE && row.LINE_HANDOVER_DATE !== row.INVOICE_DATE && (
-                        <div className="text-[10px] text-slate-400">HO: {row.LINE_HANDOVER_DATE}</div>
-                      )}
                     </td>
 
                     {/* Customer */}
@@ -398,11 +394,6 @@ export default function CIRTable({
                       <div className="font-bold text-slate-900 truncate" title={row.CUSTOMER_NAME}>
                         {row.CUSTOMER_NAME || 'SPJ Account Party'}
                       </div>
-                      {row.INVOICE_NOTE && (
-                        <div className="text-[10px] text-slate-500 truncate mt-0.5" title={row.INVOICE_NOTE}>
-                          {row.INVOICE_NOTE}
-                        </div>
-                      )}
                     </td>
 
                     {/* Customer Invoice No */}
@@ -421,11 +412,6 @@ export default function CIRTable({
                       <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold truncate block" title={row.SERVICE_NAME || row.SERVICE_CHARGE}>
                         {row.SERVICE_NAME || row.SERVICE_CHARGE || 'Logistics Service'}
                       </span>
-                      {row.SERVICE_TYPE && (
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
-                          {row.SERVICE_TYPE}
-                        </span>
-                      )}
                     </td>
 
                     {/* BL / Bilty No */}
@@ -445,11 +431,6 @@ export default function CIRTable({
                         <div className="flex items-center gap-1 text-slate-800 font-bold">
                           <Container className="w-3.5 h-3.5 text-blue-600" />
                           <span>{row.CONT_NO || row.CONTAINER_NO}</span>
-                          {(row.CONTAINER_SIZE || row.SIZE) && (
-                            <span className="text-[10px] text-slate-500 font-normal">
-                              ({row.CONTAINER_SIZE || row.SIZE}ft)
-                            </span>
-                          )}
                         </div>
                       ) : (
                         <span className="text-slate-400 font-sans">-</span>
@@ -458,19 +439,9 @@ export default function CIRTable({
 
                     {/* Trip Type & Port */}
                     <td className="p-3 whitespace-nowrap">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        String(row.TRIP_TYPE).toUpperCase().includes('EXP') ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                        String(row.TRIP_TYPE).toUpperCase().includes('IMP') ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                        String(row.TRIP_TYPE).toUpperCase().includes('REB') ? 'bg-purple-50 text-purple-700 border border-purple-200' :
-                        'bg-amber-50 text-amber-700 border border-amber-200'
-                      }`}>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
                         {row.TRIP_TYPE || 'Standard'}
                       </span>
-                      {row.PORT && (
-                        <div className="text-[10px] text-slate-500 font-medium mt-0.5 truncate max-w-[120px]" title={row.PORT}>
-                          {row.PORT}
-                        </div>
-                      )}
                     </td>
 
                     {/* Bill Amount */}
@@ -478,14 +449,24 @@ export default function CIRTable({
                       ₹ {billAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
 
-                    {/* Tax with Head Split tooltip */}
-                    <td className="p-3 text-right font-mono font-medium text-emerald-700 whitespace-nowrap" title={igst > 0 ? `IGST: ₹${igst}` : `CGST: ₹${cgst} | SGST: ₹${sgst}`}>
-                      <div>₹ {taxAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                      {igst > 0 ? (
-                        <span className="text-[9px] text-slate-400 font-sans">IGST</span>
-                      ) : cgst > 0 ? (
-                        <span className="text-[9px] text-slate-400 font-sans">C+S GST</span>
-                      ) : null}
+                    {/* IGST */}
+                    <td className="p-3 text-right font-mono font-medium text-slate-600 whitespace-nowrap">
+                      {igst > 0 ? `₹ ${igst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
+                    </td>
+
+                    {/* CGST */}
+                    <td className="p-3 text-right font-mono font-medium text-slate-600 whitespace-nowrap">
+                      {cgst > 0 ? `₹ ${cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
+                    </td>
+
+                    {/* SGST */}
+                    <td className="p-3 text-right font-mono font-medium text-slate-600 whitespace-nowrap">
+                      {sgst > 0 ? `₹ ${sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
+                    </td>
+
+                    {/* Total Tax */}
+                    <td className="p-3 text-right font-mono font-medium text-emerald-700 whitespace-nowrap">
+                      ₹ {taxAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
 
                     {/* Total Amount */}
@@ -529,7 +510,7 @@ export default function CIRTable({
           {!loading && records.length > 0 && (
             <tfoot className="bg-gradient-to-r from-[#180f38] via-[#2b1f55] to-[#3e1e68] text-white border-t-2 border-[#ff6a00] shadow-lg sticky bottom-0 z-10">
               <tr>
-                <td colSpan={7} className="p-3.5 text-left text-xs uppercase tracking-wider font-display font-extrabold">
+                <td colSpan={9} className="p-3.5 text-left text-xs uppercase tracking-wider font-display font-extrabold">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span className="text-amber-300">ALL TOTAL (Grand Total in Current Scope):</span>
@@ -541,6 +522,15 @@ export default function CIRTable({
                 <td className="p-3.5 text-right font-mono text-xs font-bold text-blue-200">
                   ₹ {Number(kpis.totalBillAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
+                <td className="p-3.5 text-right font-mono text-xs font-bold text-slate-200">
+                  ₹ {Number(kpis.totalIgst || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td className="p-3.5 text-right font-mono text-xs font-bold text-slate-200">
+                  ₹ {Number(kpis.totalCgst || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td className="p-3.5 text-right font-mono text-xs font-bold text-slate-200">
+                  ₹ {Number(kpis.totalSgst || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
                 <td className="p-3.5 text-right font-mono text-xs font-bold text-emerald-300">
                   ₹ {Number(kpis.totalTax || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
@@ -548,7 +538,7 @@ export default function CIRTable({
                   ₹ {Number(kpis.grossRevenue || kpis.totalGrossAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
                 <td colSpan={2} className="p-3.5 text-center text-xs font-bold text-emerald-300">
-                  Verified Ledger Total
+                  Verified ERP Ledger Total
                 </td>
               </tr>
             </tfoot>
