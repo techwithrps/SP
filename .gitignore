@@ -1,5 +1,6 @@
 node_modules
 .env
+render.env
 dist
 .DS_Store
 *.log
@@ -10,6 +11,6 @@ node_modules/
 dist/
 .env
 *.class
-*.jar
-backend/src/tools/
+!backend/src/tools/oracle/ojdbc11.jar
+!backend/src/tools/oracle/*.java
 
