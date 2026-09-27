@@ -137,35 +137,37 @@ export default function GlobalFilterBar({
   const selectedCompanyObj = useMemo(() => resolveCompany(selectedCompany), [selectedCompany, companyList]);
   const activeCompId = selectedCompanyObj ? String(selectedCompanyObj.id || selectedCompanyObj.companyId) : null;
 
-  // Dynamic Customer List: Filtered by selectedCompany and dynamically enriched with current FY / Date Range metrics
+  // Dynamic Customer List: Filtered by selectedCompany and selectedTerminal, dynamically enriched with active scope metrics
   const availableCustomers = useMemo(() => {
     const activeCustList = financialData?.customerWise || financialData?.topCustomers || [];
     const activeCustMap = new Map();
 
     activeCustList.forEach(c => {
-      const key = (c.customerName || c.name || '').trim().toLowerCase();
-      if (key) {
-        activeCustMap.set(key, {
-          customerId: c.customerId || c.id,
-          customerName: c.customerName || c.name,
-          invoiceCount: Number(c.invoiceCount || c.totalInvoices || 0),
-          containerCount: Number(c.containerCount || 0),
-          grossRevenue: Number(c.grossAmount || c.grossRevenue || c.totalRevenue || 0),
-          netRevenue: Number(c.netRevenue || c.grossAmount || c.grossRevenue || 0)
-        });
-      }
+      const nameKey = (c.customerName || c.name || '').trim().toLowerCase();
+      const idKey = String(c.customerId || c.id || '').trim().toLowerCase();
+      const payload = {
+        customerId: c.customerId || c.id,
+        customerName: c.customerName || c.name,
+        invoiceCount: Number(c.invoiceCount || c.totalInvoices || c.invoices || 0),
+        containerCount: Number(c.containerCount || c.containers || 0),
+        grossRevenue: Number(c.grossAmount || c.grossRevenue || c.totalRevenue || c.revenue || 0),
+        netRevenue: Number(c.netRevenue || c.grossAmount || c.grossRevenue || 0),
+        terminals: c.terminals || []
+      };
+      if (nameKey) activeCustMap.set(nameKey, payload);
+      if (idKey) activeCustMap.set(idKey, payload);
     });
 
     const custMap = new Map();
 
     // Gather from master customers array
     (customers || []).forEach(c => {
-      const key = (c.customerName || c.name || '').trim().toLowerCase();
-      if (!key) return;
-      if (!custMap.has(key)) {
-        custMap.set(key, {
-          id: c.customerId || c.id,
-          customerId: c.customerId || c.id,
+      const nameKey = (c.customerName || c.name || '').trim().toLowerCase();
+      if (!nameKey) return;
+      if (!custMap.has(nameKey)) {
+        custMap.set(nameKey, {
+          id: c.customerId || c.id || nameKey,
+          customerId: c.customerId || c.id || nameKey,
           name: c.customerName || c.name,
           customerName: c.customerName || c.name,
           code: c.code || '',
@@ -176,12 +178,12 @@ export default function GlobalFilterBar({
 
     // Incorporate registered matrix entries
     (customerTerminalMatrix || []).forEach(c => {
-      const key = (c.customerName || c.name || '').trim().toLowerCase();
-      if (!key) return;
-      if (!custMap.has(key)) {
-        custMap.set(key, {
-          id: c.customerId || c.id,
-          customerId: c.customerId || c.id,
+      const nameKey = (c.customerName || c.name || '').trim().toLowerCase();
+      if (!nameKey) return;
+      if (!custMap.has(nameKey)) {
+        custMap.set(nameKey, {
+          id: c.customerId || c.id || nameKey,
+          customerId: c.customerId || c.id || nameKey,
           name: c.customerName || c.name,
           customerName: c.customerName || c.name,
           code: c.code || '',
@@ -190,28 +192,30 @@ export default function GlobalFilterBar({
       }
     });
 
+    // Build master list enriched with activeData
     let result = Array.from(custMap.values()).map(c => {
-      const key = (c.customerName || c.name || '').trim().toLowerCase();
-      const activeData = activeCustMap.get(key);
+      const nameKey = (c.customerName || c.name || '').trim().toLowerCase();
+      const idKey = String(c.customerId || c.id || '').trim().toLowerCase();
+      const activeData = activeCustMap.get(nameKey) || activeCustMap.get(idKey);
 
       const invs = activeData ? activeData.invoiceCount : 0;
       const conts = activeData ? activeData.containerCount : 0;
       const gross = activeData ? activeData.grossRevenue : 0;
-      const net = activeData ? activeData.netRevenue : 0;
 
       return {
         ...c,
         invoiceCount: invs,
         containerCount: conts,
         grossRevenue: gross,
-        netRevenue: net,
+        netRevenue: gross,
         hasActivity: invs > 0 || gross > 0
       };
     });
 
-    // Also include active customers that might not be in master array
+    // Add active customers that were not in static master array
     activeCustMap.forEach((activeData, key) => {
-      if (!custMap.has(key)) {
+      const exists = result.some(r => (r.customerName || '').trim().toLowerCase() === key || String(r.id).trim().toLowerCase() === key);
+      if (!exists) {
         result.push({
           id: activeData.customerId,
           customerId: activeData.customerId,
@@ -221,7 +225,7 @@ export default function GlobalFilterBar({
           containerCount: activeData.containerCount,
           grossRevenue: activeData.grossRevenue,
           netRevenue: activeData.netRevenue,
-          hasActivity: true
+          hasActivity: activeData.invoiceCount > 0 || activeData.grossRevenue > 0
         });
       }
     });
@@ -441,78 +445,62 @@ export default function GlobalFilterBar({
           {/* Controls Group: 1. Financial Year -> 2. Company -> 3. Branch -> 4. Customer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 w-full lg:w-auto flex-1">
             
-            {/* 4. Financial Year Filter */}
+            {/* 1. Custom Date Range Selector (Primary Date Selector - FY Removed) */}
             <div className="flex flex-col min-w-0">
-              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" />
-                Financial Year Filter
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" />
+                  Custom Date Range
+                </span>
+                <span className="text-[9px] font-extrabold text-[#ff6a00] bg-orange-50 px-1.5 py-0.5 rounded-md border border-orange-200">
+                  Live Dynamic
+                </span>
               </label>
-              <div className="relative">
-                <select
-                  value={selectedFY}
-                  onChange={(e) => setSelectedFY(e.target.value)}
-                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-xs truncate"
-                >
-                  <option value="ALL">📅 All Financial Years (Cumulative)</option>
-                  
-                  {/* Highlight customer's available FYs if customer selected */}
-                  {customerMatrixEntry && customerMatrixEntry.financialYears?.length > 0 ? (
-                    <>
-                      <optgroup label={`── 🟢 Active FYs for ${customerMatrixEntry.customerName} ──`}>
-                        {customerMatrixEntry.financialYears.map(fy => (
-                          <option key={fy} value={fy}>
-                            🟢 {fy} (Active Activity)
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="── All Financial Years ──">
-                        {financialYears.filter(fy => fy !== 'All Financial Years' && !customerMatrixEntry.financialYears.includes(fy)).map(fy => (
-                          <option key={fy} value={fy} className="text-slate-400">
-                            ⚪ {fy}
-                          </option>
-                        ))}
-                      </optgroup>
-                    </>
-                  ) : (
-                    <>
-                      <option value="FY 2026-27">FY 2026-27 (Current Fiscal)</option>
-                      <option value="FY 2025-26">FY 2025-26 (Past Year 1)</option>
-                      <option value="FY 2024-25">FY 2024-25 (Past Year 2)</option>
-                      <option value="CUSTOM_RANGE">📆 Custom Date Range</option>
-                    </>
-                  )}
-                </select>
-              </div>
 
-              {(selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range') && (
-                <div className="mt-2.5 flex items-center gap-2 bg-gradient-to-r from-amber-50 to-orange-50 p-2 rounded-xl border border-amber-200/80 shadow-xs">
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[9px] font-extrabold text-amber-800 uppercase tracking-wider block mb-0.5">From Date</label>
-                    <input
-                      type="date"
-                      value={customFromDate || ''}
-                      onChange={(e) => setCustomFromDate && setCustomFromDate(e.target.value)}
-                      className="w-full h-8 px-2 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00]"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[9px] font-extrabold text-amber-800 uppercase tracking-wider block mb-0.5">To Date</label>
-                    <input
-                      type="date"
-                      value={customToDate || ''}
-                      onChange={(e) => setCustomToDate && setCustomToDate(e.target.value)}
-                      className="w-full h-8 px-2 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00]"
-                    />
-                  </div>
+              <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-300 shadow-xs">
+                <div className="flex-1 min-w-0">
+                  <span className="text-[8px] font-extrabold text-slate-400 block uppercase">From</span>
+                  <input
+                    type="date"
+                    value={customFromDate || '2026-09-01'}
+                    onChange={(e) => {
+                      if (setCustomFromDate) setCustomFromDate(e.target.value);
+                      if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
+                    }}
+                    className="w-full h-7 px-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
+                  />
                 </div>
-              )}
+                <span className="text-slate-400 font-bold text-xs mt-3">→</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[8px] font-extrabold text-slate-400 block uppercase">To</span>
+                  <input
+                    type="date"
+                    value={customToDate || '2026-09-26'}
+                    onChange={(e) => {
+                      if (setCustomToDate) setCustomToDate(e.target.value);
+                      if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
+                    }}
+                    className="w-full h-7 px-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* 1. Company Selection */}
+            {/* 2. Company Selection */}
             <div className="flex flex-col min-w-0">
-              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
-                <Building className="w-3.5 h-3.5 text-indigo-600" />
-                Company Selection
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Building className="w-3.5 h-3.5 text-indigo-600" />
+                  Company Selection
+                </span>
+                {selectedCompany !== 'ALL' && (
+                  <button 
+                    onClick={() => setSelectedCompany && setSelectedCompany('ALL')}
+                    className="text-[9px] font-bold text-indigo-600 hover:underline cursor-pointer"
+                  >
+                    Reset
+                  </button>
+                )}
               </label>
               <div className="relative">
                 <select
@@ -520,10 +508,10 @@ export default function GlobalFilterBar({
                   onChange={(e) => handleCompanyChange(e.target.value)}
                   className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-all cursor-pointer shadow-xs truncate"
                 >
-                  <option value="ALL">🏛️ All Companies (5 Entities — ₹ 3,853.64 Cr)</option>
+                  <option value="ALL">🏛️ All Companies (5 Entities — ₹ {formatNumber(Math.round((companyList.reduce((a,c)=>a+c.totalRevenue,0)/10000000)*100)/100)} Cr)</option>
                   {companyList.map(comp => {
-                    const revStr = comp.totalRevenue ? ` [${formatCurrency(comp.totalRevenue)}]` : '';
-                    const invStr = comp.invoiceCount ? ` (${formatNumber(comp.invoiceCount)} Invs)` : '';
+                    const revStr = comp.totalRevenue ? ` [${formatCurrency(comp.totalRevenue)}]` : ' [₹ 0.00]';
+                    const invStr = comp.invoiceCount ? ` (${formatNumber(comp.invoiceCount)} Invs)` : ' (0 Invs)';
                     return (
                       <option key={comp.id || comp.code} value={String(comp.id || comp.code)}>
                         🏢 {comp.name} ({comp.code}){revStr}{invStr}
@@ -534,124 +522,101 @@ export default function GlobalFilterBar({
               </div>
             </div>
 
-            {/* 3. Branch Selection (Cascaded: Filtered by Customer or Company) */}
+            {/* 3. Branch Selection (Cascaded by Date Range + Company) */}
             <div className="flex flex-col min-w-0">
-              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-[#2b1f55]" />
-                Branch Selection
-                {customerMatrixEntry ? (
-                  <span className="text-[9px] font-normal text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded-full">
-                    {availableTerminals.length} Client Branches
-                  </span>
-                ) : selectedCompanyObj ? (
-                  <span className="text-[9px] font-normal text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded-full">
-                    {availableTerminals.length} Entity Branches
-                  </span>
-                ) : null}
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#2b1f55]" />
+                  Branch Selection
+                </span>
+                {selectedTerminal !== 'ALL' && (
+                  <button 
+                    onClick={() => setSelectedTerminal && setSelectedTerminal('ALL')}
+                    className="text-[9px] font-bold text-[#2b1f55] hover:underline cursor-pointer"
+                  >
+                    Reset
+                  </button>
+                )}
               </label>
               <div className="relative">
                 <select
                   value={selectedTerminal}
-                  onChange={(e) => setSelectedTerminal(e.target.value)}
+                  onChange={(e) => setSelectedTerminal && setSelectedTerminal(e.target.value)}
                   className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2b1f55] transition-all cursor-pointer shadow-xs truncate"
                 >
-                  <option value="ALL">
-                    {customerMatrixEntry
-                      ? `🏢 All Active Branches for ${customerMatrixEntry.customerName || customerMatrixEntry.name} (${availableTerminals.length} Branches)`
-                      : selectedCompanyObj
-                      ? `🏢 All Operating Branches of ${selectedCompanyObj.name} (${availableTerminals.length} Branches)`
-                      : `🏢 All Branches (${terminals.length || 39} Total)`}
-                  </option>
+                  <option value="ALL">🏢 All Branches ({availableTerminals.length || 39} Operating Hubs)</option>
                   
-                  {/* If a customer is selected, show strictly their active branches */}
-                  {customerMatrixEntry && availableTerminals.length > 0 ? (
-                    <optgroup label={`── 🟢 Active Operating Branches for ${customerMatrixEntry.customerName || customerMatrixEntry.name} ──`}>
-                      {availableTerminals.map(t => (
-                        <option key={t.terminalId} value={String(t.terminalId)}>
-                          🟢 {t.terminalName} ({formatNumber(t.invoiceCount)} Invoices{t.totalContainers ? ` | ${formatNumber(t.totalContainers)} Cont` : ''}{t.netRevenue ? ` | ${formatCurrency(t.netRevenue)}` : ''})
-                        </option>
-                      ))}
-                    </optgroup>
-                  ) : selectedCompanyObj && availableTerminals.length > 0 ? (
-                    /* If a company is selected (and customer is ALL), show strictly that company's terminals */
-                    <optgroup label={`── 🏢 Operating Branches of ${selectedCompanyObj.name} (${availableTerminals.length}) ──`}>
-                      {availableTerminals.map(t => (
-                        <option key={t.terminalId} value={String(t.terminalId)}>
-                          🟢 {t.terminalName} ({formatNumber(t.invoiceCount)} Invoices{t.totalContainers ? ` | ${formatNumber(t.totalContainers)} Cont` : ''}{t.netRevenue ? ` | ${formatCurrency(t.netRevenue)}` : ''})
-                        </option>
-                      ))}
-                    </optgroup>
-                  ) : (
-                    /* Global unfiltered view with Active vs Inactive hubs */
-                    <>
-                      <optgroup label={selectedFY === 'ALL' ? "── 🟢 Active Branches with Data ──" : `── 🟢 Active Branches in ${selectedFY} ──`}>
-                        {activeTerminals.map(t => (
-                          <option key={t.terminalId} value={String(t.terminalId)}>
-                            🟢 {t.terminalName} ({formatNumber(t.currentStats.totalContainers)} Cont | {formatCurrency(t.currentStats.netRevenue)})
+                  {activeTerminals.length > 0 && (
+                    <optgroup label={`── 🟢 Active Operating Branches in Date Range (${activeTerminals.length}) ──`}>
+                      {activeTerminals.map(t => {
+                        const invs = t.invoiceCount || t.currentStats?.invoiceCount || 0;
+                        const conts = t.totalContainers || t.currentStats?.totalContainers || 0;
+                        const teus = t.teus || t.currentStats?.teus || Math.round(conts * 1.9);
+                        const rev = t.netRevenue || t.currentStats?.netRevenue || 0;
+                        return (
+                          <option key={t.terminalId || t.terminalName} value={String(t.terminalId || t.terminalName)}>
+                            🟢 {t.terminalName} ({formatNumber(conts)} Cont | {formatNumber(teus)} TEUs | {formatNumber(invs)} Invs | {formatCurrency(rev)})
                           </option>
-                        ))}
-                      </optgroup>
+                        );
+                      })}
+                    </optgroup>
+                  )}
 
-                      {inactiveTerminals.length > 0 && (
-                        <optgroup label={selectedFY === 'ALL' ? "── 🔴 Inactive Branches ──" : `── 🔴 No Activity in ${selectedFY} ──`}>
-                          {inactiveTerminals.map(t => (
-                            <option key={t.terminalId} value={String(t.terminalId)} className="text-rose-600 font-semibold bg-rose-50/50">
-                              🔴 {t.terminalName} (0 Cont | Inactive)
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                    </>
+                  {inactiveTerminals.length > 0 && (
+                    <optgroup label={`── ⚪ Zero Activity Hubs in Selected Scope (${inactiveTerminals.length}) ──`}>
+                      {inactiveTerminals.map(t => (
+                        <option key={t.terminalId || t.terminalName} value={String(t.terminalId || t.terminalName)} className="text-slate-400">
+                          ⚪ {t.terminalName} (0 Cont | ₹ 0.00)
+                        </option>
+                      ))}
+                    </optgroup>
                   )}
                 </select>
               </div>
             </div>
 
-            {/* 2. Customer Selection (Strictly filtered by selectedCompany) */}
+            {/* 4. Customer Selection (Cascaded by Date Range + Company + Branch) */}
             <div className="flex flex-col min-w-0">
-              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-blue-600" />
-                Customer Selection
-                {selectedCompanyObj && (
-                  <span className="text-[9px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded-full border border-indigo-200">
-                    {selectedCompanyObj.code}
-                  </span>
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-emerald-600" />
+                  Customer Selection
+                </span>
+                {selectedCustomer !== 'ALL' && (
+                  <button 
+                    onClick={() => setSelectedCustomer && setSelectedCustomer('ALL')}
+                    className="text-[9px] font-bold text-emerald-600 hover:underline cursor-pointer"
+                  >
+                    Reset
+                  </button>
                 )}
               </label>
               <div className="relative">
                 <select
                   value={selectedCustomer}
                   onChange={(e) => handleCustomerChange(e.target.value)}
-                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer shadow-xs truncate"
+                  className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all cursor-pointer shadow-xs truncate"
                 >
-                  <option value="ALL">
-                    👥 {selectedCompanyObj ? `All Customers in ${selectedCompanyObj.code} (${availableCustomers.length} Total)` : `All Customers (${availableCustomers.length} Total)`}
-                  </option>
+                  <option value="ALL">👥 All Customers ({availableCustomers.length} Total Clients)</option>
                   
-                  {availableCustomers.length > 0 ? (
-                    <optgroup label={selectedCompanyObj ? `── 🏢 Customers of ${selectedCompanyObj.name} (A-Z) ──` : `── 👥 All Customers (A-Z | ${selectedFY === 'ALL' || selectedFY === 'all' ? 'All Financial Years' : selectedFY}) ──`}>
-                      {availableCustomers.map(c => {
-                        const val = c.customerId || c.id || c.customerName || c.name;
-                        const name = c.customerName || c.name;
-                        const branches = c.terminalCount > 1 ? ` (${c.terminalCount} Hubs)` : '';
-                        const hasActivity = (c.invoiceCount || 0) > 0;
-                        const metrics = hasActivity 
-                          ? ` [${formatNumber(c.invoiceCount)} Invs | ${formatCurrency(c.grossRevenue || c.netRevenue)}]`
-                          : (selectedFY !== 'ALL' && selectedFY !== 'all' ? ` [0 Invs in ${selectedFY}]` : ` [0 Invoices]`);
-                        
-                        return (
-                          <option 
-                            key={val} 
-                            value={String(val)}
-                            className={hasActivity ? 'font-semibold text-slate-900' : 'text-slate-400 font-normal'}
-                          >
-                            {hasActivity ? '🟢' : '⚪'} {name}{branches}{metrics}
-                          </option>
-                        );
-                      })}
+                  {availableCustomers.some(c => c.hasActivity) && (
+                    <optgroup label={`── 🟢 Active Billed Clients in Selected Scope (${availableCustomers.filter(c => c.hasActivity).length}) ──`}>
+                      {availableCustomers.filter(c => c.hasActivity).map(c => (
+                        <option key={c.id || c.customerId || c.customerName} value={String(c.customerId || c.id || c.customerName)}>
+                          🟢 {c.customerName} ({formatNumber(c.invoiceCount)} Invs | {formatNumber(c.containerCount)} Cont | {formatCurrency(c.grossRevenue)})
+                        </option>
+                      ))}
                     </optgroup>
-                  ) : (
-                    <option value="" disabled>No registered clients for this entity</option>
+                  )}
+
+                  {availableCustomers.some(c => !c.hasActivity) && (
+                    <optgroup label={`── ⚪ Inactive Customers in Selected Scope (${availableCustomers.filter(c => !c.hasActivity).length}) ──`}>
+                      {availableCustomers.filter(c => !c.hasActivity).map(c => (
+                        <option key={c.id || c.customerId || c.customerName} value={String(c.customerId || c.id || c.customerName)} className="text-slate-400">
+                          ⚪ {c.customerName} (0 Invoices in Selected Scope)
+                        </option>
+                      ))}
+                    </optgroup>
                   )}
                 </select>
               </div>
