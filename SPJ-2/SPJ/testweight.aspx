@@ -1,0 +1,18 @@
+﻿<%@ Page Language="VB" AutoEventWireup="false" CodeFile="testweight.aspx.vb" Inherits="testweight" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    
+    </div>
+    <asp:Button ID="Button1" runat="server" Text="Get Weight>>" />
+    <asp:TextBox ID="textWieght" runat="server"></asp:TextBox>
+    </form>
+</body>
+</html>

@@ -1,0 +1,179 @@
+﻿body
+{
+}
+.FormLabelTitle
+{
+	font-family: Verdana;
+	font-size: 14px;
+	font-weight: bold;
+}
+.FormLabel
+{
+	font-family: Verdana;
+	font-size: 10pt;
+}
+.FormTextBoxLeft
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 16px;
+	width: 180px;
+	text-align: left;
+}
+
+.FormTextBoxHead
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 16px;
+	width: 180px;
+	font-weight: bold;
+	text-align: left;
+}
+
+.FormText_BoxHead
+{
+	font-family: Verdana;
+	font-size: 13pt;
+	height: 16px;
+	width: 180px;
+	font-weight: bold;
+	text-align: left;
+}
+
+.FormTextBoxRight
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 16px;
+	width: 180px;
+	text-align: right;
+}
+
+.FormTextBoxCenter
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 16px;
+	width: 180px;
+	text-align: center;
+}
+.FormTextBoxNumeric
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 16px;
+	width: 180px;
+	text-align: right;
+}
+.FormTextBoxNumSmall
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 16px;
+	width: 90px;
+	text-align: right;
+}
+
+.btnForm
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 21px;
+	background-color: Gray;
+}
+.btntdForm
+{
+	background-color: Yellow;
+	height: 25px;
+}
+
+
+.FormListBoxSmall
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 20px;
+	width: 70px;
+	border-width: 1px;
+	border-style: solid;
+	text-align: left;
+}
+
+.FormListBoxTime
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 20px;
+	width: 45px;
+	border-width: 1px;
+	border-style: solid;
+	text-align: left;
+}
+.FormListBoxMedium
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 20px;
+	width: 230px;
+	border-width: 1px;
+	border-style: solid;
+	text-align: left;
+}
+.FormListBoxLarg
+{
+	font-family: Verdana;
+	font-size: 11pt;
+	height: 20px;
+	width: 310px;
+	border-width: 1px;
+	border-style: solid;
+	text-align: left;
+}
+
+.FormButton
+{
+	border-bottom: 1px solid #6a90be;
+	border-left: 1px solid #6a90be;
+	border-right: 1px solid #6a90be;
+	border-top: 1px solid #6a90be;
+	color: Black;
+	font-family: Verdana, Helvetica;
+	font-size: 11px;
+	text-align: center;
+	background-color: #EAE8FF;
+	background-image: url(images/buttonbg.gif);
+	background-repeat: repeat-x;
+	cursor: hand;
+	width: 80px;
+	height: 22px;
+}
+
+.mandatory
+{
+	font-size: 10px;
+	font-family: Verdana, Helvetica, Arial, sans-serif;
+	color: #ff0000;
+}
+
+.Repheader
+{
+	font-size: 11px;
+	height: 15px;
+	font-family: Verdana, Helvetica, Arial, sans-serif;
+	color: #002565;
+	font-weight: bold;
+	background-color: #FEEFC0;
+	z-index: -1;
+}
+.RepScroling
+{
+	scrollbar-face-color: #2a3b48;
+	scrollbar-shadow-color: #727f89;
+	scrollbar-highlight-color: #727f89;
+	scrollbar-3dlight-color: #2a3b48;
+	scrollbar-darkshadow-color: #2a3b48;
+	scrollbar-track-color: #727f89;
+	scrollbar-arrow-color: #fbfdd5;
+	overflow: auto;
+}

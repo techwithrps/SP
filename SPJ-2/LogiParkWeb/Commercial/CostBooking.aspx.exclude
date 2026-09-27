@@ -1,0 +1,315 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/MasterPage.master" CodeFile="~/Commercial/CostBooking.aspx.vb"
+    AutoEventWireup="false" Inherits="Commercial_CostBooking" Title="eLOGiFleet:: Cost Booking"
+    Theme="Forms" %>
+
+<%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="ajaxToolkit" %>
+<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="vertical-align: top;
+        border-style: none; height: 100%;">
+        <tr>
+            <td>
+                <div id="dvPage" style="vertical-align: top; overflow: auto; width: 100%;">
+                    <table style="width: 100%; border-style: none;" border="0" cellpadding="0">
+                        <tr>
+                            <td>
+                                <asp:Label ID="lblScreenTitle" runat="server" Width="300px" Text="Cost Booking" CssClass="FormLabelTitle">
+                                </asp:Label>
+                                <asp:Label ID="lblErrorMessage" CssClass="FormLabel" runat="server"></asp:Label>
+                            </td>
+                            <td align="right">
+                                <asp:Label ID="lblmandatory" runat="server" CssClass="FormLabel" Text="* mandatory field"
+                                    ForeColor="Red"></asp:Label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <hr />
+                            </td>
+                        </tr>
+                        <tr class="UserControls" style="height: 380px; margin-top: 0px;">
+                            <td style="width: 100%;" align="center" valign="top">
+                                <div id="dvControl" runat="server" style="width: 100%; border-style: none;">
+                                    <table border="0" cellpadding="0" style="border-style: none;">
+                                        <tr>
+                                            <td>
+                                                <table>
+                                                    <tr>
+                                                        <td align="left">
+                                                            <asp:Label ID="lblBlNo" runat="server" Text="BL Number" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td align="left">
+                                                            <asp:TextBox ID="textBlNo" runat="server" CssClass="textbox" ToolTip="From Date"
+                                                                Enabled="false" MaxLength="20"></asp:TextBox>
+                                                            <asp:Button ID="btnGo" runat="server" Text="GO" CssClass="FormButton" />
+                                                        </td>
+                                                        <td style="text-align: left;">
+                                                            <asp:Label ID="LblBillingParty" runat="server" Text="Bill To" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td style="text-align: left;">
+                                                            <asp:DropDownList CssClass="ddlMedium" runat="server" ID="LstBillingParty">
+                                                            </asp:DropDownList>
+                                                            <strong>
+                                                                <samp class="mandatory">
+                                                                    *</samp></strong>
+                                                        </td>
+                                                    </tr>
+                                                    <tr align="center">
+                                                        <td style="text-align: left;">
+                                                            <asp:Label ID="lblShippingLine" runat="server" Text="Line" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td style="text-align: left;">
+                                                            <asp:DropDownList CssClass="ddlMedium" runat="server" ID="lstShippingLine">
+                                                            </asp:DropDownList>
+                                                            <strong>
+                                                                <samp class="mandatory">
+                                                                    *</samp></strong>
+                                                            <asp:HiddenField ID="hdnTaxGroupID" runat="server" Value="0" />
+                                                            <asp:HiddenField ID="HdnStatus" runat="server" Value="0" />
+                                                        </td>
+                                                        <td style="text-align: left;">
+                                                            <asp:Label ID="LblLineInvoiceNo" runat="server" Text="Invoice No" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td style="text-align: left;">
+                                                            <asp:TextBox ID="TextInvNo" runat="server" CssClass="textbox" ToolTip="To Date" Enabled="false"></asp:TextBox>
+                                                        </td>
+                                                    </tr>
+                                                    <tr align="center">
+                                                        <td>
+                                                            <asp:Label ID="lblInvoiceDate" runat="server" Text="Invoice Date" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td align="left">
+                                                            <asp:TextBox ID="textToDate0" runat="server" CssClass="textbox" ToolTip="To Date"
+                                                                Enabled="false" MaxLength="12"></asp:TextBox>
+                                                            <ajaxToolkit:CalendarExtender ID="textToDate0_CalendarExtender" runat="server" Format="dd/MM/yyyy"
+                                                                TargetControlID="textToDate0" />
+                                                        </td>
+                                                        <td style="text-align: left;">
+                                                            <asp:Label ID="lblDueDate" runat="server" Text="Due Date" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td style="text-align: left;">
+                                                            <asp:TextBox ID="textDueDate" runat="server" CssClass="textbox" ToolTip="To Date"
+                                                                Enabled="false"></asp:TextBox>
+                                                            <ajaxToolkit:CalendarExtender ID="CalendarExtender1" runat="server" Format="dd/MM/yyyy"
+                                                                TargetControlID="textDueDate" />
+                                                        </td>
+                                                    </tr>
+                                                    <%--<tr>
+                                                        <td style="text-align: left;">
+                                                            <asp:Label ID="LblExRate" runat="server" Text="Ex Rate" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td style="text-align: left;">
+                                                            <asp:TextBox ID="TextExRate" runat="server" CssClass="textbox" ToolTip="To Date"
+                                                                Enabled="false"></asp:TextBox>
+                                                        </td>
+                                                    </tr>--%>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">
+                                                &nbsp;
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" align="center">
+                                                <table cellspacing="0" border="0" cellpadding="0" style="border-color: White;">
+                                                    <tr>
+                                                        <td colspan="8" valign="top" align="center">
+                                                            <div class="RepScroling" style="height: 140px;">
+                                                                <asp:Repeater ID="repTaxHead" runat="server">
+                                                                    <HeaderTemplate>
+                                                                        <table id="cont1" cellspacing="0" border="0" cellpadding="0">
+                                                                            <tr class="RepheaderNew">
+                                                                                <td align="center" width="150px" style="height: 20px">
+                                                                                    <asp:Label ID="lblService" Width="150px" runat="server" CssClass="FormLabel" Text='Service Name<span class="mandatory"> *</span>'></asp:Label>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <asp:Label ID="lblQnty" runat="server" CssClass="FormLabel" Text="Qnty"></asp:Label>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <asp:Label ID="lblRate" runat="server" CssClass="FormLabel" Text="Rate"></asp:Label>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <asp:Label ID="lblExRate" runat="server" CssClass="FormLabel" Text="Ex. Rate"></asp:Label>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <asp:Label ID="lblBaseRate" runat="server" CssClass="FormLabel" Text="Base Amount"></asp:Label>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <asp:Label ID="lblTaxPer" runat="server" CssClass="FormLabel" Text="Tax (%)"></asp:Label>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <asp:Label ID="lblTaxAmount" runat="server" CssClass="FormLabel" Text="Tax Amount"></asp:Label>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <asp:Label ID="lblTotal" runat="server" CssClass="FormLabel" Text="Total"></asp:Label>
+                                                                                </td>
+                                                                                <td width="17px">
+                                                                                </td>
+                                                                            </tr>
+                                                                    </HeaderTemplate>
+                                                                    <ItemTemplate>
+                                                                        <tr>
+                                                                            <td>
+                                                                                <%-- <asp:HiddenField ID="hdnRepTaxGroupId" Value='<%# Eval("TaxGroupId") %>' runat="server" />
+                                                                                <asp:HiddenField ID="hdnRepTaxRefId" Value='<%# Eval("TaxRefId") %>' runat="server" />--%>
+                                                                                <asp:DropDownList CssClass="ddlMedium" Width="172px" Text='<%# Eval("ServiceId") %>'
+                                                                                    ID="lstService" runat="server" OnDataBinding="prepareServiceMaster" ToolTip="Service Name">
+                                                                                </asp:DropDownList>
+                                                                            </td>
+                                                                            <td>
+                                                                                <asp:TextBox CssClass="textbox" Width="50px" ID="textQnty" runat="server" onkeypress="kp_numeric();"
+                                                                                    ToolTip="Tax %" MaxLength="8"></asp:TextBox>
+                                                                            </td>
+                                                                            <td>
+                                                                                <asp:TextBox CssClass="textbox" Width="90px" ID="textRate" runat="server" onkeypress="kp_numeric();"
+                                                                                    ToolTip="Tax %" MaxLength="8"></asp:TextBox>
+                                                                            </td>
+                                                                            <td>
+                                                                                <asp:TextBox CssClass="textbox" Width="80px" ID="textExRate" runat="server" onkeypress="kp_numeric();"
+                                                                                    ToolTip="Tax %" MaxLength="8" Enabled="false"></asp:TextBox>
+                                                                            </td>
+                                                                            <td>
+                                                                                <asp:TextBox CssClass="textbox" Width="100px" ID="textBaseAmount" runat="server"
+                                                                                    onkeypress="kp_numeric();" ToolTip="Tax %" MaxLength="8" Enabled="false"></asp:TextBox>
+                                                                            </td>
+                                                                            <td>
+                                                                                <asp:TextBox CssClass="textbox" Width="50px" ID="textPerc" runat="server" onkeypress="kp_numeric();"
+                                                                                    ToolTip="Tax %" MaxLength="8" AutoPostBack="true" Enabled="false" OnTextChanged="checkper"></asp:TextBox>
+                                                                            </td>
+                                                                            <td>
+                                                                                <asp:TextBox CssClass="textbox" Width="105px" ID="TextBox5" runat="server" onkeypress="kp_numeric();"
+                                                                                    ToolTip="Tax %" MaxLength="8" Enabled="false"></asp:TextBox>
+                                                                            </td>
+                                                                            <td>
+                                                                                <asp:TextBox CssClass="textbox" Width="105px" ID="TextBox6" runat="server" onkeypress="kp_numeric();"
+                                                                                    ToolTip="Tax %" MaxLength="8" Enabled="false"></asp:TextBox>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </ItemTemplate>
+                                                                    <FooterTemplate>
+                                                                        </table>
+                                                                    </FooterTemplate>
+                                                                </asp:Repeater>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">
+                                                <table>
+                                                    <tr>
+                                                        <td align="right" style="width: 230px">
+                                                            <asp:Label ID="LblTotal" runat="server" CssClass="FormLabel" Text="Total"></asp:Label>
+                                                        </td>
+                                                        <td align="Center" style="width: 100px">
+                                                            <asp:Label ID="LblRate" runat="server" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td align="Center" style="width: 200px">
+                                                            <asp:Label ID="lblBaseAmt" runat="server" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td align="Center" style="width: 150px">
+                                                            <asp:Label ID="LblTaxAmt" runat="server" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                        <td align="Center" style="width: 100px">
+                                                            <asp:Label ID="LblTotalAmt" runat="server" CssClass="FormLabel"></asp:Label>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">
+                                                <asp:Button ID="BtnConfirm" runat="server" CssClass="FormButton" Text="Calculate" />
+                                                <asp:Button ID="BtnEditDetails" runat="server" CssClass="FormButton" Visible="false" Text="EDit Details" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="height: 20PX">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">
+                                                <div style="height: 150px; overflow: auto;">
+                                                    <asp:GridView ID="gvContainerDetails" CssClass="FormLabel" AutoGenerateColumns="False"
+                                                        runat="server">
+                                                        <RowStyle Font-Size="8pt" BackColor="AntiqueWhite"></RowStyle>
+                                                        <Columns>
+                                                            <asp:TemplateField HeaderText="Sr." HeaderStyle-CssClass="RepheaderNew">
+                                                                <ItemStyle HorizontalAlign="Center" />
+                                                                <ItemTemplate>
+                                                                    <%#Container.DataItemIndex+1 %>
+                                                                    <asp:HiddenField ID="hdnMTY_CONT_ID" runat="server" Value='<%# Eval("MTY_CONT_ID") %>' />
+                                                                </ItemTemplate>
+                                                            </asp:TemplateField>
+                                                            <asp:BoundField ItemStyle-Width="120px" DataField="CONT_NO" HeaderText="Container No"
+                                                                HeaderStyle-CssClass="RepheaderNew"></asp:BoundField>
+                                                            <asp:BoundField ItemStyle-Width="50px" DataField="CONT_SIZE" HeaderText="Size"
+                                                                HeaderStyle-CssClass="RepheaderNew"></asp:BoundField>
+                                                            <asp:BoundField ItemStyle-Width="50px" DataField="CONT_TYPE" HeaderText="Type"
+                                                                HeaderStyle-CssClass="RepheaderNew"></asp:BoundField>
+                                                            <asp:BoundField ItemStyle-Width="50px" DataField="POL" HeaderText="POL" HeaderStyle-CssClass="RepheaderNew">
+                                                            </asp:BoundField>
+                                                            <asp:BoundField ItemStyle-Width="70px" DataField="PORT" HeaderText="POD" HeaderStyle-CssClass="RepheaderNew">
+                                                            </asp:BoundField>
+                                                            <asp:TemplateField HeaderText="Base Rate" HeaderStyle-CssClass="RepheaderNew">
+                                                                <ItemTemplate>
+                                                                    <asp:Label ID="txtBaseAmt" runat="server" Text='<%# Eval("BASE_RATE")%>' Width="100px"
+                                                                        Visible="True"></asp:Label>
+                                                                </ItemTemplate>
+                                                            </asp:TemplateField>
+                                                            <asp:TemplateField HeaderText="Tax Amount" HeaderStyle-CssClass="RepheaderNew">
+                                                                <ItemTemplate>
+                                                                    <asp:Label ID="txtTaxAmt" runat="server" Text='<%# Eval("TAX_AMOUNT")%>' Width="100px"
+                                                                        Visible="True"></asp:Label>
+                                                                </ItemTemplate>
+                                                            </asp:TemplateField>
+                                                            <asp:TemplateField HeaderText="Total Amount" HeaderStyle-CssClass="RepheaderNew">
+                                                                <ItemTemplate>
+                                                                    <asp:Label ID="txtTotal" runat="server" Text='<%# Eval("TOTAL_AMOUNT")%>' Width="100px"
+                                                                        Visible="True"></asp:Label>
+                                                                </ItemTemplate>
+                                                            </asp:TemplateField>
+                                                        </Columns>
+                                                        <AlternatingRowStyle></AlternatingRowStyle>
+                                                    </asp:GridView>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                          <%--  <td valign="top">
+                                <div id="dvTreeView" class="tvScroling" style="height: 100%; width: 300px; border-left-color: Black;">
+                                    <asp:TreeView ID="tvTreeView" runat="server" Style="font-family: Verdana; font-size: 12px"
+                                        Width="144px">
+                                    </asp:TreeView>
+                                </div>
+                            </td>--%>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div id="dvButton" style="vertical-align: bottom;">
+                                    <table width="100%" border="0" cellspacing="0" style="vertical-align: bottom; height: 25px;
+                                        background-repeat: no-repeat;">
+                                        <tr style="margin-top: 0px;">
+                                            <td align="center">
+                                                <asp:Button ID="btnAdd" runat="server" Text="Add" CssClass="FormButton" />
+                                                <asp:Button ID="btnEdit" runat="server" Text="Edit" CssClass="FormButton" />
+                                                <asp:Button ID="btnSave" runat="server" Text="Save" CssClass="FormButton" Visible="false" OnClientClick="saveValidation()" />
+                                                <asp:Button ID="btnCancel" runat="server" Text="Cancel" CssClass="FormButton" />
+                                                <asp:Button ID="btnExit" runat="server" Text="Exit" CssClass="FormButton" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

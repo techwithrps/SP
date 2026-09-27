@@ -1,0 +1,275 @@
+﻿Imports System.Data.OleDb
+Imports LogiParkLib.LogiParkObjects
+Imports LogiParkLib.DBConnection
+Imports System.Data
+Imports System.Data.SqlClient
+Imports System.IO
+Partial Class Reports_Fleet_MisTPT
+    Inherits System.Web.UI.Page
+    Dim intCounter As Long = 0
+    Dim intCounter1 As Long = 0
+    Dim intCounter2 As Long = 0
+    Dim Total As Long = 0
+    Dim myGridViews(2) As Object
+    Dim myGridViews1(1) As Object
+    Dim myN As Integer = 0
+    Dim TotalSummary As Double = 0
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        If Not IsPostBack Then
+
+        End If
+
+    End Sub
+    Protected Sub btnDisplay_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnDisplay.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Dim strFromDate As String
+        Dim strToDate As String
+        gvRepoprt.DataSource = Nothing
+        gvRepoprt.DataBind()
+        tblReport.Visible = False
+        ' textFromDate.Text = Now.Date
+        ' textToDate.Text = Now.Date
+        If lstReportName.SelectedValue = "0" Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Select Report Name")
+            Functions.ControlFocus(lstReportName)
+            Return
+        End If
+        If textFromDate.Text = Nothing Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Enter From Date")
+            Functions.ControlFocus(textFromDate)
+            Return
+        End If
+        If textToDate.Text = Nothing Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Enter To Date")
+            Functions.ControlFocus(textToDate)
+            Return
+        End If
+
+        ' lblReportDate.Text = Format(Now, "dd/MM/yyyy hh:mm:ss")
+        strFromDate = Me.textFromDate.Text
+        strToDate = Me.textToDate.Text
+
+        Dim strCurrentDate As String
+        strCurrentDate = Format(Now, "MM/dd/yyyy")
+        strFromDate = Functions.todate_ddmmyyyy(textFromDate.Text, "/")
+        strToDate = Functions.todate_ddmmyyyy(textToDate.Text, "/")
+
+        Dim strpParms As String = ""
+        strpParms &= Session.Item("LoginTerminal")
+        strpParms &= ",'" & textFromDate.Text & "'"
+        strpParms &= ",'" & textToDate.Text & "'"
+        strpParms &= "," & lstReportName.SelectedValue & ""
+        Dim dbr As OleDb.OleDbDataReader
+        Dim db As New DBConnect
+        dbr = db.StoredProcedureReadDB("REPORT_PKG.SP_PRE_TPT_MIS", strpParms)
+        gvRepoprt.DataSource = dbr
+        gvRepoprt.DataBind()
+        If dbr.HasRows Then
+            tblReport.Visible = True
+            gvRepoprt.Visible = True
+
+            Dim dbr1 As OleDb.OleDbDataReader
+            Dim db1 As New DBConnect
+            dbr1 = db.StoredProcedureReadDB("REPORT_PKG.SP_PRE_TPT_MIS_SUM", strpParms)
+            gvSummary.DataSource = dbr1
+            gvSummary.DataBind()
+        Else
+            tblReport.Visible = False
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "No Record Found")
+        End If
+        dbr.Close()
+        db.CloseDB()
+    End Sub
+    'Protected Sub gvtripPendencyList_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs) Handles gvtripPendencyList.RowDataBound
+    '    If e.Row.RowType = DataControlRowType.DataRow Then
+    '        intCounter = intCounter + 1
+    '        e.Row.Cells(0).Text = intCounter
+    '        TextTotal.Text = e.Row.Cells(15).Text + Total
+    '        Total = TextTotal.Text
+    '    End If
+
+    'End Sub
+    Protected Sub btnExcel_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnExcel.Click
+        myGridViews(myN) = gvRepoprt
+        myN += 1
+        myGridViews(myN) = gvSummary
+        CreateWorkBook(myGridViews, "Pre MIS Report", 80)
+    End Sub
+    Public Shared Sub CreateWorkBook(ByVal cList As Object, ByVal wbName As String, ByVal CellWidth As Integer)
+        Dim attachment As String = "attachment; filename=""" & wbName & ".xls"""
+        HttpContext.Current.Response.ClearContent()
+        HttpContext.Current.Response.AddHeader("content-disposition", attachment)
+        HttpContext.Current.Response.ContentType = "application/ms-excel"
+        Dim sw As System.IO.StringWriter = New System.IO.StringWriter()
+        sw.WriteLine("<?xml version=""1.0""?>")
+        sw.WriteLine("<?mso-application progid=""Excel.Sheet""?>")
+        sw.WriteLine("<Workbook xmlns=""urn:schemas-microsoft-com:office:spreadsheet""")
+        sw.WriteLine("xmlns:o=""urn:schemas-microsoft-com:office:office""")
+        sw.WriteLine("xmlns:x=""urn:schemas-microsoft-com:office:excel""")
+        sw.WriteLine("xmlns:ss=""urn:schemas-microsoft-com:office:spreadsheet""")
+        sw.WriteLine("xmlns:html=""http://www.w3.org/TR/REC-html40"">")
+        sw.WriteLine("<DocumentProperties xmlns=""urn:schemas-microsoft-com:office:office"">")
+        sw.WriteLine("<LastAuthor>Try Not Catch</LastAuthor>")
+        sw.WriteLine("<Created>2010-05-15T19:14:19Z</Created>")
+        sw.WriteLine("<Version>11.9999</Version>")
+        sw.WriteLine("</DocumentProperties>")
+        sw.WriteLine("<ExcelWorkbook xmlns=""urn:schemas-microsoft-com:office:excel"">")
+        sw.WriteLine("<WindowHeight>9210</WindowHeight>")
+        sw.WriteLine("<WindowWidth>19035</WindowWidth>")
+        sw.WriteLine("<WindowTopX>0</WindowTopX>")
+        sw.WriteLine("<WindowTopY>90</WindowTopY>")
+        sw.WriteLine("<ProtectStructure>False</ProtectStructure>")
+        sw.WriteLine("<ProtectWindows>False</ProtectWindows>")
+        sw.WriteLine("</ExcelWorkbook>")
+        sw.WriteLine("<Styles>")
+        sw.WriteLine("<Style ss:ID=""Default"" ss:Name=""Normal"">")
+        sw.WriteLine("<Alignment ss:Vertical=""Bottom""/>")
+        sw.WriteLine("<Borders/>")
+        sw.WriteLine("<Font/>")
+        sw.WriteLine("<Interior/>")
+        sw.WriteLine("<NumberFormat/>")
+        sw.WriteLine("<Protection/>")
+        sw.WriteLine("</Style>")
+        sw.WriteLine("<Style ss:ID=""s22"">")
+        sw.WriteLine("<Alignment ss:Horizontal=""Center"" ss:Vertical=""Center"" ss:WrapText=""1""/>")
+        sw.WriteLine("<Borders>")
+        sw.WriteLine("<Border ss:Position=""Bottom"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Left"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Right"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Top"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("</Borders>")
+        sw.WriteLine("<Font ss:Bold=""1""/>")
+        sw.WriteLine("</Style>")
+        sw.WriteLine("<Style ss:ID=""s23"">")
+        sw.WriteLine("<Alignment ss:Vertical=""Bottom"" ss:WrapText=""1""/>")
+        sw.WriteLine("<Borders>")
+        sw.WriteLine("<Border ss:Position=""Bottom"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Left"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Right"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Top"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("</Borders>")
+        sw.WriteLine("</Style>")
+        sw.WriteLine("<Style ss:ID=""s24"">")
+        sw.WriteLine("<Alignment ss:Vertical=""Bottom"" ss:WrapText=""1""/>")
+        sw.WriteLine("<Borders>")
+        sw.WriteLine("<Border ss:Position=""Bottom"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Left"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Right"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Top"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("</Borders>")
+        sw.WriteLine("<Font ss:Color=""#FFFFFF""/>")
+        sw.WriteLine("<Interior ss:Color=""#191970"" ss:Pattern=""Solid""/>") 'set header colour here
+        sw.WriteLine("</Style>")
+        sw.WriteLine("</Styles>")
+        For Each gView As GridView In cList
+            Try
+                If gView.ID.ToString = "gvRepoprt" Then
+                    CreateWorkSheet("Planning Transport MIS", sw, gView, CellWidth)
+
+                ElseIf gView.ID.ToString = "gvSummary" Then
+                    'gView.ID =
+                    CreateWorkSheet("Planning Transport Summary", sw, gView, CellWidth)
+
+                End If
+
+
+
+
+            Catch ex As Exception
+
+            End Try
+        Next
+        sw.WriteLine("</Workbook>")
+        HttpContext.Current.Response.Write(sw.ToString())
+        HttpContext.Current.Response.End()
+    End Sub
+
+      Private Shared Sub CreateWorkSheet(ByVal wsName As String, ByVal sw As System.IO.StringWriter, ByVal gv As GridView, ByVal cellwidth As Integer)
+        '  If IsNothing(gv.HeaderRow) = False Then
+        If wsName = "gvRepoprt" Then
+            wsName = "Pre MIS Transport Report"
+
+        End If
+
+        sw.WriteLine("<Worksheet ss:Name=""" & wsName & """>")
+        Dim cCount As Integer = gv.HeaderRow.Cells.Count
+        Dim rCount As Long = gv.Rows.Count + 1
+        sw.WriteLine("<Table ss:ExpandedColumnCount=""" & cCount & """ ss:ExpandedRowCount=""" & rCount & """ x:FullColumns=""1""")
+        sw.WriteLine("x:FullRows=""1"">")
+        For i As Integer = (cCount - cCount) To (cCount - 1)
+            sw.WriteLine("<Column ss:AutoFitWidth=""1"" ss:Width=""" & cellwidth & """/>")
+        Next
+        GridRowIterate(gv, sw)
+
+        sw.WriteLine("</Table>")
+        sw.WriteLine("<WorksheetOptions xmlns=""urn:schemas-microsoft-com:office:excel"">")
+
+        sw.WriteLine("<Selected/>")
+        sw.WriteLine("<DoNotDisplayGridlines/>")
+
+        sw.WriteLine("<ProtectObjects>False</ProtectObjects>")
+        sw.WriteLine("<ProtectScenarios>False</ProtectScenarios>")
+
+        sw.WriteLine("</WorksheetOptions>")
+        sw.WriteLine("</Worksheet>")
+        '   End If
+    End Sub
+    Private Shared Sub GridRowIterate(ByVal gv As GridView, ByVal sw As System.IO.StringWriter)
+        sw.WriteLine("<Row>")
+
+        For Each tc As TableCell In gv.HeaderRow.Cells
+            Dim tcText As String = tc.Text
+
+            Dim tcWidth As String = gv.Width.Value
+            Dim dType As String = "String"
+
+            If IsNumeric(tcText) = True Then
+
+                dType = "Number"
+
+            End If
+            sw.WriteLine("<Cell ss:StyleID=""s24""><Data ss:Type=""String"">" & tcText & "</Data></Cell>")
+
+        Next
+        sw.WriteLine("</Row>")
+
+        For Each gr As GridViewRow In gv.Rows
+            sw.WriteLine("<Row>")
+
+            For Each gc As TableCell In gr.Cells
+                Dim gcText As String = gc.Text
+                Dim dType As String = "String"
+
+                If IsNumeric(gcText) = True Then
+
+                    dType = "Number"
+                    gcText = CDbl(gcText)
+
+                End If
+                sw.WriteLine("<Cell ss:StyleID=""s23""><Data ss:Type=""" & dType & """>" & gcText & "</Data></Cell>")
+
+            Next
+            sw.WriteLine("</Row>")
+        Next
+
+    End Sub
+
+
+    Protected Sub btnExit_Click(sender As Object, e As EventArgs) Handles btnExit.Click
+        Response.Redirect("~/Home.aspx")
+    End Sub
+
+   
+End Class

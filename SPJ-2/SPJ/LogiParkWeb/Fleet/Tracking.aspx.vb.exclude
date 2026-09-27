@@ -1,0 +1,307 @@
+﻿Imports LogiParkLib.LogiParkObjects
+Imports System.Xml
+Imports System.Data
+Imports System.Data.OleDb
+Imports LogiParkLib.DBConnection
+
+Partial Class Activity
+    Inherits System.Web.UI.Page
+
+    Dim Rows As Integer = 4
+    Dim glIsoCode As New ArrayList
+    Dim glActivityMaster As New ArrayList
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        prepareDataRepControlsList()
+        If Not IsPostBack Then
+            Dim p As String = Request.AppRelativeCurrentExecutionFilePath
+            Permission(p)
+            gvactivity.DataSource = Nothing
+            gvactivity.DataBind()
+            gvContDtls.DataSource = Nothing
+            gvContDtls.DataBind()
+            fillRepeator(New ArrayList)
+            ButtonControlSetup(True)
+            manageUserControls(True)
+            textBookingNo.Enabled = True
+            btnAddBookinNO.Visible = True
+        End If
+    End Sub
+
+    Sub Permission(ByVal P As String)
+        Dim xmlFile As XmlReader
+        xmlFile = XmlReader.Create(Server.MapPath("~/MenuXml.xml"), New XmlReaderSettings())
+        Dim ds2 As New DataSet
+        ds2.ReadXml(xmlFile)
+        Dim dv As New DataView
+        dv = New DataView(ds2.Tables(0), "URL = '" & P & "'", "", DataViewRowState.CurrentRows)
+        dv = New DataView(dv.ToTable, "JOB_ID = '" & Session.Item("JobId") & "'", "", DataViewRowState.CurrentRows)
+        For Each row As DataRow In dv.ToTable.Rows
+            Session.Item("Add") = row(7).ToString
+            Session.Item("Edit") = row(8).ToString
+            Session.Item("Delete") = row(9).ToString
+            Session.Item("Search") = row(10).ToString
+            Session.Item("Title") = row(4).ToString
+        Next
+    End Sub
+
+    Sub ButtonControlSetup(ByVal pVisible As Boolean)
+        btnAdd.Visible = pVisible
+        btnEdit.Visible = pVisible
+        btnExit.Visible = pVisible
+        If hdnBookingId.Value.Trim <> Nothing Then
+            btnEdit.Visible = True
+        Else
+            btnEdit.Visible = False
+        End If
+
+        btnSave.Visible = Not pVisible
+        btnCancel.Visible = Not pVisible
+        If Session.Item("Add") <> "Y" Then
+            btnAdd.Visible = False
+        End If
+        If Session.Item("Edit") <> "Y" Then
+            btnEdit.Visible = False
+        End If
+        If Session.Item("Search") <> "Y" Then
+            'btnSearch.Visible = False
+        End If
+
+    End Sub
+    Sub Add()
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Functions.clearControls(Me.dvControl.Controls)
+        manageUserControls(True)
+        gvactivity.DataSource = Nothing
+        gvactivity.DataBind()
+        gvContDtls.DataSource = Nothing
+        gvContDtls.DataBind()
+        ButtonControlSetup(True)
+        btnAddBookinNO.Visible = True
+        textBookingNo.Enabled = True
+        Functions.ControlFocus(textBookingNo)
+    End Sub
+
+    Protected Sub btnAdd_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnAdd.Click
+        Add()
+    End Sub
+    Protected Sub btnCancel_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnCancel.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Functions.clearControls(Me.dvControl.Controls)
+
+        manageUserControls(True)
+        ButtonControlSetup(True)
+        Functions.ControlFocus(btnAdd)
+    End Sub
+
+    Protected Sub prepareDataRepControlsList()
+        Dim p As New ActivityMaster
+        p.TerminalId = Session.Item("LoginTerminal")
+        glActivityMaster = ActivityMaster.ReturnActivityMasterList(p)
+
+    End Sub
+    Protected Sub prepareActivity(ByVal sender As Object, ByVal e As System.EventArgs)
+        Try
+            Dim lst As DropDownList = sender
+            lst.Items.Clear()
+            lst.Items.Add(New ListItem("---Select---", 0))
+            For Each ic As ActivityMaster In glActivityMaster
+                lst.Items.Add(New ListItem(ic.ActivityName, ic.ActivityId))
+            Next
+        Catch ex As Exception
+        End Try
+    End Sub
+    Sub manageUserControls(ByVal pEnable As Boolean)
+        Functions.ControlSetup(pEnable, Me.dvControl.Controls)
+    End Sub
+    Private Sub fillRepeator(ByVal arr As ArrayList)
+        If arr.Count < Rows Then
+            For i As Integer = 0 To Rows - arr.Count - 1
+                Dim p As New ActivityMaster
+                arr.Add(p)
+            Next
+        End If
+        rcActivityDtls.DataSource = arr
+        rcActivityDtls.DataBind()
+    End Sub
+    Protected Sub btnAddBookingNO_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnAddBookinNO.Click
+
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        If textBookingNo.Text = Nothing Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Enter Booking No")
+            Functions.ControlFocus(textBookingNo)
+            Exit Sub
+        End If
+        Dim pExpDoc As New ExpDoc
+        pExpDoc.TerminalId = Session.Item("LoginTerminal")
+        pExpDoc.BookingNo = textBookingNo.Text
+        ExpDoc.ReturnExpDoc(pExpDoc)
+        If pExpDoc.Errormsg <> Nothing Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, pExpDoc.Errormsg)
+            Functions.ControlFocus(textBookingNo)
+            Return
+        End If
+        If pExpDoc.BookingId <= 0 Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Invalid Booking No.")
+            Functions.ControlFocus(textBookingNo)
+            Return
+        End If
+        textBookingDate.Text = pExpDoc.BookingDate
+        Dim strpParms As String = ""
+        strpParms &= Session.Item("LoginTerminal")
+        strpParms &= "," & pExpDoc.BookingId
+        strpParms &= "," & Session.Item("CompanyId")
+        Dim dbr As OleDb.OleDbDataReader
+        Dim db As New DBConnect
+        dbr = db.StoredProcedureReadDB("SELECT_PKG.SP_EXP_CONT_DTLS", strpParms)
+        gvContDtls.DataSource = dbr
+        gvContDtls.DataBind()
+        lblChk.Enabled = True
+        manageUserControls(False)
+        btnAddBookinNO.Visible = False
+        textBookingDate.Enabled = False
+        btnSearch.Visible = False
+        Functions.ControlFocus(btnAdd)
+    End Sub
+    Protected Sub CheckBox1_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs)
+        Dim chk As CheckBox = DirectCast(sender, CheckBox)
+        If chk.Checked = True Then
+            Dim row As GridViewRow = TryCast(TryCast(sender, CheckBox).NamingContainer, GridViewRow)
+            gvContDtls.SelectedIndex = row.RowIndex
+            Dim ContId = TryCast(gvContDtls.Rows(gvContDtls.SelectedIndex).FindControl("hdnContId"), HtmlInputHidden)
+            Dim Strparams As String = ""
+            Strparams &= Session.Item("LoginTerminal")
+            Strparams &= "," & ContId.Value
+            Strparams &= "," & Session.Item("CompanyId")
+            Dim dbr As OleDb.OleDbDataReader
+
+            Dim dba As New DBConnect
+            dbr = dba.StoredProcedureReadDB("SELECT_PKG.SP_TRACKING_ACTIVITY", Strparams)
+            gvactivity.DataSource = dbr
+            gvactivity.DataBind()
+            If dbr.HasRows Then
+                gvactivity.Visible = True
+            Else
+                gvactivity.Visible = False
+            End If
+            dbr.Close()
+            dba.CloseDB()
+
+            btnSave.Visible = True
+        Else
+            gvactivity.Visible = False
+        End If
+
+    End Sub
+    Function ValidationCheck() As Boolean
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Dim rtnBool As Boolean = True
+        Dim lngContCount As Integer = 0
+        If rcActivityDtls.Items.Count > 0 Then
+            Dim rep1, rep2 As RepeaterItem
+            Dim textDateTime, textRemarks As TextBox
+            Dim lstActivity As DropDownList
+            For Each rep1 In rcActivityDtls.Items
+                textDateTime = rep1.FindControl("textDate")
+                lstActivity = rep1.FindControl("lstActivity")
+                textRemarks = rep1.FindControl("textRemark")
+                If lstActivity.SelectedValue <> Nothing AndAlso lstActivity.SelectedValue <> "0" Then
+                    If textDateTime.Text = "" Then
+                        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Fill Date .")
+                        rtnBool = False
+                        Functions.ControlFocus(textDateTime)
+                        Return rtnBool
+                        Exit Function
+                    End If
+                    If textRemarks.Text = "" Then
+                        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Fill Remarks")
+                        rtnBool = False
+                        Functions.ControlFocus(textRemarks)
+                        Return rtnBool
+                        Exit Function
+                    End If
+                    Dim lstActivity2 As DropDownList
+                    lngContCount += 1
+                    For Each rep2 In rcActivityDtls.Items
+                        lstActivity2 = rep2.FindControl("lstActivity")
+                        If lstActivity2.SelectedValue <> "" AndAlso lstActivity2.SelectedValue <> "0" Then
+                            If rep1.ItemIndex <> rep2.ItemIndex Then
+                                If lstActivity.SelectedItem.Text = lstActivity2.SelectedItem.Text Then
+                                    Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblrActivity.Text & " is duplicate.")
+                                    rtnBool = False
+                                    Functions.ControlFocus(lstActivity2)
+                                    Return rtnBool
+                                    Exit Function
+                                End If
+                            End If
+                        End If
+                    Next
+                End If
+            Next
+        End If
+        If lngContCount <= 0 Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Fill activity details")
+            rtnBool = False
+            Return rtnBool
+            Exit Function
+        End If
+        Return rtnBool
+    End Function
+
+    Protected Sub btnSave_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnSave.Click
+
+        If ValidationCheck() = False Then
+            Return
+        End If
+
+        Dim pExtTracking As ExtTracking = ReturnObject()
+
+        If pExtTracking.ActivityDetailsList.Count <= 0 Then
+            lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, pExtTracking.Errormsg)
+            Functions.ControlFocus(textBookingNo)
+            Return
+        End If
+        ExtTracking.InsertTracking(pExtTracking)
+        If pExtTracking.Errormsg <> Nothing Then
+            lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, pExtTracking.Errormsg)
+            Functions.ControlFocus(textBookingNo)
+            Return
+        End If
+        lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Message, lblErrorMessage, "Saved Successfully.")
+        fillRepeator(pExtTracking.ActivityDetailsList)
+
+        manageUserControls(True)
+        ButtonControlSetup(True)
+        Functions.ControlFocus(btnEdit)
+    End Sub
+    Private Function ReturnObject() As ExtTracking
+        Dim pExtTracking As New ExtTracking
+        pExtTracking.ActivityDetailsList = New ArrayList
+        For Each rep As RepeaterItem In rcActivityDtls.Items
+            If CType(rep.FindControl("lstActivity"), DropDownList).SelectedValue <> "0" Then
+                For Each row As GridViewRow In gvContDtls.Rows
+                    Dim chk As CheckBox = DirectCast(row.FindControl("chkcont"), CheckBox)
+                    Dim contId = DirectCast(row.FindControl("hdnContId"), HtmlInputHidden)
+                    Dim contNo As String = row.Cells(1).Text.ToString
+                    If chk.Checked = True Then
+                        Dim pTracking As New Tracking
+                        pTracking.TerminalId = Session.Item("LoginTerminal")
+                        pTracking.ActivityId = CType(rep.FindControl("lstActivity"), DropDownList).SelectedValue
+                        pTracking.ActivityDate = CType(rep.FindControl("textDate"), TextBox).Text
+                        pTracking.Remarks = CType(rep.FindControl("textRemark"), TextBox).Text
+                        pTracking.ContId = contId.Value
+                        pTracking.ContNo = contNo
+                        pTracking.BookingRefNo = textBookingNo.Text
+                        pTracking.CreatedBy = Session.Item("LoginUser")
+                        pExtTracking.ActivityDetailsList.Add(pTracking)
+
+                    End If
+                Next
+            End If
+
+
+        Next
+
+        Return pExtTracking
+    End Function
+End Class

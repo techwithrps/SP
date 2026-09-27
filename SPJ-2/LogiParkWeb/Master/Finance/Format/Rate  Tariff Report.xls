@@ -1,0 +1,709 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:x="urn:schemas-microsoft-com:office:excel"
+xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+xmlns:html="http://www.w3.org/TR/REC-html40">
+<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+<LastAuthor>Try Not Catch</LastAuthor>
+<Created>2010-05-15T19:14:19Z</Created>
+<Version>11.9999</Version>
+</DocumentProperties>
+<ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+<WindowHeight>9210</WindowHeight>
+<WindowWidth>19035</WindowWidth>
+<WindowTopX>0</WindowTopX>
+<WindowTopY>90</WindowTopY>
+<ProtectStructure>False</ProtectStructure>
+<ProtectWindows>False</ProtectWindows>
+</ExcelWorkbook>
+<Styles>
+<Style ss:ID="Default" ss:Name="Normal">
+<Alignment ss:Vertical="Bottom"/>
+<Borders/>
+<Font/>
+<Interior/>
+<NumberFormat/>
+<Protection/>
+</Style>
+<Style ss:ID="s22">
+<Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
+<Borders>
+<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+</Borders>
+<Font ss:Bold="1"/>
+</Style>
+<Style ss:ID="s23">
+<Alignment ss:Vertical="Bottom" ss:WrapText="1"/>
+<Borders>
+<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+</Borders>
+</Style>
+<Style ss:ID="s24">
+<Alignment ss:Vertical="Bottom" ss:WrapText="1"/>
+<Borders>
+<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"
+ss:Color="#000000"/>
+</Borders>
+<Font ss:Color="#FFFFFF"/>
+<Interior ss:Color="#191970" ss:Pattern="Solid"/>
+</Style>
+</Styles>
+<Worksheet ss:Name="Rate  Tariff Report">
+<Table ss:ExpandedColumnCount="31" ss:ExpandedRowCount="18" x:FullColumns="1"
+x:FullRows="1">
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Row>
+<Cell ss:StyleID="s24"><Data ss:Type="String">Sr.</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">Rate Id</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">TerminalName</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">FromDate</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">ToDate</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">ServiceName</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">CustomerType</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">CustomerName</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">Remarks</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">CustomerTypeTable</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">CustomerNameTable</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">LineName</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">ContSize.</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">ContType.</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">ContStatus.</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">DocType</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">FromLocation</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">ToLocation</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">HandoverLocation.</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">POL</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">POD</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">Commodity</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">FromRange</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">ToRange</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">RateMethod</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">BaseRate</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">Currency</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">Enable/Disable</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">DiscountType</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">Discount</Data></Cell>
+<Cell ss:StyleID="s24"><Data ss:Type="String">Rate</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">MAERSK GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SHARJAH</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1550</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1550</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">2</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">MAERSK GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALEXANDRIA</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">3000</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">3000</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">3</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">MAERSK GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">JEBEL ALI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1300</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1300</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">4</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">MAERSK GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">UMM QASR NORTH</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">2525</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">2525</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">5</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">MAERSK GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ABIDJAN</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">4800</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">4800</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">6</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">MAERSK GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">KUANTAN</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1700</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1700</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">7</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">GOODRICH GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TASHKENT</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">10900</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">10900</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">8</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">GOODRICH GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">JEDDAH</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">2300</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">2300</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">9</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">GOODRICH GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">JEBEL ALI (ITT)</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">2850</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">2850</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">10</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">WAN HAI GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">AQABA</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">3250</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">3250</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TS LINES GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">PORT KLANG WEST</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">700</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">700</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">12</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TS LINES GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">PENANG</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">950</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">950</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">13</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">CMA CGM GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">PORT KLANG WEST</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">900</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">900</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">14</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">CMA CGM GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">DAKAR</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">4900</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">4900</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">15</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">CMA CGM GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">KUANTAN</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1800</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1800</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">16</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">EVERGREEN GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">PORT KLANG WEST</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">800</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">800</Data></Cell>
+</Row>
+<Row>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">17</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">11549</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">TRANSWORLD-DADRI</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">01/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">15/01/2025</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">Ocean Freight Charges</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RUSTAM FOODS PVT.LTD.</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">rate ok</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">C</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">EVERGREEN GROUP</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">40</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">RF</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">L</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">E</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">PASIR GUDANG</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ALL</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">99999</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">SOB</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1400</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">USD</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">ENABLE</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="String">None</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">0</Data></Cell>
+<Cell ss:StyleID="s23"><Data ss:Type="Number">1400</Data></Cell>
+</Row>
+</Table>
+<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+<Selected/>
+<DoNotDisplayGridlines/>
+<ProtectObjects>False</ProtectObjects>
+<ProtectScenarios>False</ProtectScenarios>
+</WorksheetOptions>
+</Worksheet>
+</Workbook>

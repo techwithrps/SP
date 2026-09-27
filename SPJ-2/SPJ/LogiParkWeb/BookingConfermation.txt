@@ -1,0 +1,21 @@
+                           Kanpur Logistics Park
+           Plot No. 5, Bhatta Area, Raniganj, Panki, Kanpur (U.P)
+                     Export Booking Confirmation
+
+Booking No  :EXP02732  Booking Date:15/10/2013 19:25          Shiping Line:APL
+CHA.        :SYED AHMED       FCL/LCL     :FCL                  Exporter/Shipper :EVEREST TANNERY PVT LTD
+ POL        :GTIL   POD     :LOS ANGELES
+        Tpt Mode   :ROAD
+ Forwarder  :Syed Ahmad & Co.
+
+SR No  Cont No     Size  Type  ISO   Yard Location 
+1     APZU3672456   20   DV   SCSC   0 
+
+
+
+we hereby confirm that above said unit have been booked with us for Nhava Sheva / Mundra port. 
+
+
+                                   --------------------
+                                           Signature
+-----------------------------------------------------------------------------------

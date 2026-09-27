@@ -1,0 +1,24 @@
+Credit Note Request - 27/08/2026 11:36:16
+Mail Sent Successfully.
+Credit Note Request - 27/08/2026 12:02:34
+Mail Sent Successfully.
+Login attempted from Unknown Device - 27/08/2026 12:21:52
+A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond 103.205.65.60:587
+Login attempted from Unknown Device - 27/08/2026 12:21:53
+A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond 103.205.65.60:587
+Login attempted from Unknown Device - 27/08/2026 12:23:40
+A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond 103.205.65.60:587
+Rate Master Updated - 27/08/2026 16:16:24
+Mail Sent Successfully.
+Rate Master Updated - 27/08/2026 18:11:22
+Mail Sent Successfully.
+Rate Master Updated - 27/08/2026 18:12:52
+Mail Sent Successfully.
+Rate Master Updated - 27/08/2026 18:14:53
+Mail Sent Successfully.
+Rate Master Updated - 27/08/2026 18:17:29
+Mail Sent Successfully.
+Cancel Invoice request - 27/08/2026 18:39:40
+Mail Sent Successfully.
+Rate Master Updated - 27/08/2026 19:27:05
+Mail Sent Successfully.

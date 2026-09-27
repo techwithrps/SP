@@ -1,0 +1,366 @@
+﻿Imports System.Data
+Imports System.Data.OleDb
+Imports LogiParkLib.LogiParkObjects
+Partial Class Commercial_Preview_InvoiceReceiptGST
+    Inherits System.Web.UI.Page
+    Dim rows As Integer = 10
+    Dim lngImpContId As Integer = 0
+    Dim dblAmount As Double
+    Dim dblTaxAmount As Double
+    Dim dblTotalAmount As Double
+    Dim dblWeaverAmt As Double
+    Dim lngReceiptNo As Long
+    Dim dblServiceTax As Double
+    Dim dblEducTax As Double
+    Dim dblHEduTax As Double
+    Dim strType As String
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        lngReceiptNo = Request.QueryString("ReceiptNo")
+		Dim lngTerminal As Long = Session.Item("LoginTerminal")
+        Dim lngCompanyId As Long = 0 'Session.Item("CompanyId")
+        Dim pInvoiceReceipt As New InvoiceReceipt
+        'pInvoiceReceipt.TerminalId = lngTerminal
+        pInvoiceReceipt.ReceiptNo = lngReceiptNo
+        InvoiceReceipt.ReturnInvoiceReceiptByNo(pInvoiceReceipt)
+        textVoucherNo.Text = pInvoiceReceipt.ReceiptRefNo
+        TxtRemarks.Text = pInvoiceReceipt.Remarks
+        textVoucherDate.Text = pInvoiceReceipt.ReceiptDate
+        If lngReceiptNo > 3916 Then
+            lngCompanyId = pInvoiceReceipt.TerminalId
+        Else
+            lngCompanyId = Session.Item("CompanyId")
+        End If
+
+        Dim pCompanyMaster As New CompanyMaster
+        pCompanyMaster.CompanyId = lngCompanyId
+        CompanyMaster.ReturnCompanyMasterbyId(pCompanyMaster)
+        lblCDtls.Text = pCompanyMaster.CompanyName
+        lblpangst.Text = pCompanyMaster.PanNo
+        lblGSTIN.Text = pCompanyMaster.Remarks
+        lblCmAdress.Text = pCompanyMaster.Address
+        Dim pPaymentDetails As New PaymentDetails
+        pPaymentDetails.TerminalId = Session.Item("LoginTerminal")
+        pPaymentDetails.ReceiptNo = lngReceiptNo
+        PaymentDetails.ReturnPaymentDetails(pPaymentDetails)
+        'textInclusiveTaxAmount.Text = pPaymentDetails.Amount
+
+
+
+        Dim pPPaymentDetails As New PaymentDetails
+        pPPaymentDetails.TerminalId = Session.Item("LoginTerminal")
+        pPPaymentDetails.ReceiptNo = lngReceiptNo
+        PaymentDetails.ReturnPaymentDetailsByReceiptNo(pPPaymentDetails)
+        If pPPaymentDetails.ReceiptMode = "C" Then
+            txtPaymentMode.Text = "Cash"
+        ElseIf pPPaymentDetails.ReceiptMode = "H" Then
+            txtPaymentMode.Text = "Cheque"
+        ElseIf pPPaymentDetails.ReceiptMode = "D" Then
+            txtPaymentMode.Text = "DD"
+        ElseIf pPPaymentDetails.ReceiptMode = "R" Then
+            txtPaymentMode.Text = "RTGS"
+        ElseIf pPPaymentDetails.ReceiptMode = "A" Then
+            txtPaymentMode.Text = "Advance"
+        ElseIf pPPaymentDetails.ReceiptMode = "O" Then
+            txtPaymentMode.Text = "On Account"
+        ElseIf pPPaymentDetails.ReceiptMode = "B" Then
+            txtPaymentMode.Text = "Opening Balance"
+        End If
+
+        Dim pBankMaster As New BankMaster
+        pBankMaster.TerminalId = Session.Item("LoginTerminal")
+        pBankMaster.BankId = pPPaymentDetails.ReceiverBankId
+        BankMaster.ReturnBankMaster(pBankMaster)
+        txtReceiverBank.Text = pBankMaster.BankName
+
+        txtChequeNo.Text = pPPaymentDetails.ChequeNo
+        txtInstrumentDate.Text = pPPaymentDetails.ChequeDate
+        txtReceivedAmount.Text = pPPaymentDetails.Amount
+        Dim pService As New ServiceMaster
+        pService.TerminalId = Session.Item("LoginTerminal")
+        pService.ServiceId = pPaymentDetails.ServiceId
+        ServiceMaster.ReturnServiceMasterByServiceId(pService)
+        ' textService.Text = pService.ServiceName
+        '''''''''''''''Created by Rahman'''''''''''''''''''
+        Dim pCustomerWithType As New ExtCustomerMaster
+        pCustomerWithType.TerminalId = Session.Item("LoginTerminal")
+        pCustomerWithType.CustomerId = pInvoiceReceipt.CustomerId
+
+        ExtCustomerMaster.ReturnCustomerMasterDetailsById(pCustomerWithType)
+        textCustomerName.Text = pCustomerWithType.CustomerName
+        'textConsigneeName.Text = pCustomerWithType.CustomerName
+        textAddress.Text = pCustomerWithType.Address
+        TextSScode.Text = pCustomerWithType.StateCode
+        'TextCStateCode.Text = pCustomerWithType.State
+        TextSGstInNo.Text = pCustomerWithType.GSTN
+        'textConsigneeAddress.Text = pCustomerWithType.Address
+        'textConsigneeStateCode.Text = pCustomerWithType.StateCode
+        'TextCStateCode.Text = pCustomerWithType.State
+        'textConsigneeGSTN.Text = pCustomerWithType.GSTN
+        Dim pStateMaster As New StateCodeMaster
+        pStateMaster.TerminalId = Session.Item("LoginTerminal")
+        pStateMaster.StateCode = TextSScode.Text
+        StateCodeMaster.ReturnStateByCode(pStateMaster)
+        TextSState.Text = pStateMaster.StateName
+        'textConsigneeState.Text = pStateMaster.StateName
+        'Dim pCustomerTypeDetails As New ExtCustomerTypeDetails
+        'pCustomerTypeDetails.CustomerId = pInvoiceReceipt.CustomerId
+        'pCustomerTypeDetails.CustomerTypeCode = "I"
+        'ExtCustomerTypeDetails.ReturnCustomerTypeDetailsByIdType(pCustomerTypeDetails)
+        '---------------------------------Consignee------------------------------
+
+        Dim pStateMaster1 As New StateCodeMaster
+        pStateMaster1.TerminalId = Session.Item("LoginTerminal")
+        pStateMaster1.StateCode = TextSScode.Text
+        StateCodeMaster.ReturnStateByCode(pStateMaster1)
+        'TextCState.Text = pStateMaster.StateName
+
+        'Dim pCustomerTypeDetails1 As New ExtCustomerTypeDetails
+        'pCustomerTypeDetails1.CustomerId = pInvoiceReceipt.CustomerId
+        'pCustomerTypeDetails1.CustomerTypeCode = "I"
+        'ExtCustomerTypeDetails.ReturnCustomerTypeDetailsByIdType(pCustomerTypeDetails1)
+        'TextCGsst.Text = pCustomerTypeDetails.GSTN
+
+
+
+
+        strType = "Print"
+
+        If pInvoiceReceipt.ReceiptRefNo.Length = 0 Then
+            'ImpInvoice.ReturnCancelInvoice(pImpInvoice)
+            Me.myBody.Attributes.Add("style", "background:url(WaterMark.jpg);")
+        End If
+        textVoucherNo.Text = pInvoiceReceipt.ReceiptRefNo
+        textVoucherDate.Text = pInvoiceReceipt.ReceiptDate
+
+        Dim strConnectionString, cmd1 As String
+        Dim con As OleDbConnection
+        Dim ada As New OleDbDataAdapter
+        strConnectionString = System.Configuration.ConfigurationManager.AppSettings("DBConnectionString")
+        con = New OleDbConnection(strConnectionString)
+        con.Open()
+        Dim dt As New DataTable()
+
+        'cmd1 = "SELECT DISTINCT INVOICE_REF_NO,SUM(TA)TA,SUM(TDS)TDS,SUM(BASE_AMOUNT)BASE_AMOUNT,SUM(BASIC_AMOUNT)BASIC_AMOUNT,SUM(CGST_RATE) CGST_RATE,SUM(SGST_RATE)SGST_RATE,SUM(IGST_RATE)IGST_RATE," &
+        '       "SUM(CGST_AMOUNT)CGST_AMOUNT,SUM(SGST_AMOUNT)SGST_AMOUNT,SUM(IGST_AMOUNT)IGST_AMOUNT FROM(SELECT II.INVOICE_REF_NO ,TA,SUM(TDS) TDS,((TA/(100+CGST_RATE+SGST_RATE+IGST_RATE))*100)+IGST_AMOUNT+SGST_AMOUNT+CGST_AMOUNT-SUM(TDS) BASE_AMOUNT, " &
+        '       " (TA/(100+CGST_RATE+SGST_RATE+IGST_RATE)*100)-SUM(TDS) BASIC_AMOUNT, " &
+        '       "CGST_RATE,CGST_AMOUNT, SGST_RATE, SGST_AMOUNT, IGST_RATE, IGST_AMOUNT FROM  " &
+        '       "(SELECT INVOICE_NO, SUM(CR_AMOUNT)TA,CASE WHEN CGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/109*9/100) Else 0 End CGST_AMOUNT, " &
+        '       "CASE WHEN SGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/109*9/100) ELSE 0 END SGST_AMOUNT, " &
+        '       "CASE WHEN SGST_RATE >0 THEN 9 ELSE 0 END SGST_RATE, " &
+        '       "CASE WHEN CGST_RATE >0 THEN 9 ELSE 0 END CGST_RATE, " &
+        '       "CASE WHEN IGST_RATE >0 THEN 18 ELSE 0 END IGST_RATE, " &
+        '       "CASE WHEN IGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/118*18/100) ELSE 0 END IGST_AMOUNT,CASE WHEN REMARKS LIKE '%TDS ADJUSTMENT FOR%' THEN CR_AMOUNT ELSE 0 END TDS FROM  " &
+        '       "(SELECT FD.INVOICE_NO,0 CGST_RATE,CR_AMOUNT,0 CGST_AMOUNT,0 SGST_RATE,0 SGST_AMOUNT,0 IGST_RATE,0 IGST_AMOUNT,FD.REMARKS  " &
+        '       "FROM PAYMENT_DETAILS PD,FINANCE_DETAILS FD WHERE  PD.RECEIPT_NO=" & lngReceiptNo & " AND FD.RECEIPT_NO=PD.RECEIPT_NO)P " &
+        '       "Group BY INVOICE_NO,IGST_AMOUNT,CGST_AMOUNT,SGST_AMOUNT,CGST_RATE,SGST_RATE,IGST_RATE,CR_AMOUNT,REMARKS)PI,IMP_INVOICE II WHERE PI.INVOICE_NO=II.INVOICE_NO GROUP BY INVOICE_REF_NO,TA,CGST_RATE,IGST_RATE,SGST_RATE,SGST_AMOUNT,IGST_AMOUNT,CGST_AMOUNT)GROUP BY INVOICE_REF_NO "
+        ' UPPER COMMENT BY LALIT ON 23/07/2018
+        'cmd1 = "SELECT DISTINCT INVOICE_REF_NO, INVOICE_DATE, SUM(TA)TA,SUM(TDS)TDS,SUM(BASE_AMOUNT)BASE_AMOUNT,SUM(BASIC_AMOUNT)BASIC_AMOUNT,SUM(CGST_RATE) CGST_RATE,SUM(SGST_RATE)SGST_RATE,SUM(IGST_RATE)IGST_RATE," &
+        '      " SUM(CGST_AMOUNT)CGST_AMOUNT,SUM(SGST_AMOUNT)SGST_AMOUNT,SUM(IGST_AMOUNT)IGST_AMOUNT FROM" &
+        '       "(SELECT II.INVOICE_REF_NO ,  TO_CHAR(II.INVOICE_DATE, 'DD/MM/YYYY') INVOICE_DATE,TA,SUM(TDS) TDS,((TA/(100+CGST_RATE+SGST_RATE+IGST_RATE))*100)+IGST_AMOUNT+SGST_AMOUNT+CGST_AMOUNT-SUM(TDS) BASE_AMOUNT, " &
+        '       " (TA/(100+CGST_RATE+SGST_RATE+IGST_RATE)*100)-SUM(TDS) BASIC_AMOUNT, " &
+        '       "CGST_RATE,CGST_AMOUNT, SGST_RATE, SGST_AMOUNT, IGST_RATE, IGST_AMOUNT FROM  " &
+        '       "(SELECT INVOICE_NO, SUM(CR_AMOUNT)TA,CASE WHEN CGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/109*9/100) Else 0 End CGST_AMOUNT," &
+        '     " CASE WHEN SGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/109*9/100) ELSE 0 END SGST_AMOUNT, " &
+        '      " CASE WHEN SGST_RATE >0 THEN 9 ELSE 0 END SGST_RATE, " &
+        '      " CASE WHEN CGST_RATE >0 THEN 9 ELSE 0 END CGST_RATE, " &
+        '      " CASE WHEN IGST_RATE >0 THEN 18 ELSE 0 END IGST_RATE, " &
+        '      " CASE WHEN IGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/118*18/100) ELSE 0 END IGST_AMOUNT,CASE WHEN REMARKS LIKE '%TDS ADJUSTMENT FOR%' THEN CR_AMOUNT ELSE 0 END TDS FROM " &
+        '      " (SELECT FD.INVOICE_NO,0 CGST_RATE,CR_AMOUNT,0 CGST_AMOUNT,0 SGST_RATE,0 SGST_AMOUNT,0 IGST_RATE,0 IGST_AMOUNT,FD.REMARKS  " &
+        '      " FROM PAYMENT_DETAILS PD,FINANCE_DETAILS FD WHERE  PD.RECEIPT_NO=" & lngReceiptNo & " AND FD.RECEIPT_NO=PD.RECEIPT_NO)P " &
+        '      " Group BY INVOICE_NO,IGST_AMOUNT,CGST_AMOUNT,SGST_AMOUNT,CGST_RATE,SGST_RATE,IGST_RATE,CR_AMOUNT,REMARKS)PI,IMP_INVOICE II WHERE PI.INVOICE_NO=II.INVOICE_NO GROUP BY INVOICE_REF_NO, INVOICE_DATE, TA,CGST_RATE,IGST_RATE,SGST_RATE,SGST_AMOUNT,IGST_AMOUNT,CGST_AMOUNT)" &
+        '      " GROUP BY INVOICE_REF_NO, INVOICE_DATE"
+
+        'cmd1 = "SELECT DISTINCT INVOICE_REF_NO, INVOICE_DATE, SUM(TA)TA,SUM(TDS)TDS,ROUND(SUM(BASE_AMOUNT),2) BASE_AMOUNT,ROUND(SUM(BASIC_AMOUNT),2) BASIC_AMOUNT,SUM(CGST_RATE) CGST_RATE,SUM(SGST_RATE)SGST_RATE,SUM(IGST_RATE)IGST_RATE, " &
+        '        "SUM(CGST_AMOUNT)CGST_AMOUNT,SUM(SGST_AMOUNT)SGST_AMOUNT,SUM(IGST_AMOUNT)IGST_AMOUNT, (SELECT ROUND(SUM(BILL_AMOUNT),0) FROM IMP_INVOICE_ITEMS WHERE INVOICE_NO=T.INVOICE_NO) INVOICE_AMOUNT FROM  " &
+        '        "(SELECT II.INVOICE_REF_NO ,  TO_CHAR(II.INVOICE_DATE, 'DD/MM/YYYY') INVOICE_DATE, II.INVOICE_NO,   TA,SUM(TDS) TDS,((TA/(100+CGST_RATE+SGST_RATE+IGST_RATE))*100)+IGST_AMOUNT+SGST_AMOUNT+CGST_AMOUNT-SUM(TDS) BASE_AMOUNT," &
+        '         "(TA/(100+CGST_RATE+SGST_RATE+IGST_RATE)*100)-SUM(TDS) BASIC_AMOUNT,   " &
+        '        "CGST_RATE,CGST_AMOUNT, SGST_RATE, SGST_AMOUNT, IGST_RATE, IGST_AMOUNT FROM " &
+        '        "(SELECT INVOICE_NO, SUM(CR_AMOUNT)TA,CASE WHEN CGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/109*9/100) Else 0 End CGST_AMOUNT,  " &
+        '       "CASE WHEN SGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/109*9/100) ELSE 0 END SGST_AMOUNT,   " &
+        '       " CASE WHEN SGST_RATE >0 THEN 9 ELSE 0 END SGST_RATE,   " &
+        '        "CASE WHEN CGST_RATE >0 THEN 9 ELSE 0 END CGST_RATE,   " &
+        '        "CASE WHEN IGST_RATE >0 THEN 18 ELSE 0 END IGST_RATE,   " &
+        '        "CASE WHEN IGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/118*18/100) ELSE 0 END IGST_AMOUNT,CASE WHEN REMARKS LIKE '%TDS ADJUSTMENT FOR%' THEN CR_AMOUNT ELSE 0 END TDS FROM   " &
+        '        "(SELECT FD.INVOICE_NO,0 CGST_RATE,CR_AMOUNT,0 CGST_AMOUNT,0 SGST_RATE,0 SGST_AMOUNT,0 IGST_RATE,0 IGST_AMOUNT,FD.REMARKS    " &
+        '        "FROM PAYMENT_DETAILS PD,FINANCE_DETAILS FD WHERE  PD.RECEIPT_NO=  " & lngReceiptNo & "    AND FD.RECEIPT_NO=PD.RECEIPT_NO)P   " &
+        '        "Group BY INVOICE_NO,IGST_AMOUNT,CGST_AMOUNT,SGST_AMOUNT,CGST_RATE,SGST_RATE,IGST_RATE,CR_AMOUNT,REMARKS)PI,(SELECT DISTINCT INVOICE_NO, INVOICE_DATE, INVOICE_REF_NO, SERVICE_TYPE, CUSTOMER_TYPE, BILL_TO, PAYMENT_MODE, DOC_TYPE, CANCLE_FLAGE, DOC_TYPE, PAYMENT_STATUS FROM IMP_INVOICE WHERE CANCLE_FLAGE IS NULL ) II WHERE PI.INVOICE_NO=II.INVOICE_NO GROUP BY INVOICE_REF_NO, INVOICE_DATE, II.INVOICE_NO, TA,CGST_RATE,IGST_RATE,SGST_RATE,SGST_AMOUNT,IGST_AMOUNT,CGST_AMOUNT)T  " &
+        '        "GROUP BY INVOICE_REF_NO, INVOICE_DATE, INVOICE_NO" &
+        '        " UNION " &
+        '        " Select DISTINCT 'ON ACCOUNT' INVOICE_REF_NO,TO_CHAR(II.CREATED_ON,'DD/MM/YYYY')CREATED_ON,ROUND(FD.CR_AMOUNT,2) TA,0 TDS,ROUND(FD.CR_AMOUNT,2) BASE_AMOUNT,ROUND(FD.CR_AMOUNT,2) BASIC_AMOUNT, " &
+        '        " 0 CGST_RATE,0 SGST_RATE,0 IGST_RATE, 0 CGST_AMOUNT,0 SGST_AMOUNT,0 IGST_AMOUNT,ROUND(FD.CR_AMOUNT,2) INVOICE_AMOUNT " &
+        '        " FROM FINANCE_DETAILS FD,INVOICE_RECEIPT II WHERE II.RECEIPT_NO=FD.RECEIPT_NO AND INVOICE_NO=0 AND FD.RECEIPT_NO=" & lngReceiptNo & " " &
+        '        " UNION " &
+        '        "Select DISTINCT 'OPENING BALANCE' INVOICE_REF_NO,'01/04/2018' INVOICE_DATE, SUM(TA)TA,SUM(TDS)TDS,ROUND(SUM(BASE_AMOUNT),2) BASE_AMOUNT,ROUND(SUM(BASIC_AMOUNT),2) BASIC_AMOUNT,SUM(CGST_RATE) CGST_RATE,SUM(SGST_RATE)SGST_RATE,SUM(IGST_RATE)IGST_RATE,  " &
+        '        "SUM(CGST_AMOUNT)CGST_AMOUNT,SUM(SGST_AMOUNT)SGST_AMOUNT,SUM(IGST_AMOUNT)IGST_AMOUNT,  INVOICE_AMOUNT FROM " &
+        '        "(SELECT FD.DR_AMOUNT INVOICE_AMOUNT,'' INVOICE_REF_NO ,  TO_CHAR(FD.CREATED_ON,'DD/MM/YYYY') INVOICE_DATE, FD.INVOICE_NO,   TA, " &
+        '        "SUM(TDS) TDS,((TA/(100+CGST_RATE+SGST_RATE+IGST_RATE))*100)+IGST_AMOUNT+SGST_AMOUNT+CGST_AMOUNT-SUM(TDS) BASE_AMOUNT,  " &
+        '        "(TA/(100+CGST_RATE+SGST_RATE+IGST_RATE)*100)-SUM(TDS) BASIC_AMOUNT,   " &
+        '        "CGST_RATE,CGST_AMOUNT, SGST_RATE, SGST_AMOUNT, IGST_RATE, IGST_AMOUNT FROM " &
+        '        "(SELECT INVOICE_NO, SUM(CR_AMOUNT)TA,CASE WHEN CGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/109*9/100) Else 0 End CGST_AMOUNT, " &
+        '        "CASE WHEN SGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/109*9/100) ELSE 0 END SGST_AMOUNT,   " &
+        '        "CASE WHEN SGST_RATE >0 THEN 9 ELSE 0 END SGST_RATE,  " &
+        '        "CASE WHEN CGST_RATE >0 THEN 9 ELSE 0 END CGST_RATE,   " &
+        '        "CASE WHEN IGST_RATE >0 THEN 18 ELSE 0 END IGST_RATE,  " &
+        '        "CASE WHEN IGST_AMOUNT >0 THEN ((SUM(CR_AMOUNT))*100/118*18/100) ELSE 0 END IGST_AMOUNT,CASE WHEN REMARKS LIKE '%TDS ADJUSTMENT FOR%' THEN CR_AMOUNT ELSE 0 END TDS FROM  " &
+        '        "(SELECT FD.INVOICE_NO,0 CGST_RATE,CR_AMOUNT,0 CGST_AMOUNT,0 SGST_RATE,0 SGST_AMOUNT,0 IGST_RATE,0 IGST_AMOUNT,FD.REMARKS     " &
+        '        "FROM PAYMENT_DETAILS PD,FINANCE_DETAILS FD WHERE  PD.RECEIPT_NO=  " & lngReceiptNo & "   AND FD.RECEIPT_NO=PD.RECEIPT_NO " &
+        '        "AND FD.REMARKS LIKE '%OPENING BALANCE%')P    " &
+        '        "Group BY INVOICE_NO,IGST_AMOUNT,CGST_AMOUNT,SGST_AMOUNT,CGST_RATE,SGST_RATE,IGST_RATE,CR_AMOUNT,REMARKS)PI,FINANCE_DETAILS FD WHERE FD.RECEIPT_NO=PI.INVOICE_NO " &
+        '        "GROUP BY FD.INVOICE_NO, TA,CGST_RATE,IGST_RATE,SGST_RATE,SGST_AMOUNT,IGST_AMOUNT,CGST_AMOUNT,FD.CREATED_ON,FD.DR_AMOUNT)T GROUP BY INVOICE_AMOUNT,INVOICE_REF_NO, INVOICE_DATE, INVOICE_NO"
+
+        cmd1 = "SELECT SR, CUSTOMER_NAME,INVOICE_REF_NO,INVOICE_DATE,AMT INVOICE_AMOUNT,TDS,CR_AMT BASE_AMOUNT FROM  " &
+"(SELECT DISTINCT 3 SR,CUSTOMER_NAME, INVOICE_REF_NO,INVOICE_DATE,'' || AMT AMT,SUM(TDS)TDS,'' || SUM(CR_AMT)CR_AMT FROM " &
+"(SELECT DISTINCT CUSTOMER_NAME ,INVOICE_REF_NO,INVOICE_DATE,AMT,  " &
+" CASE WHEN REMARKS LIKE '%TDS ADJUSTMENT%' THEN SUM(CR_AMOUNT) ELSE 0 END TDS, " &
+"CASE WHEN REMARKS NOT LIKE '%TDS ADJUSTMENT%' THEN SUM(CR_AMOUNT) ELSE 0 END CR_AMT  FROM " &
+"(SELECT CM.CUSTOMER_NAME,INVOICE_REF_NO,TO_CHAR(INVOICE_DATE,'DD/MM/YYYY') INVOICE_DATE,FD.CR_AMOUNT,FD.REMARKS,FD.TERMINAL_ID,  " &
+"(SELECT SUM(BILL_AMOUNT) FROM IMP_INVOICE_ITEMS II WHERE II.INVOICE_NO=I.INVOICE_NO) AMT " &
+" FROM (SELECT DISTINCT INVOICE_NO, INVOICE_DATE, INVOICE_REF_NO, SERVICE_TYPE, CUSTOMER_TYPE,  " &
+" BILL_TO, PAYMENT_MODE, DOC_TYPE, CANCLE_FLAGE,  PAYMENT_STATUS FROM IMP_INVOICE WHERE CANCLE_FLAGE IS NULL ) I,FINANCE_DETAILS FD,CUSTOMER_MASTER CM  " &
+" WHERE FD.INVOICE_NO = I.INVOICE_NO AND FD.CUSTOMER_ID=CM.CUSTOMER_ID AND FD.REMARKS NOT LIKE '%OPENING BALANCE%' " &
+" AND FD.RECEIPT_NO= " & lngReceiptNo & " AND CM.CUSTOMER_ID=FD.CUSTOMER_ID ) GROUP BY INVOICE_REF_NO,INVOICE_DATE,AMT,REMARKS,CUSTOMER_NAME) GROUP BY INVOICE_REF_NO,INVOICE_DATE,AMT,CUSTOMER_NAME " &
+ "       UNION " &
+" SELECT 4 SR,CUSTOMER_NAME, CR.CR_REF_NO,TO_CHAR(CR.CR_DATE,'DD/MM/YYYY')CR_DATE,'-' || (CR.CR_AMOUNT + CR.CR_TAX) AMT,0 TDS,'-' || FD.CR_AMOUNT CR_AMT " &
+" FROM FINANCE_DETAILS FD,CR_NOTE CR ,CUSTOMER_MASTER CM WHERE CR.CR_ID = FD.TERMINAL_ID AND FD.RECEIPT_NO= " & lngReceiptNo & " AND FD.CUSTOMER_ID=CM.CUSTOMER_ID " &
+" UNION " &
+" Select DISTINCT 2 SR,CUSTOMER_NAME, 'ON ACCOUNT' INVOICE_REF_NO,TO_CHAR(FD.CREATED_ON,'DD/MM/YYYY')CREATED_ON,'' || ROUND(FD.CR_AMOUNT,2) AMT,0 TDS,'' || ROUND(FD.CR_AMOUNT,2) CR_AMT  " &
+" FROM FINANCE_DETAILS FD,INVOICE_RECEIPT II,CUSTOMER_MASTER CM WHERE II.RECEIPT_NO=FD.RECEIPT_NO AND INVOICE_NO=0 AND FD.CUSTOMER_ID=CM.CUSTOMER_ID AND FD.RECEIPT_NO=" & lngReceiptNo & " " &
+" UNION " &
+" SELECT DISTINCT 1 SR,CUSTOMER_NAME,  INVOICE_REF_NO,INVOICE_DATE,'' || AMT AMT,SUM(TDS)TDS,'' || SUM(CR_AMT)CR_AMT FROM " &
+" (SELECT DISTINCT CUSTOMER_NAME, INVOICE_REF_NO,CREATED_ON INVOICE_DATE,AMT,CASE WHEN REMARKS LIKE '%TDS ADJUSTMENT%' THEN CR_AMT ELSE 0 END TDS, " &
+" CASE WHEN REMARKS NOT LIKE '%TDS ADJUSTMENT%' THEN CR_AMT ELSE 0 END CR_AMT  FROM " &
+" (Select DISTINCT 'OPENING BALANCE' INVOICE_REF_NO,CUSTOMER_NAME,TO_CHAR(FD.CREATED_ON,'DD/MM/YYYY')CREATED_ON, ROUND(FD.CR_AMOUNT,2) CR_AMT,FD.REMARKS ,FD.DR_AMOUNT AMT " &
+" FROM FINANCE_DETAILS FD,CUSTOMER_MASTER CM WHERE FD.RECEIPT_NO=" & lngReceiptNo & " AND FD.CUSTOMER_ID=CM.CUSTOMER_ID AND  FD.REMARKS LIKE '%OPENING BALANCE%'))GROUP BY INVOICE_REF_NO,INVOICE_DATE,AMT,CUSTOMER_NAME ORDER BY SR)"
+        dt = New DataTable()
+        ada = New OleDbDataAdapter(cmd1, con)
+        ada.Fill(dt)
+        gvPaymentDetail.DataSource = dt
+        gvPaymentDetail.DataBind()
+        textInWords.Text = NumberToWord.AmtInWord(Math.Round(totalTaxableAmt, 0))
+        'textInclusiveTaxAmount.Text = grandTotal
+    End Sub
+
+    Dim totalAdvanceAmt As Double = 0.0
+    Dim totalTaxableAmt As Double = 0.0
+    Dim TotalBasicAmt As Double = 0.0
+    Dim CGST_Rate As Double = 0.0
+    Dim CGSTAmount As Double = 0.0
+    Dim SGST_Rate As Double = 0.0
+    Dim SGSTAmount As Double = 0.0
+    Dim IGST_Rate As Double = 0.0
+    Dim IGSTAmount As Double = 0.0
+    Dim UTGST_Rate As Double = 0.0
+    Dim UTGSTAmount As Double = 0.0
+    Dim CESS_Rate As Double = 0.0
+    Dim CESSAmount As Double = 0.0
+    Dim totalCGST As Double = 0.0
+    Dim totalSGST As Double = 0.0
+    Dim totalIGST As Double = 0.0
+    Dim totalUTGST As Double = 0.0
+    Dim totalCESS As Double = 0.0
+    Dim totalTaxAmount As Double = 0.0
+    Dim grandTotal As Double = 0.0
+
+    Protected Sub gvPaymentDetail_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs) Handles gvPaymentDetail.RowDataBound
+        If e.Row.RowType = DataControlRowType.DataRow Then
+
+            Try
+                totalTaxableAmt += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "BASE_AMOUNT"))
+            Catch ex As Exception
+                totalTaxableAmt += 0.0
+            End Try
+            Try
+                TotalBasicAmt += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "BASIC_AMOUNT"))
+            Catch ex As Exception
+                totalCGST += 0.0
+            End Try
+            Try
+                totalCGST += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "CGST_AMOUNT"))
+            Catch ex As Exception
+                totalCGST += 0.0
+            End Try
+            Try
+                SGST_Rate += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "SGST_RATE"))
+            Catch ex As Exception
+                SGST_Rate += 0.0
+            End Try
+            Try
+                totalSGST += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "SGST_AMOUNT"))
+            Catch ex As Exception
+                totalSGST += 0.0
+            End Try
+            Try
+                UTGST_Rate += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "UTGST_RATE"))
+            Catch ex As Exception
+                UTGST_Rate += 0.0
+            End Try
+            Try
+                totalUTGST += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "TDS"))
+            Catch ex As Exception
+                totalUTGST += 0.0
+            End Try
+            Try
+                IGST_Rate += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "IGST_RATE"))
+            Catch ex As Exception
+                IGST_Rate += 0.0
+            End Try
+            Try
+                totalIGST += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "IGST_AMOUNT"))
+            Catch ex As Exception
+                totalIGST += 0.0
+            End Try
+            Try
+                CESS_Rate += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "CESS_RATE"))
+            Catch ex As Exception
+                CESS_Rate += 0.0
+            End Try
+            Try
+                totalCESS += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "CESS_AMOUNT"))
+            Catch ex As Exception
+                totalCESS += 0.0
+            End Try
+            Try
+                grandTotal += Convert.ToDouble(DataBinder.Eval(e.Row.DataItem, "INVOICE_AMOUNT"))
+            Catch ex As Exception
+                grandTotal += 0.0
+            End Try
+
+
+        ElseIf e.Row.RowType = DataControlRowType.Footer Then
+            e.Row.Cells(0).ColumnSpan = 4
+            e.Row.Cells(0).Text = "Total"
+            e.Row.Cells(0).Font.Bold = True
+            e.Row.Cells(0).HorizontalAlign = HorizontalAlign.Right
+
+            e.Row.Cells(2).Text = Format(Math.Round(totalUTGST, 2), "0.00")
+            e.Row.Cells(2).Font.Bold = True
+            e.Row.Cells(2).HorizontalAlign = HorizontalAlign.Right
+
+            e.Row.Cells(1).Text = Format(Math.Round(grandTotal, 2), "0.00")
+            e.Row.Cells(1).Font.Bold = True
+            e.Row.Cells(1).HorizontalAlign = HorizontalAlign.Right
+
+            e.Row.Cells(3).Text = Format(Math.Round(totalTaxableAmt, 2), "0.00")
+            e.Row.Cells(3).Font.Bold = True
+            e.Row.Cells(3).HorizontalAlign = HorizontalAlign.Right
+            ' e.Row.Cells(5).Text = ""
+            e.Row.Cells(4).Visible = False
+
+            e.Row.Cells(5).Visible = False
+
+
+            e.Row.Cells(6).Visible = False
+
+            e.Row.Cells(7).Visible = False
+
+            e.Row.Cells(8).Visible = False
+            e.Row.Cells(9).Visible = False
+
+            e.Row.Cells(10).Visible = False
+
+            e.Row.Cells(11).Visible = False
+            e.Row.Cells(12).Visible = False
+            e.Row.Cells(13).Visible = False
+        End If
+    End Sub
+End Class

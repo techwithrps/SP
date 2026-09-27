@@ -1,0 +1,177 @@
+﻿aspx
+{
+    overflow: scroll;
+}
+div, ul, ol, li, dt, dd, dl, blockquote, fieldset, table, td, th, p, h1, h2, h3, h4, h5, h6, body, form
+{
+    padding: 0;
+    margin: 0;
+}
+ul, ol
+{
+    list-style: none;
+}
+abbr, img, fieldset
+{
+    border: 0;
+}
+.tr
+{
+    text-align: right;
+}
+.tl
+{
+    text-align: left;
+}
+.fl
+{
+    float: left;
+}
+.fr
+{
+    float: right;
+}
+.tc
+{
+    text-align: center;
+}
+.hide
+{
+    display: none;
+    visibility: hidden;
+}
+table
+{
+    border-collapse: collapse;
+}
+input, select, textarea
+{
+    margin: 0;
+}
+textarea
+{
+    overflow: auto;
+}
+body
+{
+    background-color: #ffffff;
+    font-family: tahoma,Verdana,Arial,Helvetica,sans-serif;
+    padding: 3px 0 2em;
+    text-align: center;
+}
+/*
+#ControlPanel, #AdminPane
+{
+    width: 100%;
+    margin: 0px auto;
+}
+*/
+#PageFrame
+{
+    width: 100%;
+    margin: 0px auto 0px auto;
+    text-align: left;
+    padding: 0px;
+    background-color: #ffffff;
+}
+#HeaderGroup
+{
+    width: 100%;
+    height: 38px; /*background-image: url(headerBack.gif);*/
+    background-color: Teal;
+    background-repeat: repeat-x;
+    padding: 0px;
+    margin: 0px;
+    clear: both;
+}
+#LogoeLogiSol
+{
+    width: 400px;
+    height: 38px;
+    float: left;
+}
+.hidden
+{
+    visibility: hidden;
+}
+#HeaderRightGroup
+{
+    float: right;
+    width: 530px;
+    padding: 0px;
+    margin: 0px;
+}
+#HeaderUserLogIn
+{
+    width: 200px;
+    height: 38px;
+    float: left;
+}
+#HeaderChange
+{
+    width: 330px;
+    height: 38px;
+    float: left;
+}
+#HeaderChangePassWord
+{
+    float: right;
+    width: 200px;
+    padding: 0px;
+    margin: 0px;
+}
+#HeaderLogOut
+{
+    float: right;
+    width: 130px;
+    padding: 0px;
+    margin: 0px;
+}
+/*
+.TelPane
+{
+    width: 372px;
+    height: 38px;
+    float: left;
+    border-right: #6294c8 solid 1px;
+    border-left: #6294c8 solid 1px;
+}
+.TelPane, .TelPane p, .TelPane .Normal, .TelPane img
+{
+    padding: 0px !important;
+    margin: 0px !important;
+}
+*/
+
+.HeaderLable
+{
+    font-family: Verdana;
+    font-size: 10pt;
+    color: #ffffff;
+}
+
+/* -- top navigation start -- */
+
+#NavHContainer
+{
+    clear: both; /*width: 100%;*/
+    height: 20px;
+    padding: 0px 0px 2px 0px;
+    margin: 0px 0px 0px 0px;
+    background-color: #8080FF;
+    border-right: #5996cf solid 1px;
+    border-bottom: #5996cf solid 1px;
+    border-left: #5996cf solid 1px; /*     background-image: url(mainNavBack.gif);*/
+    background-repeat: repeat-x;
+}
+.FooterSTAndrews
+{
+    /*width: 964px; background-image: url(footerBack.gif);*/
+    height: 20px;
+    clear: both;
+    background-repeat: repeat-x;
+    text-align: center;
+    font-family: Verdana;
+    font-size: x-small;
+    padding: 13px 0px 0px 0px;
+}

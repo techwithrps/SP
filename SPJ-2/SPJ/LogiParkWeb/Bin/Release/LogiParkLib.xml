@@ -1,0 +1,849 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+LogiParkLib
+</name>
+</assembly>
+<members>
+<member name="P:LogiParkLib.LogiParkObjects.UserMaster.TerminalId">
+	<summary>
+ Get or Set the Value of TerminalId
+ </summary>
+	<value>lngTerminalId</value>
+	<returns> Return lngTerminalId</returns>
+	<remarks> Get or Set the Value of TerminalId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.UserId">
+	<summary>
+ Get or Set the Value of UserId
+ </summary>
+	<value>strUserId</value>
+	<returns> Return strUserId</returns>
+	<remarks> Get or Set the Value of UserId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.Password">
+	<summary>
+ Get or Set the Value of Password
+ </summary>
+	<value>strPassword</value>
+	<returns> Return strPassword</returns>
+	<remarks> Get or Set the Value of Password  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.ValidityDate">
+	<summary>
+ Get or Set the Value of ValidityDate
+ </summary>
+	<value>strValidityDate</value>
+	<returns> Return strValidityDate</returns>
+	<remarks> Get or Set the Value of ValidityDate  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.UserName">
+	<summary>
+ Get or Set the Value of UserName
+ </summary>
+	<value>strUserName</value>
+	<returns> Return strUserName</returns>
+	<remarks> Get or Set the Value of UserName  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.DesignationId">
+	<summary>
+ Get or Set the Value of DesignationId
+ </summary>
+	<value>lngDesignationId</value>
+	<returns> Return lngDesignationId</returns>
+	<remarks> Get or Set the Value of DesignationId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.DepartmentId">
+	<summary>
+ Get or Set the Value of DepartmentId
+ </summary>
+	<value>lngDepartmentId</value>
+	<returns> Return lngDepartmentId</returns>
+	<remarks> Get or Set the Value of DepartmentId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.EmailId">
+	<summary>
+ Get or Set the Value of EmailId
+ </summary>
+	<value>strEmailId</value>
+	<returns> Return strEmailId</returns>
+	<remarks> Get or Set the Value of EmailId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.UserType">
+	<summary>
+ Get or Set the Value of UserType
+ </summary>
+	<value>strUserType</value>
+	<returns> Return strUserType</returns>
+	<remarks> Get or Set the Value of UserType  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.UserStatus">
+	<summary>
+ Get or Set the Value of UserStatus
+ </summary>
+	<value>strUserStatus</value>
+	<returns> Return strUserStatus</returns>
+	<remarks> Get or Set the Value of UserStatus  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.CreatedBy">
+	<summary>
+ Get or Set the Value of CreatedBy
+ </summary>
+	<value>strCreatedBy</value>
+	<returns> Return strCreatedBy</returns>
+	<remarks> Get or Set the Value of CreatedBy  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.CreatedOn">
+	<summary>
+ Get or Set the Value of CreatedOn
+ </summary>
+	<value>strCreatedOn</value>
+	<returns> Return strCreatedOn</returns>
+	<remarks> Get or Set the Value of CreatedOn  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserMaster.Errormsg">
+	<summary>
+ Get or Set the Value of Errormsg
+ </summary>
+	<value>strErrormsg</value>
+	<returns> Return strErrormsg</returns>
+	<remarks> Get or Set the Value of Errormsg  </remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserMaster.#ctor">
+	<summary>
+ Preparing New as Default Constructor
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserMaster.Insert(LogiParkLib.LogiParkObjects.UserMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record
+ </summary>
+	<param name="pUserMaster"></param>
+	<returns>Return pUserMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserMaster.InsertTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.UserMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record With Transaction
+ </summary>
+	<param name="db"></param>
+	<param name="pUserMaster"></param>
+	<returns>Return pUserMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserMaster.Update(LogiParkLib.LogiParkObjects.UserMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="pUserMaster"></param>
+	<returns>Return pUserMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserMaster.UpdateTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.UserMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="db"></param>
+	<param name="pUserMaster"></param>
+	<returns>Return pUserMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserMaster.ReturnObjectValues(System.Data.OleDb.OleDbDataReader,LogiParkLib.LogiParkObjects.UserMaster)">
+	<summary>
+ Preparing ReturnObjectValues Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserMaster.ReturnObjectValuesList(System.Data.OleDb.OleDbDataReader,System.Collections.ArrayList)">
+	<summary>
+ Preparing ReturnObjectValuesList Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as List Of object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserMaster.ReturnUserMaster(LogiParkLib.LogiParkObjects.UserMaster)">
+	<summary>
+ Returns the UserMaster by UserId
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserMaster.ReturnUserMasterList(LogiParkLib.LogiParkObjects.UserMaster)">
+	<summary>
+ Preparing Return Object ArrayList 
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as ArrayList of object</remarks>
+</member><member name="T:LogiParkLib.LogiParkObjects.UserMaster">
+	<summary>
+ @Project/Product Name:  LogiPark :: Logistic-Park Management System 
+ @Version	: Version 1.0.0.0
+ @Module/Class Name	: UserMaster
+ @author	: Santosh Singh- 2/11/2011
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.MenuItemMaster.MenuId">
+	<summary>
+ Get or Set the Value of MenuId
+ </summary>
+	<value>dblMenuId</value>
+	<returns> Return dblMenuId</returns>
+	<remarks> Get or Set the Value of MenuId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.MenuItemMaster.ParentId">
+	<summary>
+ Get or Set the Value of ParentId
+ </summary>
+	<value>dblParentId</value>
+	<returns> Return dblParentId</returns>
+	<remarks> Get or Set the Value of ParentId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.MenuItemMaster.ModuleId">
+	<summary>
+ Get or Set the Value of ModuleId
+ </summary>
+	<value>dblModuleId</value>
+	<returns> Return dblModuleId</returns>
+	<remarks> Get or Set the Value of ModuleId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.MenuItemMaster.Url">
+	<summary>
+ Get or Set the Value of Url
+ </summary>
+	<value>strUrl</value>
+	<returns> Return strUrl</returns>
+	<remarks> Get or Set the Value of Url  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.MenuItemMaster.Title">
+	<summary>
+ Get or Set the Value of Title
+ </summary>
+	<value>strTitle</value>
+	<returns> Return strTitle</returns>
+	<remarks> Get or Set the Value of Title  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.MenuItemMaster.Description">
+	<summary>
+ Get or Set the Value of Description
+ </summary>
+	<value>strDescription</value>
+	<returns> Return strDescription</returns>
+	<remarks> Get or Set the Value of Description  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.MenuItemMaster.Errormsg">
+	<summary>
+ Get or Set the Value of Errormsg
+ </summary>
+	<value>strErrormsg</value>
+	<returns> Return strErrormsg</returns>
+	<remarks> Get or Set the Value of Errormsg  </remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.#ctor">
+	<summary>
+ Preparing New as Default Constructor
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.Insert(LogiParkLib.LogiParkObjects.MenuItemMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record
+ </summary>
+	<param name="pMenuItemMaster"></param>
+	<returns>Return pMenuItemMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.InsertTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.MenuItemMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record With Transaction
+ </summary>
+	<param name="db"></param>
+	<param name="pMenuItemMaster"></param>
+	<returns>Return pMenuItemMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.Update(LogiParkLib.LogiParkObjects.MenuItemMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="pMenuItemMaster"></param>
+	<returns>Return pMenuItemMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.UpdateTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.MenuItemMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="db"></param>
+	<param name="pMenuItemMaster"></param>
+	<returns>Return pMenuItemMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.ReturnObjectValues(System.Data.OleDb.OleDbDataReader,LogiParkLib.LogiParkObjects.MenuItemMaster)">
+	<summary>
+ Preparing ReturnObjectValues Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.ReturnObjectValuesList(System.Data.OleDb.OleDbDataReader,System.Collections.ArrayList)">
+	<summary>
+ Preparing ReturnObjectValuesList Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as List Of object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.ReturnMenuItemMaster(LogiParkLib.LogiParkObjects.MenuItemMaster)">
+	<summary>
+ Preparing Return Object By MenuId
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.ReturnMenuItemMasterListByLoginUserId(System.String)">
+	<summary>
+ Preparing Return Object ArrayList By LoginUserId
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as ArrayList of object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.MenuItemMaster.ReturnMenuItemMasterAllListEmailConfigList(LogiParkLib.LogiParkObjects.MenuItemMaster)">
+	<summary>
+ Preparing Return Object ArrayList By ModuleId
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as ArrayList of object</remarks>
+</member><member name="T:LogiParkLib.LogiParkObjects.MenuItemMaster">
+	<summary>
+ @Project/Product Name:  LogiPark :: Logistic Park Management System 
+ @Version	: Version 1.0.0.0
+ @Module/Class Name	: MenuItemMaster
+ @author	: Santosh Singh- 2/11/2011
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMenuItems.JobId">
+	<summary>
+ Get or Set the Value of JobId
+ </summary>
+	<value>lngJobId</value>
+	<returns> Return lngJobId</returns>
+	<remarks> Get or Set the Value of JobId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMenuItems.MenuId">
+	<summary>
+ Get or Set the Value of MenuId
+ </summary>
+	<value>lngMenuId</value>
+	<returns> Return lngMenuId</returns>
+	<remarks> Get or Set the Value of MenuId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMenuItems.AddPermit">
+	<summary>
+ Get or Set the Value of AddPermit
+ </summary>
+	<value>strAddPermit</value>
+	<returns> Return strAddPermit</returns>
+	<remarks> Get or Set the Value of AddPermit  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMenuItems.EditPermit">
+	<summary>
+ Get or Set the Value of EditPermit
+ </summary>
+	<value>strEditPermit</value>
+	<returns> Return strEditPermit</returns>
+	<remarks> Get or Set the Value of EditPermit  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMenuItems.DeletePermit">
+	<summary>
+ Get or Set the Value of DeletePermit
+ </summary>
+	<value>strDeletePermit</value>
+	<returns> Return strDeletePermit</returns>
+	<remarks> Get or Set the Value of DeletePermit  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMenuItems.SearchPermit">
+	<summary>
+ Get or Set the Value of SearchPermit
+ </summary>
+	<value>strSearchPermit</value>
+	<returns> Return strSearchPermit</returns>
+	<remarks> Get or Set the Value of SearchPermit  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMenuItems.Errormsg">
+	<summary>
+ Get or Set the Value of Errormsg
+ </summary>
+	<value>strErrormsg</value>
+	<returns> Return strErrormsg</returns>
+	<remarks> Get or Set the Value of Errormsg  </remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMenuItems.#ctor">
+	<summary>
+ Preparing New as Default Constructor
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMenuItems.Insert(LogiParkLib.LogiParkObjects.JobMenuItems)">
+	<summary>
+ Insert Member Function to Insert the New Record
+ </summary>
+	<param name="pJobMenuItems"></param>
+	<returns>Return pJobMenuItems Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMenuItems.InsertTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.JobMenuItems)">
+	<summary>
+ Insert Member Function to Insert the New Record With Transaction
+ </summary>
+	<param name="db"></param>
+	<param name="pJobMenuItems"></param>
+	<returns>Return pJobMenuItems Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMenuItems.Update(LogiParkLib.LogiParkObjects.JobMenuItems)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="pJobMenuItems"></param>
+	<returns>Return pJobMenuItems Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMenuItems.UpdateTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.JobMenuItems)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="db"></param>
+	<param name="pJobMenuItems"></param>
+	<returns>Return pJobMenuItems Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMenuItems.ReturnObjectValues(System.Data.OleDb.OleDbDataReader,LogiParkLib.LogiParkObjects.JobMenuItems)">
+	<summary>
+ Preparing ReturnObjectValues Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMenuItems.ReturnObjectValuesList(System.Data.OleDb.OleDbDataReader,System.Collections.ArrayList)">
+	<summary>
+ Preparing ReturnObjectValuesList Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as List Of object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMenuItems.ReturnJobMenuItems(LogiParkLib.LogiParkObjects.JobMenuItems)">
+	<summary>
+ Preparing Return Object ArrayList of JobId By JobId
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMenuItems.ReturnJobMenuItemsByIdWithAllMenu(LogiParkLib.LogiParkObjects.JobMenuItems)">
+	<summary>
+ Preparing Return Object ArrayList of JobId and All MenuId By JobId
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as object</remarks>
+</member><member name="T:LogiParkLib.LogiParkObjects.JobMenuItems">
+	<summary>
+ @Project/Product Name:  LogiPark :: Logistic Park Management System 
+ @Version	: Version 1.0.0.0
+ @Module/Class Name	: JobMenuItems
+ @author	: Santosh Singh- 2/11/2011
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.ModuleMaster.ModuleId">
+	<summary>
+ Get or Set the Value of ModuleId
+ </summary>
+	<value>lngModuleId</value>
+	<returns> Return lngModuleId</returns>
+	<remarks> Get or Set the Value of ModuleId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.ModuleMaster.ModuleName">
+	<summary>
+ Get or Set the Value of ModuleName
+ </summary>
+	<value>strModuleName</value>
+	<returns> Return strModuleName</returns>
+	<remarks> Get or Set the Value of ModuleName  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.ModuleMaster.Errormsg">
+	<summary>
+ Get or Set the Value of Errormsg
+ </summary>
+	<value>strErrormsg</value>
+	<returns> Return strErrormsg</returns>
+	<remarks> Get or Set the Value of Errormsg  </remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.ModuleMaster.#ctor">
+	<summary>
+ Preparing New as Default Constructor
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.ModuleMaster.Insert(LogiParkLib.LogiParkObjects.ModuleMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record
+ </summary>
+	<param name="pModuleMaster"></param>
+	<returns>Return pModuleMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.ModuleMaster.InsertTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.ModuleMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record With Transaction
+ </summary>
+	<param name="db"></param>
+	<param name="pModuleMaster"></param>
+	<returns>Return pModuleMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.ModuleMaster.Update(LogiParkLib.LogiParkObjects.ModuleMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="pModuleMaster"></param>
+	<returns>Return pModuleMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.ModuleMaster.UpdateTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.ModuleMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="db"></param>
+	<param name="pModuleMaster"></param>
+	<returns>Return pModuleMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.ModuleMaster.ReturnObjectValues(System.Data.OleDb.OleDbDataReader,LogiParkLib.LogiParkObjects.ModuleMaster)">
+	<summary>
+ Preparing ReturnObjectValues Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.ModuleMaster.ReturnObjectValuesList(System.Data.OleDb.OleDbDataReader,System.Collections.ArrayList)">
+	<summary>
+ Preparing ReturnObjectValuesList Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as List Of object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.ModuleMaster.ReturnModuleMaster(LogiParkLib.LogiParkObjects.ModuleMaster)">
+	<summary>
+ Preparing Return Object By ModuleId
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.ModuleMaster.ReturnModuleMasterList(LogiParkLib.LogiParkObjects.ModuleMaster)">
+	<summary>
+ Preparing Return Object ArrayList All
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as ArrayList of object</remarks>
+</member><member name="T:LogiParkLib.LogiParkObjects.ModuleMaster">
+	<summary>
+ @Project/Product Name:  LogiPark :: Logistic Park Management System 
+ @Version	: Version 1.0.0.0
+ @Module/Class Name	: ModuleMaster
+ @author	: Santosh Singh- 2/11/2011
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMaster.JobId">
+	<summary>
+ Get or Set the Value of JobId
+ </summary>
+	<value>lngJobId</value>
+	<returns> Return lngJobId</returns>
+	<remarks> Get or Set the Value of JobId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMaster.ModuleId">
+	<summary>
+ Get or Set the Value of ModuleId
+ </summary>
+	<value>lngModuleId</value>
+	<returns> Return lngModuleId</returns>
+	<remarks> Get or Set the Value of ModuleId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMaster.JobName">
+	<summary>
+ Get or Set the Value of JobName
+ </summary>
+	<value>strJobName</value>
+	<returns> Return strJobName</returns>
+	<remarks> Get or Set the Value of JobName  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMaster.Description">
+	<summary>
+ Get or Set the Value of Description
+ </summary>
+	<value>strDescription</value>
+	<returns> Return strDescription</returns>
+	<remarks> Get or Set the Value of Description  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.JobMaster.Errormsg">
+	<summary>
+ Get or Set the Value of Errormsg
+ </summary>
+	<value>strErrormsg</value>
+	<returns> Return strErrormsg</returns>
+	<remarks> Get or Set the Value of Errormsg  </remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMaster.#ctor">
+	<summary>
+ Preparing New as Default Constructor
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMaster.Insert(LogiParkLib.LogiParkObjects.JobMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record
+ </summary>
+	<param name="pJobMaster"></param>
+	<returns>Return pJobMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMaster.InsertTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.JobMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record With Transaction
+ </summary>
+	<param name="db"></param>
+	<param name="pJobMaster"></param>
+	<returns>Return pJobMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMaster.Update(LogiParkLib.LogiParkObjects.JobMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="pJobMaster"></param>
+	<returns>Return pJobMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMaster.UpdateTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.JobMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="db"></param>
+	<param name="pJobMaster"></param>
+	<returns>Return pJobMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMaster.ReturnObjectValues(System.Data.OleDb.OleDbDataReader,LogiParkLib.LogiParkObjects.JobMaster)">
+	<summary>
+ Preparing ReturnObjectValues Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMaster.ReturnObjectValuesList(System.Data.OleDb.OleDbDataReader,System.Collections.ArrayList)">
+	<summary>
+ Preparing ReturnObjectValuesList Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as List Of object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMaster.ReturnJobMaster(LogiParkLib.LogiParkObjects.JobMaster)">
+	<summary>
+ Preparing Return Object By JobId
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.JobMaster.ReturnJobMasterList(LogiParkLib.LogiParkObjects.JobMaster)">
+	<summary>
+ Preparing Return Object ArrayList 
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as ArrayList of object</remarks>
+</member><member name="T:LogiParkLib.LogiParkObjects.JobMaster">
+	<summary>
+ @Project/Product Name:  LogiPark :: Logistic Park Management System 
+ @Version	: Version 1.0.0.0
+ @Module/Class Name	: JobMaster
+ @author	: Santosh Singh- 2/11/2011
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.TerminalId">
+	<summary>
+ TerminalId
+ </summary>
+	<value>lngTerminalId</value>
+	<returns> Return lngTerminalId</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.TerminalCode">
+	<summary>
+ TerminalCode
+ </summary>
+	<value>strTerminalCode</value>
+	<returns> Return strTerminalCode</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.TerminalName">
+	<summary>
+ TerminalName
+ </summary>
+	<value>strTerminalName</value>
+	<returns> Return strTerminalName</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.OwnerId">
+	<summary>
+ OwnerId
+ </summary>
+	<value>lngOwnerId</value>
+	<returns> Return lngOwnerId</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.OperatorId">
+	<summary>
+ OperatorId
+ </summary>
+	<value>lngOperatorId</value>
+	<returns> Return lngOperatorId</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.TypeId">
+	<summary>
+ TypeId
+ </summary>
+	<value>lngTypeId</value>
+	<returns> Return lngTypeId</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.ServStation">
+	<summary>
+ ServStation
+ </summary>
+	<value>strServStation</value>
+	<returns> Return strServStation</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.ServCode">
+	<summary>
+ ServCode
+ </summary>
+	<value>strServCode</value>
+	<returns> Return strServCode</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.ServDist">
+	<summary>
+ ServDist
+ </summary>
+	<value>lngServDist</value>
+	<returns> Return lngServDist</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.RailwayRegion">
+	<summary>
+ RailwayRegion
+ </summary>
+	<value>strRailwayRegion</value>
+	<returns> Return strRailwayRegion</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.WebSite">
+	<summary>
+ WebSite
+ </summary>
+	<value>strWebSite</value>
+	<returns> Return strWebSite</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.EmailId">
+	<summary>
+ EmailId
+ </summary>
+	<value>strEmailId</value>
+	<returns> Return strEmailId</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.Address">
+	<summary>
+ Address
+ </summary>
+	<value>strAddress</value>
+	<returns> Return strAddress</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.ContactNumber">
+	<summary>
+ ContactNumber
+ </summary>
+	<value>strContactNumber</value>
+	<returns> Return strContactNumber</returns>
+	<remarks></remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.TerminalMaster.Errormsg">
+	<summary>
+ Errormsg
+ </summary>
+	<value>strErrormsg</value>
+	<returns> Return strErrormsg</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.TerminalMaster.#ctor">
+	<summary>
+ Preparing New as Default Constructor
+ </summary>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.TerminalMaster.Insert(LogiParkLib.LogiParkObjects.TerminalMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record
+ </summary>
+	<param name="pTerminalMaster"></param>
+	<returns>Return pTerminalMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.TerminalMaster.InsertTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.TerminalMaster)">
+	<summary>
+ Insert Member Function to Insert the New Record With Transaction
+ </summary>
+	<param name="db"></param>
+	<param name="pTerminalMaster"></param>
+	<returns>Return pTerminalMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.TerminalMaster.Update(LogiParkLib.LogiParkObjects.TerminalMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="pTerminalMaster"></param>
+	<returns>Return pTerminalMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.TerminalMaster.UpdateTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.TerminalMaster)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="db"></param>
+	<param name="pTerminalMaster"></param>
+	<returns>Return pTerminalMaster Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.TerminalMaster.ReturnObjectValues(System.Data.OleDb.OleDbDataReader,LogiParkLib.LogiParkObjects.TerminalMaster)">
+	<summary>
+ Preparing ReturnObjectValues Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.TerminalMaster.ReturnObjectValuesList(System.Data.OleDb.OleDbDataReader,System.Collections.ArrayList)">
+	<summary>
+ Preparing ReturnObjectValuesList Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as List Of object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.TerminalMaster.ReturnTerminalMaster(LogiParkLib.LogiParkObjects.TerminalMaster)">
+	<summary>
+ Preparing Return Object 
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as List Of object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.TerminalMaster.ReturnTerminalMasterList(LogiParkLib.LogiParkObjects.TerminalMaster)">
+	<summary>
+ Preparing Return Object ArrayList 
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as List Of object</remarks>
+</member><member name="T:LogiParkLib.LogiParkObjects.TerminalMaster">
+	<summary>
+ @Project/Product Name:  SAS :: Terminal Management System 
+ @Version	: Version 1.0
+ @Module/Class Name	: TerminalMaster Class
+ @author	: Santosh Singh- 5/8/2011
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserJobs.UserId">
+	<summary>
+ Get or Set the Value of UserId
+ </summary>
+	<value>strUserId</value>
+	<returns> Return strUserId</returns>
+	<remarks> Get or Set the Value of UserId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserJobs.JobId">
+	<summary>
+ Get or Set the Value of JobId
+ </summary>
+	<value>lngJobId</value>
+	<returns> Return lngJobId</returns>
+	<remarks> Get or Set the Value of JobId  </remarks>
+</member><member name="P:LogiParkLib.LogiParkObjects.UserJobs.Errormsg">
+	<summary>
+ Get or Set the Value of Errormsg
+ </summary>
+	<value>strErrormsg</value>
+	<returns> Return strErrormsg</returns>
+	<remarks> Get or Set the Value of Errormsg  </remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.#ctor">
+	<summary>
+ Preparing New as Default Constructor
+ </summary>
+	<remarks>
+	</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.Insert(LogiParkLib.LogiParkObjects.UserJobs)">
+	<summary>
+ Insert Member Function to Insert the New Record
+ </summary>
+	<param name="pUserJobs"></param>
+	<returns>Return pUserJobs Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.InsertTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.UserJobs)">
+	<summary>
+ Insert Member Function to Insert the New Record With Transaction
+ </summary>
+	<param name="db"></param>
+	<param name="pUserJobs"></param>
+	<returns>Return pUserJobs Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.DeleteTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.UserJobs)">
+	<summary>
+ Delete Member Function to Delete the all record By UserId
+ </summary>
+	<param name="db"></param>
+	<param name="pUserJobs"></param>
+	<returns>Return pUserJobs Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.Update(LogiParkLib.LogiParkObjects.UserJobs)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="pUserJobs"></param>
+	<returns>Return pUserJobs Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.UpdateTrn(LogiParkLib.DBConnection.DBConnect,LogiParkLib.LogiParkObjects.UserJobs)">
+	<summary>
+ Update Member Function to Update the New Record
+ </summary>
+	<param name="db"></param>
+	<param name="pUserJobs"></param>
+	<returns>Return pUserJobs Object</returns>
+	<remarks></remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.ReturnObjectValues(System.Data.OleDb.OleDbDataReader,LogiParkLib.LogiParkObjects.UserJobs)">
+	<summary>
+ Preparing ReturnObjectValues Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.ReturnObjectValuesList(System.Data.OleDb.OleDbDataReader,System.Collections.ArrayList)">
+	<summary>
+ Preparing ReturnObjectValuesList Member Function
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as List Of object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.ReturnUserJobsByUserId(LogiParkLib.LogiParkObjects.UserJobs)">
+	<summary>
+ Preparing Return Object 
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as object</remarks>
+</member><member name="M:LogiParkLib.LogiParkObjects.UserJobs.ReturnUserJobsListByUserId(LogiParkLib.LogiParkObjects.UserJobs)">
+	<summary>
+ Preparing Return Object ArrayList By UserId
+ </summary>
+	<remarks>Read The values of Column and Assign it to Property and Return as ArrayList of object</remarks>
+</member><member name="T:LogiParkLib.LogiParkObjects.UserJobs">
+	<summary>
+ @Project/Product Name:  LogiPark :: Logistic Park Management System 
+ @Version	: Version 1.0.0.0
+ @Module/Class Name	: UserJobs
+ @author	: Santosh Singh- 2/11/2011
+ </summary>
+	<remarks>
+	</remarks>
+</member>
+</members>
+</doc>

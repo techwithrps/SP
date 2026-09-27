@@ -1,0 +1,2 @@
+sr,TerminalName,FromDate,ToDate,ServiceName,CustomerType,CustomerName,Remarks,CustomerTypeTable,CustomerNameTable,LineName,ContSize,ContType,ContStatus,DocType,FromLocation,ToLocation,HandoverLocation,POL,POD,Commodity,FromRange,ToRange,RateMethod,BaseRate,Currency,Enable/Disable,DiscountType,Discount,Rate
+1,PIPAVAV,1/9/2023,30/12/2023,B/L Surrender Charges,E,MARUTI FROZEN FOODS,OK 123,C,ALL,STAR SHIPPING GROUP,40,RF,L,E,ALL,ALL,ALL,ALL,ALL,ALL,0,99999,SOB,5250,INR,ENABLE,None,0,5250

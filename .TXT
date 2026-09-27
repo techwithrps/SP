@@ -1,0 +1,69 @@
+1. 🎛️ Master Filter Bar Section
+Component File: 
+
+GlobalFilterBar.jsx
+Codebase State Variables (in App.jsx):
+selectedFY → Financial Year Filter
+selectedCompany → Company Selection
+selectedTerminal → Branch Selection
+selectedCustomer → Customer Selection
+customFromDate & customToDate → Custom Date Range Inputs
+2. 📊 9 KPI Cards Section
+Component File: 
+
+KPICards.jsx
+Codebase Object Name: kpis / activeSalesKPIs / chartKPIs
+Object Keys in Code:
+grossRevenue / netRevenue → Net Sales / Gross Sales (₹ 3,853.64 Cr)
+taxableRevenue / totalBillAmount → Taxable Sales (₹ 3,265.79 Cr)
+gstTax / totalTax → Statutory GST Tax (₹ 587.84 Cr)
+invoiceCount → Total Invoices (1,84,985)
+containerCount → Physical Containers (89,245)
+containerMovements → Container Movements (1,29,405)
+jobOrders → Job Orders (1,47,988)
+teuCount → Total TEUs (1,71,976)
+3. 📈 Executive Analytics Container & Sub-Tabs
+Main Parent Component File: 
+
+AnalyticsCharts.jsx
+Sub-Tab State (activeTab) in AnalyticsCharts.jsx:
+'branches' → Branch Performance Matrix (Component: 
+
+BranchPerformanceTable.jsx
+)
+'yoy' → Fiscal Year-over-Year (YoY) (Component: 
+
+YoYAnalyticsSection.jsx
+)
+'decision_bi' → Owner Intelligence & Decision Support (Component: 
+
+ExecutiveDecisionBI.jsx
+)
+'customer_bi' → Top Customer Leaders (Component: CustomerLeaderboardTable)
+'service_bi' → Service & Tariff Breakdown (Component: ServiceCatalogTable)
+4. 🏆 Top 10 Dual Leaderboards Section
+Component File: 
+
+DualSalesLeaderboard.jsx
+Code Variables:
+top10Branches / displayTerminals → Top 10 Branches by Sales (Left Card)
+top10Customers / topCustomers → Top 10 Enterprise Clients by Sales (Right Card)
+5. 📋 Data Grids & Tables
+Branch Table (Tab 1): 
+
+BranchPerformanceTable.jsx
+Live Invoices Grid (Tab 2): 
+
+CIRTable.jsx
+⚙️ Backend Services & API Endpoints
+API Route: /api/financial-analytics & /api/cir-report
+Backend Service File: 
+
+cirAnalyticsService.js
+Oracle DB Bridge File: 
+
+oracleDbService.js
+Oracle Java Query Engine: 
+
+OracleAnalyticsEngine.java
+10:32 AM

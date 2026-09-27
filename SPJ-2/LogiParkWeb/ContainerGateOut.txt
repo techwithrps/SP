@@ -1,0 +1,14 @@
+               Kanpur Logistics Park
+Plot No. 5, Bhatta Area, Raniganj, Panki, Kanpur (U.P)
+           Export Factory Stuffing Pass
+
+Gate Pass No.  :12736        Gate Pass Date  :24/11/2014 13:16
+Job Order No.  :EFS07932     Job Order Date  :24/11/2014 12:14:30
+Container No.  :CRXU6946380  Container Size  :40
+Type           :RF            Gate Out Date  :24/11/2014 13:16
+Location       :UNNAO       Transporter  :KLPL
+Vehicle No.    :UP78CN7143      Driver Name  :A
+Shipinlin.    :MSC
+
+Surveyor           Security           Gate Operator
+Signature          Signature          Signature

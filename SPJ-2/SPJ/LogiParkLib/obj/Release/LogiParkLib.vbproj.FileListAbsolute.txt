@@ -1,0 +1,9 @@
+D:\LogiPark\LogiParkApp\LogiPark\LogiParkLib\bin\Release\LogiParkLib.dll
+D:\LogiPark\LogiParkApp\LogiPark\LogiParkLib\bin\Release\LogiParkLib.pdb
+D:\LogiPark\LogiParkApp\LogiPark\LogiParkLib\bin\Release\LogiParkLib.xml
+D:\LogiPark\LogiParkApp\LogiPark\LogiParkLib\obj\Release\ResolveAssemblyReference.cache
+D:\LogiPark\LogiParkApp\LogiPark\LogiParkLib\obj\Release\LogiParkLib.Resources.resources
+D:\LogiPark\LogiParkApp\LogiPark\LogiParkLib\obj\Release\LogiParkLib.vbproj.GenerateResource.Cache
+D:\LogiPark\LogiParkApp\LogiPark\LogiParkLib\obj\Release\LogiParkLib.dll
+D:\LogiPark\LogiParkApp\LogiPark\LogiParkLib\obj\Release\LogiParkLib.xml
+D:\LogiPark\LogiParkApp\LogiPark\LogiParkLib\obj\Release\LogiParkLib.pdb

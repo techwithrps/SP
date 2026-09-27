@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="LogiPark">
+</Property><Property Name="Solution File" Value="D:\LogiPark\LogiPark.sln">
+</Property><Property Name="Date" Value="02/07/2012">
+</Property><Property Name="Time" Value="12:13 PM">
+</Property></Properties><Event ErrorLevel="0" Project="LogiParkLib" Source="LogiParkLib\LogiParkLib.vbproj" Description="The project file does not require conversion.">
+</Event><Event ErrorLevel="3" Project="LogiParkLib" Source="LogiParkLib\LogiParkLib.vbproj" Description="No Conversion Required">
+</Event><Event ErrorLevel="0" Project="" Source="LogiPark.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="LogiPark.sln" Description="Converted">
+</Event></UpgradeLog>

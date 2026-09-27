@@ -1,0 +1,222 @@
+﻿Imports LogiParkLib.LogiParkObjects
+Imports System.Data
+Imports System.Xml
+
+Partial Class Master_Admin_ActivityMaster
+    Inherits System.Web.UI.Page
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        If Not IsPostBack Then
+            Dim p As String = Request.AppRelativeCurrentExecutionFilePath
+            Permission(p)
+            lblScreenTitle.Text = Session.Item("Title")
+            LoadTreeViewData()
+            tvTreeView.Enabled = True
+            selectFirstNode()
+            manageUserControls(True)
+            ButtonControlSetup(True)
+            Functions.ControlFocus(btnAdd)
+        End If
+    End Sub
+
+    Sub Permission(ByVal P As String)
+        Dim xmlFile As XmlReader
+        xmlFile = XmlReader.Create(Server.MapPath("~/MenuXml.xml"), New XmlReaderSettings())
+        Dim ds2 As New DataSet
+        ds2.ReadXml(xmlFile)
+        Dim dv As New DataView
+        dv = New DataView(ds2.Tables(0), "URL = '" & P & "'", "", DataViewRowState.CurrentRows)
+        dv = New DataView(dv.ToTable, "JOB_ID = '" & Session.Item("JobId") & "'", "", DataViewRowState.CurrentRows)
+        For Each row As DataRow In dv.ToTable.Rows
+            Session.Item("Add") = row(7).ToString
+            Session.Item("Edit") = row(8).ToString
+            Session.Item("Delete") = row(9).ToString
+            Session.Item("Search") = row(10).ToString
+            Session.Item("Title") = row(4).ToString
+        Next
+    End Sub
+
+    Sub manageUserControls(ByVal pEnable As Boolean)
+        Functions.ControlSetup(pEnable, Me.dvControl.Controls)
+    End Sub
+
+    Sub LoadTreeViewData()
+        Dim pActivityMaster As New ActivityMaster
+        pActivityMaster.TerminalId = Session.Item("LoginTerminal")
+        Try
+            For Each obj As ActivityMaster In ActivityMaster.ReturnActivityMasterList(pActivityMaster)
+                Functions.treeViewNodeSetup(tvTreeView, "0", obj.ActivityId, obj.ActivityName)
+            Next
+        Catch ex As Exception
+        End Try
+    End Sub
+
+    Protected Overrides Function SaveViewState() As Object
+        If Not tvTreeView.SelectedNode Is Nothing Then
+            ViewState.Item("SelectedNodePath") = tvTreeView.SelectedNode.ValuePath
+            tvTreeView.ExpandAll()
+        End If
+        Return MyBase.SaveViewState
+    End Function
+
+    Protected Sub Page_PreLoad(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.PreLoad
+        If Not ViewState.Item("SelectedNodePath") Is Nothing Then
+            Dim node As TreeNode = tvTreeView.FindNode(ViewState.Item("SelectedNodePath"))
+            If Not node Is Nothing Then
+                node.Select()
+            End If
+        End If
+    End Sub
+
+    Private Sub selectFirstNode()
+        If tvTreeView.Nodes.Count > 0 Then
+            tvTreeView.Nodes(0).Selected = True
+            prepareControls(tvTreeView.Nodes(0))
+        End If
+    End Sub
+
+    Sub ButtonControlSetup(ByVal pVisible As Boolean)
+        btnAdd.Visible = pVisible
+        btnEdit.Visible = pVisible
+        btnExit.Visible = pVisible
+        If textActivityCode.Text.Trim <> Nothing Then
+            btnEdit.Visible = True
+        Else
+            btnEdit.Visible = False
+        End If
+        btnSave.Visible = Not pVisible
+        btnCancel.Visible = Not pVisible
+        btnEdit.Visible = pVisible
+
+        If Session.Item("Add") <> "Y" Then
+            btnAdd.Visible = False
+        End If
+        If Session.Item("Edit") <> "Y" Then
+            btnEdit.Visible = False
+        End If
+        If Session.Item("Search") <> "Y" Then
+
+        End If
+        If Session.Item("Delete") <> "Y" Then
+        End If
+    End Sub
+
+    Protected Sub btnAdd_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnAdd.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Functions.clearControls(Me.dvControl.Controls)
+        ButtonControlSetup(False)
+        manageUserControls(False)
+        tvTreeView.Enabled = False
+        Functions.ControlFocus(textActivityCode)
+    End Sub
+
+    Sub manageControls(ByRef pEnable As Boolean)
+        textActivityCode.Enabled = pEnable
+        textActivityName.Enabled = pEnable
+    End Sub
+
+    Protected Sub btnEdit_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnEdit.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        manageUserControls(False)
+        ButtonControlSetup(False)
+        tvTreeView.Enabled = False
+        manageControls(True)
+        Functions.ControlFocus(textActivityCode)
+    End Sub
+
+    Protected Sub btnCancel_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnCancel.Click
+        Functions.clearControls(Me.dvControl.Controls)
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        If Not tvTreeView.SelectedNode Is Nothing Then
+            prepareControls(tvTreeView.SelectedNode)
+        End If
+        manageUserControls(True)
+        tvTreeView.Enabled = True
+        ButtonControlSetup(True)
+    End Sub
+
+    Protected Sub btnExit_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnExit.Click
+        Response.Redirect("~/Home.aspx")
+    End Sub
+
+    Protected Sub tvTreeView_SelectedNodeChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles tvTreeView.SelectedNodeChanged
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        prepareControls(tvTreeView.SelectedNode)
+        SaveViewState()
+        manageUserControls(True)
+        Functions.ControlFocus(btnAdd)
+    End Sub
+
+    Function ValidationCheck() As Boolean
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Dim rtnBool As Boolean = True
+        If textActivityCode.Text.Trim = Nothing Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblActivityCode.Text & " is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(textActivityCode)
+            Return rtnBool
+            Exit Function
+
+
+        End If
+        If textActivityName.Text.Trim = Nothing Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblActivityName.Text & "is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(textActivityName)
+            Return rtnBool
+            Exit Function
+        End If
+        Return rtnBool
+    End Function
+
+    Protected Sub btnSave_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnSave.Click
+
+        If ValidationCheck() = False Then
+            Return
+        End If
+        Dim pActivityMaster As ActivityMaster = ReturnObject()
+        If hdnActivityId.Value <> Nothing Then
+            ActivityMaster.Update(pActivityMaster)
+        Else
+            ActivityMaster.Insert(pActivityMaster)
+        End If
+
+        If pActivityMaster.Errormsg <> Nothing Then
+            lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, pActivityMaster.Errormsg)
+            Functions.ControlFocus(textActivityCode)
+            Return
+        End If
+        lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Message, lblErrorMessage, "Saved Successfully.")
+        Functions.addOrModifyLeaf(tvTreeView, pActivityMaster.ActivityName, pActivityMaster.ActivityId, hdnActivityId.Value)
+        hdnActivityId.Value = pActivityMaster.ActivityId
+        ButtonControlSetup(True)
+        manageUserControls(True)
+
+        tvTreeView.Enabled = True
+        Functions.ControlFocus(btnAdd)
+
+    End Sub
+
+    Private Function ReturnObject() As ActivityMaster
+        Dim pActivityMaster As New ActivityMaster
+        If hdnActivityId.Value <> "" AndAlso hdnActivityId.Value > 0 Then
+            pActivityMaster.ActivityId = hdnActivityId.Value
+        End If
+        pActivityMaster.TerminalId = Session.Item("LoginTerminal")
+        pActivityMaster.ActivityCode = textActivityCode.Text
+        pActivityMaster.ActivityName = textActivityName.Text
+
+        pActivityMaster.CreatedBy = Session.Item("LoginUser")
+        Return pActivityMaster
+    End Function
+
+    Sub prepareControls(ByVal pCodevalue As TreeNode)
+        Dim pActivityMaster As New ActivityMaster
+        pActivityMaster.TerminalId = Session.Item("LoginTerminal")
+        pActivityMaster.ActivityId = pCodevalue.Value
+        ActivityMaster.ReturnActivityMaster(pActivityMaster)
+        hdnActivityId.Value = pActivityMaster.ActivityId
+        textActivityCode.Text = pActivityMaster.ActivityCode
+        textActivityName.Text = pActivityMaster.ActivityName
+    End Sub
+End Class

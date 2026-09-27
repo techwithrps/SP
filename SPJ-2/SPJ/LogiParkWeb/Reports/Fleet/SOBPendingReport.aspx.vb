@@ -1,0 +1,336 @@
+﻿Imports System.Data.OleDb
+Imports LogiParkLib.LogiParkObjects
+Imports LogiParkLib.DBConnection
+Imports System.Data
+Imports System.Data.SqlClient
+Imports System.IO
+Partial Class Reports_Fleet_SOBPendingReport
+    Inherits System.Web.UI.Page
+    Dim intCounter As Long = 0
+    Dim Total As Long = 0
+    Dim myGridViews(0) As Object
+    Dim myN As Integer = 0
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        If Not IsPostBack Then
+            'prepareTerminalData()
+            'preparePortData()
+            BindData()
+            ListControlDataBind()
+            ListControlDataBind1()
+        End If
+
+    End Sub
+
+    Private Sub BindData()
+        Dim strCurrentDate As String
+        strCurrentDate = Format(Now, "MM/dd/yyyy")
+        Dim strpParms As String = "0"
+        strpParms &= LstLine.SelectedValue
+        strpParms &= ",'" & lsttrainNo.SelectedValue & "'"
+        strpParms &= "," & 0
+        strpParms &= "," & 0
+        strpParms &= ",'" & textFromDate.Text & "'"
+        strpParms &= ",'" & textToDate.Text & "'"
+        strpParms &= ",'" & lstInvoiceStatus.SelectedValue & "',100000,''"
+        'strpParms &= ",'" & textFromDate.Text & "'"
+        'strpParms &= ",'" & textToDate.Text & "'"
+        Dim dbr As OleDb.OleDbDataReader
+        Dim db As New DBConnect
+        dbr = db.StoredProcedureReadDB("REPORT_PKG.SP_HANDOVER_PENDSOB_REPORT", strpParms)
+        gvtripPendencyList.DataSource = dbr
+        gvtripPendencyList.DataBind()
+        If dbr.HasRows Then
+            tblReport.Visible = True
+        Else
+            tblReport.Visible = False
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "No Record Found")
+        End If
+        dbr.Close()
+        db.CloseDB()
+    End Sub
+    Sub ListControlDataBind1()
+        Dim strConnectionString, cmd3 As String
+        Dim con As OleDbConnection
+        Dim ada As New OleDbDataAdapter
+        Try
+            strConnectionString = System.Configuration.ConfigurationManager.AppSettings("DBConnectionString")
+            cmd3 = "SELECT DISTINCT TRAIN_NO || '____(' || TO_CHAR(AP.TRAIN_OUT_DATE,'DD/MM/YY') ||')' TRAIN_NO,TRAIN_NO TRAIN_ID FROM ALL_PARTY_ACCOUNT AP WHERE PORT_ARRIVAL IS NULL AND LINE_HANDOVER_DATE >=TO_DATE('1/11/2017','DD/MM/YYYY') AND TRAIN_NO IS NOT NULL  ORDER BY TRAIN_NO ASC"
+            con = New OleDbConnection(strConnectionString)
+            con.Open()
+            ' ada = New OleDbDataAdapter(cmd1, con)
+            Dim ds As New DataSet("CONTAINER")
+
+            ada = New OleDbDataAdapter(cmd3, con)
+            Dim ds3 As New DataSet("PORT_MASTER")
+            ada.Fill(ds3)
+            lsttrainNo.DataSource = ds3.Tables(0)
+            lsttrainNo.DataTextField = "TRAIN_NO"
+            lsttrainNo.DataValueField = "TRAIN_NO"
+            lsttrainNo.DataBind()
+            lsttrainNo.Items.Insert(0, (New ListItem("---Select---", "")))
+            ds3.Clear()
+            con.Close()
+        Catch ex As Exception
+        End Try
+    End Sub
+    Sub ListControlDataBind()
+        Dim strConnectionString As String
+        Dim ada As New OleDbDataAdapter
+        Try
+            strConnectionString = System.Configuration.ConfigurationManager.AppSettings("DBConnectionString")
+            Dim pCustomerMaster As New CustomerMaster
+            LstLine.DataSource = CustomerMaster.ReturnCustomerMasterListAllLine(pCustomerMaster)
+            LstLine.DataTextField = "CustomerName"
+            LstLine.DataValueField = "CustomerId"
+            LstLine.DataBind()
+            LstLine.Items.Insert(0, (New ListItem("---All---", 0)))
+            LstLine.SelectedValue = 0
+            Dim pPortMaster As New PortMaster
+            lstPol.DataSource = PortMaster.ReturnPortMasterIndiaGateway(pPortMaster)
+            lstPol.DataTextField = "PortName"
+            lstPol.DataValueField = "PortId"
+            lstPol.DataBind()
+            lstPol.Items.Insert(0, (New ListItem("---All---", 0)))
+            lstPol.SelectedValue = 0
+            Dim pPortMaster1 As New PortMaster
+            lstPod.DataSource = PortMaster.ReturnPortMasterList(pPortMaster1)
+            lstPod.DataTextField = "PortName"
+            lstPod.DataValueField = "PortId"
+            lstPod.DataBind()
+            lstPod.Items.Insert(0, (New ListItem("---All---", 0)))
+            lstPod.SelectedValue = 0
+        Catch ex As Exception
+        End Try
+    End Sub
+    Protected Sub btnDisplay_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnDisplay.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        gvtripPendencyList.DataSource = Nothing
+        gvtripPendencyList.DataBind()
+        tblReport.Visible = False
+        lblReportDate.Text = Format(Now, "dd/MM/yyyy hh:mm:ss")
+
+        Dim strCurrentDate As String
+        strCurrentDate = Format(Now, "MM/dd/yyyy")
+        Dim strpParms As String = "0"
+        strpParms &= LstLine.SelectedValue 
+        strpParms &= ",'" & lsttrainNo.SelectedValue & "'"
+        strpParms &= "," & lstPol.SelectedValue
+        strpParms &= "," & lstPod.SelectedValue 
+        strpParms &= ",'" & textFromDate.Text & "'"
+        strpParms &= ",'" & textToDate.Text & "'"
+        strpParms &= ",'" & lstInvoiceStatus.SelectedValue & "',100000,''"
+        'strpParms &= "," & LstCFS.SelectedValue & ""
+        'strpParms &= ",'" & textToDate.Text & "'"
+        Dim dbr As OleDb.OleDbDataReader
+        Dim db As New DBConnect
+        dbr = db.StoredProcedureReadDB("REPORT_PKG.SP_HANDOVER_PENDSOB_REPORT", strpParms)
+        'Dim dt As New DataTable
+        'dt.Load(dbr)
+        gvtripPendencyList.DataSource = dbr
+        gvtripPendencyList.DataBind()
+
+        If dbr.HasRows Then
+            tblReport.Visible = True
+        Else
+            tblReport.Visible = False
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "No Record Found")
+        End If
+        dbr.Close()
+        db.CloseDB()
+    End Sub
+    Protected Sub gvtripPendencyList_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs) Handles gvtripPendencyList.RowDataBound
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            intCounter = intCounter + 1
+            e.Row.Cells(0).Text = intCounter
+        End If
+    End Sub
+    Protected Sub btnExcel_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnExcel.Click
+        myGridViews(myN) = gvtripPendencyList
+        ' myN += 1
+        CreateWorkBook(myGridViews, "SOBPendingReport", 80)
+
+    End Sub
+    Public Shared Sub CreateWorkBook(ByVal cList As Object, ByVal wbName As String, ByVal CellWidth As Integer)
+        Dim attachment As String = "attachment; filename=""" & wbName & ".xls"""
+        HttpContext.Current.Response.ClearContent()
+        HttpContext.Current.Response.AddHeader("content-disposition", attachment)
+        HttpContext.Current.Response.ContentType = "application/ms-excel"
+        Dim sw As System.IO.StringWriter = New System.IO.StringWriter()
+        sw.WriteLine("<?xml version=""1.0""?>")
+        sw.WriteLine("<?mso-application progid=""Excel.Sheet""?>")
+        sw.WriteLine("<Workbook xmlns=""urn:schemas-microsoft-com:office:spreadsheet""")
+        sw.WriteLine("xmlns:o=""urn:schemas-microsoft-com:office:office""")
+        sw.WriteLine("xmlns:x=""urn:schemas-microsoft-com:office:excel""")
+        sw.WriteLine("xmlns:ss=""urn:schemas-microsoft-com:office:spreadsheet""")
+        sw.WriteLine("xmlns:html=""http://www.w3.org/TR/REC-html40"">")
+        sw.WriteLine("<DocumentProperties xmlns=""urn:schemas-microsoft-com:office:office"">")
+        sw.WriteLine("<LastAuthor>Try Not Catch</LastAuthor>")
+        sw.WriteLine("<Created>2010-05-15T19:14:19Z</Created>")
+        sw.WriteLine("<Version>11.9999</Version>")
+        sw.WriteLine("</DocumentProperties>")
+        sw.WriteLine("<ExcelWorkbook xmlns=""urn:schemas-microsoft-com:office:excel"">")
+        sw.WriteLine("<WindowHeight>9210</WindowHeight>")
+        sw.WriteLine("<WindowWidth>19035</WindowWidth>")
+        sw.WriteLine("<WindowTopX>0</WindowTopX>")
+        sw.WriteLine("<WindowTopY>90</WindowTopY>")
+        sw.WriteLine("<ProtectStructure>False</ProtectStructure>")
+        sw.WriteLine("<ProtectWindows>False</ProtectWindows>")
+        sw.WriteLine("</ExcelWorkbook>")
+        sw.WriteLine("<Styles>")
+        sw.WriteLine("<Style ss:ID=""Default"" ss:Name=""Normal"">")
+        sw.WriteLine("<Alignment ss:Vertical=""Bottom""/>")
+        sw.WriteLine("<Borders/>")
+        sw.WriteLine("<Font/>")
+        sw.WriteLine("<Interior/>")
+        sw.WriteLine("<NumberFormat/>")
+        sw.WriteLine("<Protection/>")
+        sw.WriteLine("</Style>")
+        sw.WriteLine("<Style ss:ID=""s22"">")
+        sw.WriteLine("<Alignment ss:Horizontal=""Center"" ss:Vertical=""Center"" ss:WrapText=""1""/>")
+        sw.WriteLine("<Borders>")
+        sw.WriteLine("<Border ss:Position=""Bottom"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Left"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Right"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Top"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("</Borders>")
+        sw.WriteLine("<Font ss:Bold=""1""/>")
+        sw.WriteLine("</Style>")
+        sw.WriteLine("<Style ss:ID=""s23"">")
+        sw.WriteLine("<Alignment ss:Vertical=""Bottom"" ss:WrapText=""1""/>")
+        sw.WriteLine("<Borders>")
+        sw.WriteLine("<Border ss:Position=""Bottom"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Left"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Right"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Top"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("</Borders>")
+        sw.WriteLine("</Style>")
+        sw.WriteLine("<Style ss:ID=""s24"">")
+        sw.WriteLine("<Alignment ss:Vertical=""Bottom"" ss:WrapText=""1""/>")
+        sw.WriteLine("<Borders>")
+        sw.WriteLine("<Border ss:Position=""Bottom"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Left"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Right"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("<Border ss:Position=""Top"" ss:LineStyle=""Continuous"" ss:Weight=""1""")
+        sw.WriteLine("ss:Color=""#000000""/>")
+        sw.WriteLine("</Borders>")
+        sw.WriteLine("<Font ss:Color=""#FFFFFF""/>")
+        sw.WriteLine("<Interior ss:Color=""#191970"" ss:Pattern=""Solid""/>") 'set header colour here
+        sw.WriteLine("</Style>")
+        sw.WriteLine("</Styles>")
+        For Each gView As GridView In cList
+            'Try
+            '    If gView.ID.ToString = "gvsummary" Then
+            '        CreateWorkSheet("Summary", sw, gView, CellWidth)
+            '    ElseIf gView.ID.ToString = "gvExport" Then
+            '        'gView.ID =
+            '        CreateWorkSheet("20", sw, gView, CellWidth)
+            '    ElseIf gView.ID.ToString = "gvDomestic" Then
+            '        CreateWorkSheet("B/I 20", sw, gView, CellWidth)
+            '        ' gView.ID = "B/I 20"
+            '    ElseIf gView.ID.ToString = "gvImport" Then
+            '        CreateWorkSheet("40", sw, gView, CellWidth)
+            '        ' gView.ID = "40"
+            '    ElseIf gView.ID.ToString = "GVI40" Then
+            '        'gView.ID = "B/I 40"
+            '        CreateWorkSheet("B/I 40", sw, gView, CellWidth)
+            '    End If
+
+
+            'Catch ex As Exception
+            'End Try
+            CreateWorkSheet(gView.ID.ToString, sw, gView, CellWidth)
+        Next
+        sw.WriteLine("</Workbook>")
+        HttpContext.Current.Response.Write(sw.ToString())
+        HttpContext.Current.Response.End()
+    End Sub
+    Private Shared Sub CreateWorkSheet(ByVal wsName As String, ByVal sw As System.IO.StringWriter, ByVal gv As GridView, ByVal cellwidth As Integer)
+        If IsNothing(gv.HeaderRow) = False Then
+            If wsName = "gvtripPendencyList" Then
+                wsName = "SOB Pending"
+                'ElseIf wsName = "GVPVT" Then
+                '    wsName = "PVT"
+                'ElseIf wsName = "gvsummary" Then
+                '    wsName = "Summary"
+                'ElseIf wsName = "gvDomestic" Then
+                '    wsName = "Idel20"
+                'ElseIf wsName = "gvImport" Then
+                '    wsName = "40"
+                'ElseIf wsName = "GVI40" Then
+                '    wsName = "Idel40"
+            End If
+
+            sw.WriteLine("<Worksheet ss:Name=""" & wsName & """>")
+            Dim cCount As Integer = gv.HeaderRow.Cells.Count
+            Dim rCount As Long = gv.Rows.Count + 1
+            sw.WriteLine("<Table ss:ExpandedColumnCount=""" & cCount & """ ss:ExpandedRowCount=""" & rCount & """ x:FullColumns=""1""")
+            sw.WriteLine("x:FullRows=""1"">")
+            For i As Integer = (cCount - cCount) To (cCount - 1)
+                sw.WriteLine("<Column ss:AutoFitWidth=""1"" ss:Width=""" & cellwidth & """/>")
+            Next
+
+            GridRowIterate(gv, sw)
+            sw.WriteLine("</Table>")
+            sw.WriteLine("<WorksheetOptions xmlns=""urn:schemas-microsoft-com:office:excel"">")
+
+            sw.WriteLine("<Selected/>")
+            sw.WriteLine("<DoNotDisplayGridlines/>")
+
+            sw.WriteLine("<ProtectObjects>False</ProtectObjects>")
+            sw.WriteLine("<ProtectScenarios>False</ProtectScenarios>")
+
+            sw.WriteLine("</WorksheetOptions>")
+            sw.WriteLine("</Worksheet>")
+        End If
+    End Sub
+    Private Shared Sub GridRowIterate(ByVal gv As GridView, ByVal sw As System.IO.StringWriter)
+        sw.WriteLine("<Row>")
+
+        For Each tc As TableCell In gv.HeaderRow.Cells
+            Dim tcText As String = tc.Text
+
+            Dim tcWidth As String = gv.Width.Value
+            Dim dType As String = "String"
+
+            If IsNumeric(tcText) = True Then
+
+                dType = "Number"
+
+            End If
+            sw.WriteLine("<Cell ss:StyleID=""s24""><Data ss:Type=""String"">" & tcText & "</Data></Cell>")
+
+        Next
+        sw.WriteLine("</Row>")
+
+        For Each gr As GridViewRow In gv.Rows
+            sw.WriteLine("<Row>")
+
+            For Each gc As TableCell In gr.Cells
+                Dim gcText As String = gc.Text
+                Dim dType As String = "String"
+
+                If IsNumeric(gcText) = True Then
+
+                    dType = "Number"
+                    gcText = CDbl(gcText)
+
+                End If
+                sw.WriteLine("<Cell ss:StyleID=""s23""><Data ss:Type=""" & dType & """>" & gcText & "</Data></Cell>")
+
+            Next
+            sw.WriteLine("</Row>")
+        Next
+
+    End Sub
+End Class

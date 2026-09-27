@@ -1,0 +1,2 @@
+sr,TerminalName,FromDate,ToDate,ServiceName,CustomerType,CustomerName,Remarks,CustomerTypeTable,CustomerNameTable,LineName,ContSize,ContType,ContStatus,DocType,FromLocation,ToLocation,HandoverLocation,POL,POD,Commodity,FromRange,ToRange,RateMethod,BaseRate,Currency,Enable/Disable,DiscountType,Discount,Rate
+1,TRANSWORLD-DADRI,01/04/2023,31/12/2023,Plug-in Charges-ICD,E,RAYBAN FOODS PVT LTD, ,C,ALL, ,40,RF,L,0,ALL,ALL,TRANSWORLD-DADRI,ALL,ALL,ALL,0,99999,SOB,2410,INR,ENABLE,None,0,2410

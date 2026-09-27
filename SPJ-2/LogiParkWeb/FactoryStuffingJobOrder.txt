@@ -1,0 +1,19 @@
+                           XE Logistics Park
+           Plot No. 5, Bhatta Area, Raniganj, Panki, XE (U.P)
+                     Factory Stuffing Job Order
+
+JO No       :EFS07867  JO Date     :20/11/2014 18:47:45 JO Validity Date :23/11/2014 18:47:45
+Booking No  :EXP10205  Booking Date:20/11/2014 18:46          Handling Mode :Factory
+Container No:HLXU5102183     Size  :40                         Type         :HC
+Pass NO     :12633     Pass Date   :20/11/2014 18:47        Pass Validity   :20/11/2014 18:47
+Shiping Line:DEVGIRI EXPORTS Location    :MIRZAPUR   Exporter     :DEVGIRI EXPORTS
+
+
+
+
+  --------------------  -----------------------  --------------
+   Gate Operator    Security     Surveyor /
+     Signature    Signature      Signature
+
+I will insure release of my import container(s) with seal after customs examination,
+ failing which cargo will be lying at my sole risk / responsibility.

@@ -1,0 +1,348 @@
+﻿Imports System.Xml
+Imports System.Data
+Imports LogiParkLib.LogiParkObjects
+
+Partial Public Class Finance_Service
+    Inherits System.Web.UI.Page
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        Dim p As String = Request.AppRelativeCurrentExecutionFilePath
+        MenuItemHelper.Permission(Me.Page, p)
+        If Not IsPostBack Then
+            ListControlDataBind()
+            lblScreenTitle.Text = Session.Item("Title")
+            LoadTreeViewData()
+            tvTreeView.Enabled = True
+            selectFirstNode()
+            manageUserControls(True)
+            ButtonControlSetup(True)
+            Functions.ControlFocus(btnAdd)
+        End If
+    End Sub
+
+    
+
+    Sub manageUserControls(ByVal pEnable As Boolean)
+        Functions.ControlSetup(pEnable, Me.dvControl.Controls)
+    End Sub
+
+    Sub ListControlDataBind()
+        Dim pTaxGroup As New ExtTaxGroup
+        pTaxGroup.TerminalId = Session.Item("LoginTerminal")
+
+        lstTaxGroupId.DataSource = ExtTaxGroup.ReturnTaxGroupList(pTaxGroup)
+        lstTaxGroupId.DataTextField = "TaxGroupCode"
+        lstTaxGroupId.DataValueField = "TaxGroupId"
+        lstTaxGroupId.DataBind()
+        lstTaxGroupId.Items.Insert(0, (New ListItem("----Select----", "0")))
+
+        Dim pUomMaster As New UomMaster
+        pUomMaster.TerminalId = Session.Item("LoginTerminal")
+        lstUomId.DataSource = UomMaster.ReturnUomMasterList(pUomMaster)
+        lstUomId.DataTextField = "UomName"
+        lstUomId.DataValueField = "UomId"
+        lstUomId.DataBind()
+        lstUomId.Items.Insert(0, (New ListItem("----Select----", "0")))
+
+        Dim pServiceType As New ServiceType
+        pServiceType.TerminalId = Session.Item("LoginTerminal")
+        lstServiceType.DataSource = ServiceType.ReturnServiceTypeList(pServiceType)
+        lstServiceType.DataTextField = "ServiceTypeName"
+        lstServiceType.DataValueField = "ServiceTypeCode"
+        lstServiceType.DataBind()
+        lstServiceType.Items.Insert(0, (New ListItem("-----All-----", "A")))
+
+        'Dim pServiceMaster As New ServiceMaster
+        'pServiceMaster.TerminalId = Session.Item("LoginTerminal")
+        'lstServiceGroupName.DataSource = ServiceMaster.ReturnServiceMasterList(pServiceMaster)
+        'lstServiceGroupName.DataTextField = "ServiceName"
+        'lstServiceGroupName.DataValueField = "ServiceId"
+        'lstServiceGroupName.DataBind()
+        'lstServiceGroupName.Items.Insert(0, (New ListItem("-----Select-----", "0")))
+
+    End Sub
+    Sub LoadTreeViewData()
+        Dim pServiceMaster As New ServiceMaster
+        pServiceMaster.TerminalId = Session.Item("LoginTerminal")
+        Try
+            For Each obj As ServiceMaster In ServiceMaster.ReturnServiceMasterListNew(pServiceMaster)
+                Functions.treeViewNodeSetup(tvTreeView, "0", obj.ServiceId, obj.ServiceName)
+            Next
+        Catch ex As Exception
+        End Try
+    End Sub
+
+    Protected Overrides Function SaveViewState() As Object
+        If Not tvTreeView.SelectedNode Is Nothing Then
+            ViewState.Item("SelectedNodePath") = tvTreeView.SelectedNode.ValuePath
+            tvTreeView.ExpandAll()
+        End If
+        Return MyBase.SaveViewState
+    End Function
+    Protected Sub Page_PreLoad(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.PreLoad
+        If Not ViewState.Item("SelectedNodePath") Is Nothing Then
+            Dim node As TreeNode = tvTreeView.FindNode(ViewState.Item("SelectedNodePath"))
+            If Not node Is Nothing Then
+                node.Select()
+            End If
+        End If
+    End Sub
+
+    Private Sub selectFirstNode()
+        If tvTreeView.Nodes.Count > 0 Then
+            tvTreeView.Nodes(0).Selected = True
+            prepareControls(tvTreeView.Nodes(0))
+        End If
+    End Sub
+
+    Sub ButtonControlSetup(ByVal pVisible As Boolean)
+        btnAdd.Visible = pVisible
+        btnEdit.Visible = pVisible
+        btnExit.Visible = pVisible
+        If textServiceCode.Text.Trim <> Nothing Then
+            btnEdit.Visible = True
+        Else
+            btnEdit.Visible = False
+        End If
+        btnSave.Visible = Not pVisible
+        btnCancel.Visible = Not pVisible
+        btnEdit.Visible = pVisible
+
+        If Session.Item("Add") <> "Y" Then
+            btnAdd.Visible = False
+        End If
+        If Session.Item("Edit") <> "Y" Then
+            btnEdit.Visible = False
+        End If
+        If Session.Item("Search") <> "Y" Then
+
+        End If
+        If Session.Item("Delete") <> "Y" Then
+        End If
+    End Sub
+    Protected Sub btnAdd_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnAdd.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Functions.clearControls(Me.dvControl.Controls)
+        ButtonControlSetup(False)
+        manageUserControls(False)
+        tvTreeView.Enabled = False
+        Functions.ControlFocus(textServiceCode)
+    End Sub
+
+    Sub manageControls(ByRef pEnable As Boolean)
+        textServiceCode.Enabled = pEnable
+    End Sub
+
+    Protected Sub btnEdit_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnEdit.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        manageUserControls(False)
+        ButtonControlSetup(False)
+        tvTreeView.Enabled = False
+        manageControls(False)
+        Functions.ControlFocus(textServiceName)
+    End Sub
+
+    Protected Sub btnCancel_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnCancel.Click
+        Functions.clearControls(Me.dvControl.Controls)
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        If Not tvTreeView.SelectedNode Is Nothing Then
+            prepareControls(tvTreeView.SelectedNode)
+        End If
+        manageUserControls(True)
+        tvTreeView.Enabled = True
+        ButtonControlSetup(True)
+    End Sub
+
+    Protected Sub btnExit_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnExit.Click
+        Response.Redirect("~/Home.aspx")
+    End Sub
+
+    Protected Sub tvTreeView_SelectedNodeChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles tvTreeView.SelectedNodeChanged
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        prepareControls(tvTreeView.SelectedNode)
+        SaveViewState()
+        manageUserControls(True)
+        Functions.ControlFocus(btnAdd)
+    End Sub
+    Function ValidationCheck() As Boolean
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Dim rtnBool As Boolean = True
+        If textServiceCode.Text.Trim = Nothing Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblServiceCode.Text & " is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(textServiceCode)
+            Return rtnBool
+            Exit Function
+        End If
+        If textServiceName.Text.Trim = Nothing Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblServiceName.Text & " is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(textServiceName)
+            Return rtnBool
+            Exit Function
+        End If
+        If lstServiceType.SelectedValue.Trim = Nothing Or lstServiceType.SelectedValue.Trim = "" Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblServiceType.Text & " is Select.")
+            rtnBool = False
+            Functions.ControlFocus(lblServiceType)
+            Return rtnBool
+            Exit Function
+        End If
+        If lstTaxGroupId.SelectedValue.Trim = 0 Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblTaxGroupId.Text & " is Select.")
+            rtnBool = False
+            Functions.ControlFocus(lblTaxGroupId)
+            Return rtnBool
+            Exit Function
+        End If
+        If textTaxOnPercentage.Text.Trim > 100 Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblTaxOnPercentage.Text & " is less than 100%.")
+            rtnBool = False
+            Functions.ControlFocus(lblTaxGroupId)
+            Return rtnBool
+            Exit Function
+        End If
+        If lstUomId.SelectedValue.Trim = 0 Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblUomId.Text & " is Select.")
+            rtnBool = False
+            Functions.ControlFocus(lstUomId)
+            Return rtnBool
+            Exit Function
+        End If
+        Return rtnBool
+    End Function
+
+    Protected Sub btnSave_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnSave.Click
+
+        If ValidationCheck() = False Then
+            Return
+        End If
+        Dim pServiceMaster As ServiceMaster = ReturnObject()
+        If pServiceMaster.ServiceId > 0 Then
+            ServiceMaster.Update(pServiceMaster)
+        Else
+            ServiceMaster.Insert(pServiceMaster)
+        End If
+
+        If pServiceMaster.Errormsg <> Nothing Then
+            lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, pServiceMaster.Errormsg)
+            Return
+        End If
+        lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Message, lblErrorMessage, "Saved Successfully.")
+        Functions.addOrModifyLeaf(tvTreeView, pServiceMaster.ServiceName, pServiceMaster.ServiceId, hdnServiceId.Value)
+        hdnServiceId.Value = pServiceMaster.ServiceId
+        ButtonControlSetup(True)
+        manageUserControls(True)
+        tvTreeView.Enabled = True
+        Functions.ControlFocus(btnAdd)
+    End Sub
+
+    Private Function ReturnObject() As ServiceMaster
+        Dim p As New ServiceMaster
+        If hdnServiceId.Value <> Nothing AndAlso hdnServiceId.Value > 0 Then
+            p.ServiceId = hdnServiceId.Value
+        End If
+        p.TerminalId = Session.Item("LoginTerminal")
+        p.ServiceCode = textServiceCode.Text
+        p.ServiceName = textServiceName.Text
+        p.ServiceTypeCode = lstServiceType.SelectedValue
+        p.TaxGroupId = lstTaxGroupId.SelectedValue
+        p.Unit = textUnit.Text
+        p.MapCode = textMapCode.Text
+        Try
+            p.ExRate = textExRate.Text
+        Catch ex As Exception
+            p.ExRate = 0
+        End Try
+
+        Try
+            p.TaxOnPercentage = textTaxOnPercentage.Text
+        Catch ex As Exception
+
+        End Try
+        p.UomId = lstUomId.SelectedValue
+        Try
+            p.ServiceGroupId = lstServiceGroupName.SelectedValue
+        Catch ex As Exception
+            p.ServiceGroupId = 0
+        End Try
+        Try
+            p.TallyInterStateServiceName = txtTallyInterStateServiceName.Text
+        Catch ex As Exception
+            p.TallyInterStateServiceName = ""
+        End Try
+        Try
+            p.Currency = lstCurrency.Text
+        Catch ex As Exception
+            p.Currency = ""
+        End Try
+        Try
+            p.TallyLocalStateServiceName = txtTallyLocalStateServiceName.Text
+        Catch ex As Exception
+            p.TallyLocalStateServiceName = ""
+        End Try
+
+        Try
+            p.TallyPurchaseInterStateServiceName = txtTallypurchaseInterStateServiceName.Text
+        Catch ex As Exception
+            p.TallyPurchaseInterStateServiceName = ""
+        End Try
+        Try
+            p.TallyPurchaseLocalStateServiceName = txtTallypurchaseLocalStateServiceName.Text
+        Catch ex As Exception
+            p.TallyPurchaseLocalStateServiceName = ""
+        End Try
+        Return p
+    End Function
+
+    Sub prepareControls(ByVal pCodevalue As TreeNode)
+        Dim p As New ServiceMaster
+        p.TerminalId = Session.Item("LoginTerminal")
+        p.ServiceId = pCodevalue.Value
+        ServiceMaster.ReturnServiceMasterByServiceId(p)
+        hdnServiceId.Value = p.ServiceId
+        textServiceCode.Text = p.ServiceCode
+        textServiceName.Text = p.ServiceName
+        Try
+            lstServiceType.SelectedValue = p.ServiceTypeCode
+        Catch ex As Exception
+        End Try
+
+        lstTaxGroupId.SelectedValue = p.TaxGroupId
+        textUnit.Text = p.Unit
+        textMapCode.Text = p.MapCode
+        textTaxOnPercentage.Text = p.TaxOnPercentage
+        lstUomId.SelectedValue = p.UomId
+        textExRate.Text = p.ExRate
+        Try
+            lstServiceGroupName.SelectedValue = p.ServiceGroupId
+        Catch ex As Exception
+            lstServiceGroupName.SelectedValue = 0
+        End Try
+        Try
+            txtTallyInterStateServiceName.Text = p.TallyInterStateServiceName
+        Catch ex As Exception
+            txtTallyInterStateServiceName.Text = ""
+        End Try
+        Try
+            lstCurrency.SelectedItem.Text = p.Currency
+        Catch ex As Exception
+            p.Currency = ""
+        End Try
+        Try
+            txtTallyLocalStateServiceName.Text = p.TallyLocalStateServiceName
+        Catch ex As Exception
+            txtTallyLocalStateServiceName.Text = ""
+        End Try
+        Try
+            txtTallypurchaseInterStateServiceName.Text = p.TallyPurchaseInterStateServiceName
+        Catch ex As Exception
+            txtTallypurchaseInterStateServiceName.Text = ""
+        End Try
+        Try
+            txtTallypurchaseLocalStateServiceName.Text = p.TallyPurchaseLocalStateServiceName
+        Catch ex As Exception
+            txtTallypurchaseLocalStateServiceName.Text = ""
+        End Try
+    End Sub
+End Class

@@ -1,0 +1,261 @@
+﻿body {
+}
+
+.LabelTextbox {
+    border-radius: 5px;
+    padding: 3px;
+    height: 15px;
+    border: solid 1px #646464;
+    outline: none;
+    padding: 2px 2px;
+}
+
+.textbox {
+    border-radius: 5px;
+    padding: 3px;
+    height: 15px;
+    background-color: #A9BFFF;
+    border: solid 1px #646464;
+    outline: none;
+    padding: 2px 2px;
+    }
+
+.RepHeadFleet {
+    background-color: #C9DCFF;
+    border-color: Black;
+    border-radius: 5px;
+    height: 25px;
+}
+
+.Rpttextbox {
+    padding: 3px;
+    height: 15px;
+    height: 16px;
+    border-radius: 5px;
+    width: 220px;
+    border: solid 1px #646464;
+    outline: none;
+    padding: 2px 2px;
+    border-color: #EAE8FF;
+    background-color: #EAE8FF;
+}
+
+
+.textbox:hover {
+    background-color: #F6F1DB;
+}
+
+.textbox:focus {
+    background-color: #F0F8FF;
+}
+
+ul li.FormAutoCompleteTextBox {
+    border-bottom: 1px solid #ccc;
+    line-height: 26px;
+    padding-left: 5px;
+    padding-right: 5px;
+    background-color: #FFF !important;
+    font-size: 12px;
+    width: auto !important;
+    overflow-wrap: break-word;
+    font-family: Verdana;
+    text-transform: none;
+}
+.listing {
+    color: red;
+    border-bottom: 1px solid #ccc;
+    font-size: 13px;
+    line-height: 26px;
+    padding-left: 5px;
+    padding-right: 5px;
+   font-weight:bold;
+}
+
+ul li.FormAutoCompleteTextBox:hover {
+    background-color: #bbcdf3 !important;
+    color: Black;
+    cursor: pointer;
+}
+
+.textboxSmall {
+    border-radius: 5px;
+    width: 100px;
+    height: 15px;
+    padding: 3px;
+    background-color: #D7EFFF;
+    border: solid 1px #646464;
+    outline: none;
+    padding: 2px 2px;
+}
+
+    .textboxSmall:hover {
+        background-color: #F6F1DB;
+    }
+
+    .textboxSmall:focus {
+        background-color: #6FFF62;
+    }
+
+.textboxMedium {
+    border-radius: 5px;
+    width: 200px;
+    height: 15px;
+    padding: 3px;
+    background-color: #D7EFFF;
+    border: solid 1px #646464;
+    outline: none;
+    padding: 2px 2px;
+}
+
+    .textboxMedium:hover {
+        background-color: #F6F1DB;
+    }
+
+    .textboxMedium:focus {
+        background-color: #6FFF62;
+    }
+
+.textboxLarge {
+    border-radius: 5px;
+    width: 300px;
+    height: 15px;
+    padding: 3px;
+    background-color: #D7EFFF;
+    border: solid 1px #646464;
+    outline: none;
+    padding: 2px 2px;
+}
+
+    .textboxLarge:hover {
+        background-color: #F6F1DB;
+    }
+
+    .textboxLarge:focus {
+        background-color: #6FFF62;
+    }
+
+.label {
+    font-family: Verdana;
+    font-size: 12px;
+    vertical-align: top;
+}
+
+
+.labelHeader {
+    font-family: Verdana;
+    font-size: 10px;
+    vertical-align: top;
+}
+
+/*
+.label:hover
+{
+    color: Blue;
+}
+*/
+
+.formTitle {
+    font-family: Verdana;
+    font-size: 16px;
+    font-weight: bold;
+    vertical-align: top;
+    color: #415989;
+}
+
+.ddl {
+    border: solid 1px #646464;
+    border-radius: 5px;
+    padding: 3px;
+    background-color: #D7EFFF; /* -webkit-appearance: none; /* background-image: url('images/Arrowhead-Down-01.png'); */
+    background-position: 88px;
+    background-repeat: no-repeat;
+    text-indent: 0.01px; /*In Firefox*/
+    margin: 0 auto;
+}
+
+    .ddl:hover {
+        background-color: #F6F1DB;
+    }
+
+    .ddl:focus {
+        background-color: #6FFF62;
+    }
+
+.ddlSmall {
+    border: solid 1px #646464;
+    border-radius: 5px;
+    padding: 3px;
+    width: 105px;
+    background-color: #D7EFFF; /* -webkit-appearance: none; /* background-image: url('images/Arrowhead-Down-01.png'); */
+    background-position: 88px;
+    background-repeat: no-repeat;
+    text-indent: 0.01px; /*In Firefox*/
+    margin: 0 auto;
+}
+
+    .ddlSmall:hover {
+        background-color: #F6F1DB;
+    }
+
+    .ddlSmall:focus {
+        background-color: #C7A395;
+    }
+
+.ddlMedium {
+    border: solid 1px #646464;
+    border-radius: 5px;
+    padding: 3px;
+    width: auto ;
+    height: 22px;
+    background-color: #A9BFFF; /* -webkit-appearance: none; /* background-image: url('images/Arrowhead-Down-01.png'); */
+    background-position: 88px;
+    background-repeat: no-repeat;
+    margin: 0 auto;
+}
+/*
+    .ddlMedium:hover {
+        background-color: #F6F1DB;
+    }
+
+    .ddlMedium:focus {
+        background-color: #F0F8FF;
+    }*/
+
+.ddlLarge {
+    border: solid 1px #646464;
+    border-radius: 5px;
+    padding: 3px;
+    width: 305px;
+    background-color: #D7EFFF; /* -webkit-appearance: none; /* background-image: url('images/Arrowhead-Down-01.png'); */
+    background-position: 88px;
+    background-repeat: no-repeat;
+    text-indent: 0.01px; /*In Firefox*/
+    margin: 0 auto;
+}
+
+    .ddlLarge:hover {
+        background-color: #F6F1DB;
+    }
+
+    .ddlLarge:focus {
+        background-color: #6FFF62;
+    }
+/*
+.ddl:active
+{
+    background-color: #EB8D00;
+}
+*/
+
+.mandatory {
+    font-size: 8pt;
+    vertical-align: top;
+    font-family: Verdana, Helvetica, Arial, sans-serif;
+    color: #ff0000;
+}
+
+.HeaderFreez {
+    position: relative;
+    top: expression(this.offsetParent.scrollTop);
+    z-index: 10;
+}

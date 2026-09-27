@@ -1,0 +1,1306 @@
+﻿Imports LogiParkLib.LogiParkObjects
+Imports System.Data
+Imports System.Data.OleDb
+Imports LogiParkLib.DBConnection
+Imports System.IO
+Imports System.Xml
+
+Partial Public Class Commercial_CostBooking
+    Inherits System.Web.UI.Page
+    Dim rows As Integer = 10
+    Dim cs As String = System.Configuration.ConfigurationManager.AppSettings("DBConnectionString")
+    Dim con As New OleDbConnection
+    Dim adapt As New OleDbDataAdapter
+    Dim dt As DataTable
+    Public glServiceMaster As New ArrayList
+    Public c As Char
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        btnSave.Attributes.Add("onclick", "this.disabled=true;" + ClientScript.GetPostBackEventReference(btnSave, "").ToString())
+        prepareDataRepControlsList()
+        Dim p As String = Request.AppRelativeCurrentExecutionFilePath
+        Permission(p)
+        If Not IsPostBack Then
+
+            lblScreenTitle.Text = "Cost Booking"
+            'LoadTreeViewData()
+            'tvTreeView.Enabled = True
+            'selectFirstNode()
+            manageUserControls(True)
+            ButtonControlSetup(True)
+            Functions.ControlFocus(btnAdd)
+            fillRepeator(New ArrayList)
+            ButtonControlSetup(False)
+            manageUserControls(False)
+            ' tvTreeView.Enabled = False
+
+            Dim StrInvoiceRefNo As String = ""
+
+            StrInvoiceRefNo = Request.QueryString("CostId")
+            search(StrInvoiceRefNo)
+            lstShippingLine.Visible = False
+            textBlNo.Visible = False
+            lblBlNo.Visible = False
+            lblShippingLine.Visible = False
+            lstShippingLine.Visible = False
+            lstVendorList.Visible = False
+            btnGo.Visible = False
+            btnSearchInvoice.Visible = False
+            lstJoNo.Visible = False
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "")
+        End If
+    End Sub
+
+    Sub Permission(ByVal P As String)
+        Dim xmlFile As XmlReader
+        xmlFile = XmlReader.Create(Server.MapPath("~/MenuXml.xml"), New XmlReaderSettings())
+        Dim ds2 As New DataSet
+        ds2.ReadXml(xmlFile)
+        Dim dv As New DataView
+        dv = New DataView(ds2.Tables(0), "URL = '" & P & "'", "", DataViewRowState.CurrentRows)
+        dv = New DataView(dv.ToTable, "JOB_ID = '" & Session.Item("JobId") & "'", "", DataViewRowState.CurrentRows)
+        For Each row As DataRow In dv.ToTable.Rows
+            Session.Item("Add") = row(7).ToString
+            Session.Item("Edit") = row(8).ToString
+            Session.Item("Delete") = row(9).ToString
+            Session.Item("Title") = row(4).ToString
+        Next
+    End Sub
+
+    Private Sub fillRepeator(ByVal arr As ArrayList)
+        If arr.Count <= rows Then
+            For i As Integer = 0 To rows - (arr.Count + 1)
+                Dim p As New CostBookingDtls
+                ' p.TaxHeadId = "0"
+                arr.Add(p)
+            Next
+        End If
+        repTaxHead.DataSource = arr
+        repTaxHead.DataBind()
+    End Sub
+    Sub manageUserControls(ByVal pEnable As Boolean)
+        Functions.ControlSetup(pEnable, Me.dvControl.Controls)
+    End Sub
+
+    Protected Sub prepareDataRepControlsList()
+        Dim p As New ServiceMaster
+        p.TerminalId = Session.Item("LoginTerminal")
+        glServiceMaster = ServiceMaster.ReturnServiceMasterList(p)
+    End Sub
+
+    Protected Sub prepareServiceMaster(ByVal sender As Object, ByVal e As System.EventArgs)
+        Try
+            Dim lst As DropDownList = sender
+            lst.Items.Clear()
+            lst.Items.Add(New ListItem("----Select----", "0"))
+            For Each th As ServiceMaster In glServiceMaster
+                lst.Items.Add(New ListItem(th.ServiceName, th.ServiceId))
+            Next
+        Catch ex As Exception
+        End Try
+    End Sub
+
+    Sub ButtonControlSetup(ByVal pVisible As Boolean)
+        btnAdd.Visible = pVisible
+        btnEdit.Visible = pVisible
+        btnExit.Visible = pVisible
+
+        btnSave.Visible = Not pVisible
+        btnCancel.Visible = Not pVisible
+        btnEdit.Visible = pVisible
+
+        If Session.Item("Add") <> "Y" Then
+            btnAdd.Visible = False
+        End If
+        If Session.Item("Edit") <> "Y" Then
+            btnEdit.Visible = False
+        End If
+        If Session.Item("Search") <> "Y" Then
+
+        End If
+        If Session.Item("Delete") <> "Y" Then
+        End If
+    End Sub
+    Protected Sub btnAdd_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnAdd.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Functions.clearControls(Me.dvControl.Controls)
+        fillRepeator(New ArrayList)
+        ButtonControlSetup(False)
+        manageUserControls(False)
+        'tvTreeView.Enabled = False
+        BtnConfirm.Visible = True
+    End Sub
+
+    Sub manageControls(ByRef pEnable As Boolean)
+    End Sub
+
+    Protected Sub btnEdit_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnEdit.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        manageUserControls(False)
+        ButtonControlSetup(False)
+        'tvTreeView.Enabled = False
+        manageControls(False)
+    End Sub
+
+    Protected Sub btnCancel_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnCancel.Click
+        Functions.clearControls(Me.dvControl.Controls)
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        'If Not tvTreeView.SelectedNode Is Nothing Then
+        '    prepareControls(tvTreeView.SelectedNode)
+        'End If
+        manageUserControls(True)
+        'tvTreeView.Enabled = True
+        ButtonControlSetup(True)
+        btnSearch.Visible = True
+    End Sub
+
+    Protected Sub btnExit_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnExit.Click
+        Response.Redirect("~/Home.aspx")
+    End Sub
+
+    Function ValidationCheck() As Boolean
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Dim rtnBool As Boolean = True
+        If LstBillingParty.SelectedValue <> Session.Item("CompanyId") Then
+            lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Bill To is not maching with login company")
+            rtnBool = False
+            Functions.ControlFocus(LstBillingParty)
+            Return rtnBool
+            Exit Function
+        End If
+        If lstShippingLine.SelectedValue = "0" And lstPurchaseType.SelectedValue = "L" Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblShippingLine.Text & "is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(lstShippingLine)
+            Return rtnBool
+            Exit Function
+        End If
+
+        If lstJoNo.SelectedValue = "0" And lstPurchaseType.SelectedValue = "M" Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Please Select JO NO.")
+            rtnBool = False
+            Functions.ControlFocus(lstJoNo)
+            Return rtnBool
+            Exit Function
+        End If
+        If lstVendorList.SelectedValue = "0" And lstPurchaseType.SelectedValue <> "L" Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblShippingLine.Text & "is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(lstVendorList)
+            Return rtnBool
+            Exit Function
+        End If
+        If textBlNo.Text = "" And lstPurchaseType.SelectedValue <> "M" Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblBlNo.Text & "is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(textBlNo)
+            Return rtnBool
+            Exit Function
+        End If
+        If TextInvNo.Text = "" Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, LblLineInvoiceNo.Text & "is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(TextInvNo)
+            Return rtnBool
+            Exit Function
+        End If
+        If textToDate0.Text = "" Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblInvoiceDate.Text & "is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(textToDate0)
+            Return rtnBool
+            Exit Function
+        End If
+        If txtGSTIN.Text = "" Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, lblGSTINNo.Text & "is Blank.")
+            rtnBool = False
+            Functions.ControlFocus(txtGSTIN)
+            Return rtnBool
+            Exit Function
+        End If
+        Dim isTaxHead As Integer = 0
+        If repTaxHead.Items.Count > 0 Then
+            Dim rep1, rep2 As RepeaterItem
+            Dim lstService, lstService1 As DropDownList
+
+            For Each rep1 In repTaxHead.Items
+                lstService = rep1.FindControl("lstService")
+
+                For Each rep2 In repTaxHead.Items
+                    lstService1 = rep2.FindControl("lstService")
+                    If lstService1.SelectedValue <> "0" Then
+                        If rep1.ItemIndex <> rep2.ItemIndex Then
+                            isTaxHead += 1
+                            If lstService.SelectedValue = lstService1.SelectedValue Then
+                                Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Tax Head is Duplicate.")
+                                rtnBool = False
+                                Functions.ControlFocus(lstService)
+                                Return rtnBool
+                                Exit Function
+                            End If
+                        End If
+
+                    End If
+                Next
+
+            Next
+        End If
+
+        Return rtnBool
+    End Function
+
+    Protected Sub btnSave_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnSave.Click
+        If ValidationCheck() = False Then
+            Return
+        End If
+        If HdnStatus.Value <> "U" Then
+            HdnStatus.Value = "U"
+            If LstBillingParty.SelectedValue <> Session.Item("CompanyId") Then
+                lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Bill To is not maching with login company")
+                Return
+            End If
+
+            If lstPurchaseType.SelectedValue = "0" Then
+                lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Please Select Purchase Type")
+                Return
+            End If
+            If lstShippingLine.SelectedValue = 0 And lstPurchaseType.SelectedValue = "L" Then
+                lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Please Select Line")
+                Return
+            End If
+            If lstVendorList.SelectedValue = 0 And lstPurchaseType.SelectedValue <> "L" Then
+                lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Please Select Vendor")
+                Return
+            End If
+
+            If lstState.SelectedValue = "0" And lstPurchaseType.SelectedValue = "L" Then
+                lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Please Select State")
+                Return
+            End If
+            If TextInvNo.Text.Trim = "" Then
+                lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Please Enter Liner Invoice No")
+                Return
+            End If
+            If textToDate0.Text.Trim = "" Then
+                lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Please Enter Liner Invoice Date")
+                Return
+            End If
+            Dim pCostBooking As CostBooking = ReturnObject()
+            If pCostBooking.CostBookingDtlsList.Count <= 0 Then
+                Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, " Please enter the cost for booking.")
+                repTaxHead.Items(0).Focus()
+                Exit Sub
+            End If
+
+            If pCostBooking.CostID > 0 Then
+                CostBooking.UpdateCostBookingDtls(pCostBooking)
+            Else
+                CostBooking.InsertNewCostBookingDtls(pCostBooking)
+            End If
+            Try
+                hdnCostId.Value = pCostBooking.CostID
+            Catch ex As Exception
+                hdnCostId.Value = 0
+            End Try
+            If pCostBooking.Errormsg <> Nothing Then
+                lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, pCostBooking.Errormsg)
+                Return
+            End If
+            If lstPurchaseType.SelectedValue = "L" Then
+                For Each row As GridViewRow In gvContainerDetails.Rows
+                    If row.RowType = DataControlRowType.DataRow Then
+
+                        Dim hdnMTY_CONT_ID As HiddenField = TryCast(row.Cells(0).FindControl("hdnMTY_CONT_ID"), HiddenField)
+                        Dim txtTotal As Label = TryCast(row.Cells(0).FindControl("txtTotal"), Label)
+                        Dim txtTaxAmt As Label = TryCast(row.Cells(0).FindControl("txtTaxAmt"), Label)
+                        Dim txtBaseAmt As Label = TryCast(row.Cells(0).FindControl("txtBaseAmt"), Label)
+                        Try
+                            con = New OleDbConnection(cs)
+                            con.Open()
+                            Dim cmd As OleDbCommand = New OleDbCommand("UPDATE ALL_PARTY_ACCOUNT SET LINE_BASE_AMT=(nvl(LINE_BASE_AMT,0)+('" & txtBaseAmt.Text.Trim & "')),LINE_TAX_AMT=(NVL(LINE_TAX_AMT,0) + ('" & txtTaxAmt.Text.Trim & "')),TOTAL_LINE_AMT=(NVL(TOTAL_LINE_AMT,0) + ('" & txtTotal.Text.Trim & "')),LINER_INV_NO=LINER_INV_NO || ',' || '" & TextInvNo.Text.Trim & "' WHERE MTY_CONT_ID= " & Convert.ToInt32(hdnMTY_CONT_ID.Value), con)
+                            cmd.ExecuteNonQuery()
+                            con.Close()
+                        Catch ex As Exception
+
+                        End Try
+                    End If
+                Next
+            End If
+            If lstPurchaseType.SelectedValue = "M" Then
+                Try
+                    con = New OleDbConnection(cs)
+                    con.Open()
+                    Dim cmd As OleDbCommand = New OleDbCommand("UPDATE FLEET_JO_DTLS SET COST_ID=" & hdnCostId.Value & " WHERE JO_ID= " & Convert.ToInt32(lstJoNo.SelectedValue), con)
+                    cmd.ExecuteNonQuery()
+                    con.Close()
+                Catch ex As Exception
+
+                End Try
+            End If
+
+            lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Message, lblErrorMessage, "Saved Successfully.")
+        Else
+            lblErrorMessage = Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Message, lblErrorMessage, "Already Updated")
+        End If
+        ButtonControlSetup(True)
+        manageUserControls(True)
+        Functions.ControlFocus(btnAdd)
+        btnSearch.Visible = True
+        btnDelete.Visible = True
+    End Sub
+
+    Private Function ReturnObject() As CostBooking
+        Dim p As New CostBooking
+        Try
+            p.CostID = hdnCostId.Value
+        Catch ex As Exception
+            p.CostID = 0
+        End Try
+        p.PurchaseType = lstPurchaseType.SelectedValue
+        p.LinerInvoiceNo = TextInvNo.Text.Trim
+        p.LinerInvoiceDate = textToDate0.Text
+        If lstPurchaseType.SelectedValue = "M" Then
+            p.BLNO = lstJoNo.SelectedItem.Text
+        Else
+            p.BLNO = textBlNo.Text
+        End If
+        If lstPurchaseType.SelectedValue = "L" Then
+            p.BillingParty = lstShippingLine.SelectedValue
+        Else
+            p.BillingParty = lstVendorList.SelectedValue
+        End If
+        Try
+            p.CompanyId = LstBillingParty.SelectedValue
+        Catch ex As Exception
+        End Try
+
+        p.DueDate = textDueDate.Text.Trim
+        p.CreatedBy = Session.Item("LoginUser")
+        p.CostBookingDtlsList = New ArrayList
+        For Each rep As RepeaterItem In repTaxHead.Items
+            Dim rate As Long = 0
+            Try
+                rate = Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text)
+            Catch ex As Exception
+                rate = 0
+            End Try
+            Dim TotalAmt As Long = 0
+            Try
+                TotalAmt = Double.Parse(CType(rep.FindControl("TextBox6"), TextBox).Text)
+            Catch ex As Exception
+                TotalAmt = 0
+            End Try
+            If CType(rep.FindControl("lstService"), DropDownList).SelectedValue <> "0" And TotalAmt <> 0 Then
+                Dim pdet As New CostBookingDtls
+                pdet.ServiceID = CType(rep.FindControl("lstService"), DropDownList).SelectedValue
+                pdet.Qnty = CType(rep.FindControl("textQnty"), TextBox).Text
+                pdet.Rate = CType(rep.FindControl("textRate"), TextBox).Text
+                pdet.ExRate = CType(rep.FindControl("textExRate"), TextBox).Text
+                pdet.BaseRate = CType(rep.FindControl("textBaseAmount"), TextBox).Text
+                pdet.TaxPerc = CType(rep.FindControl("textPerc"), TextBox).Text
+                pdet.TaxAmt = CType(rep.FindControl("TextBox5"), TextBox).Text
+                pdet.Total = CType(rep.FindControl("TextBox6"), TextBox).Text
+                pdet.CGSTRate = CType(rep.FindControl("txtCGSTRate"), TextBox).Text
+                pdet.SGSTRate = CType(rep.FindControl("txtSGSTRate"), TextBox).Text
+                pdet.IGSTRate = CType(rep.FindControl("txtIGSTRate"), TextBox).Text
+                pdet.CGSTAmount = CType(rep.FindControl("txtCGSTAmount"), TextBox).Text
+                pdet.SGSTAmount = CType(rep.FindControl("txtSGSTAmount"), TextBox).Text
+                pdet.IGSTAmount = CType(rep.FindControl("txtIGSTAmount"), TextBox).Text
+                pdet.TDSAmount = CType(rep.FindControl("textTDSAmount"), TextBox).Text
+                Try
+                    pdet.CostDtlsID = CType(rep.FindControl("hdnCostDtlsId"), HiddenField).Value
+                Catch ex As Exception
+                    pdet.CostDtlsID = 0
+                End Try
+                p.CostBookingDtlsList.Add(pdet)
+            End If
+        Next
+        Return p
+    End Function
+
+    Sub prepareControls(ByVal pCodevalue As TreeNode)
+        Dim p As New ServiceMasterCost
+        p.TerminalId = Session.Item("LoginTerminal")
+        p.ServiceId = pCodevalue.Value
+        ServiceMasterCost.ReturnServiceMasterByServiceId(p)
+        hdnTaxGroupID.Value = p.TaxGroupId
+    End Sub
+
+    Sub ListControlDataBind()
+        Dim strConnectionString As String
+        Dim ada As New OleDbDataAdapter
+        Try
+            strConnectionString = System.Configuration.ConfigurationManager.AppSettings("DBConnectionString")
+            Dim pTerminalMaster As New CustomerMaster
+            lstShippingLine.DataSource = CustomerMaster.ReturnCustomerMasterListAllLine(pTerminalMaster)
+            lstShippingLine.DataTextField = "CustomerName"
+            lstShippingLine.DataValueField = "CustomerId"
+            lstShippingLine.DataBind()
+            lstShippingLine.Items.Insert(0, (New ListItem("---All---", 0)))
+            lstShippingLine.SelectedValue = 0
+
+            Dim pVendorMaster As New VendorMaster
+            lstVendorList.DataSource = VendorMaster.ReturnVendorMasterList(pVendorMaster)
+            lstVendorList.DataTextField = "VendorName"
+            lstVendorList.DataValueField = "VendorId"
+            lstVendorList.DataBind()
+            lstVendorList.Items.Insert(0, (New ListItem("---All---", 0)))
+            lstVendorList.SelectedValue = 0
+
+            Dim pCompanyMaster As New CompanyMaster
+            LstBillingParty.DataSource = CompanyMaster.ReturnCompanyMasterList(pCompanyMaster)
+            LstBillingParty.DataTextField = "CompanyName"
+            LstBillingParty.DataValueField = "CompanyId"
+            LstBillingParty.DataBind()
+            LstBillingParty.Items.Insert(0, (New ListItem("DIRECT", 0)))
+            LstBillingParty.SelectedValue = 0
+
+            Dim pStateCodeMaster As New StateCodeMaster
+            lstState.DataSource = StateCodeMaster.ReturnStateList(pStateCodeMaster)
+            lstState.DataTextField = "StateName"
+            lstState.DataValueField = "StateCode"
+            lstState.DataBind()
+            lstState.Items.Add(New ListItem("----Select----", "0"))
+            lstState.SelectedValue = 0
+        Catch ex As Exception
+        End Try
+    End Sub
+    Sub checkper(ByVal sender As Object, ByVal e As System.EventArgs)
+        Try
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+            Dim txtPerc As TextBox = sender
+            Dim txtExRate As Double = 0
+            Dim txtQnty As Double = 0
+            Dim txtBaseAmount As Double = 0
+            Dim txtRate As Double = 0
+            Dim txtRateI As Double = 0
+            Dim index1 As Integer = Integer.Parse(txtPerc.ClientID.Substring("ctl00_ContentPlaceHolder1_repTaxHead_ctl".Length, txtPerc.ClientID.IndexOf("_textPerc") - "ctl00_ContentPlaceHolder1_repTaxHead_ctl".Length))
+            Dim rep As RepeaterItem
+            rep = repTaxHead.Items(index1 - 1)
+            If txtPerc.Text <> "" Then
+                'CType(rep.FindControl("hdnServiceId"), HiddenField).Value = 1
+                txtRateI = Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text)
+                txtExRate = Double.Parse(CType(rep.FindControl("textExRate"), TextBox).Text)
+                Try
+                    txtRate = Double.Parse(CType(rep.FindControl("textRate"), TextBox).Text)
+                Catch ex As Exception
+                    txtRate = 0
+                End Try
+
+                CType(rep.FindControl("textRate"), TextBox).Text = txtRateI * txtRate
+                txtBaseAmount = txtRateI * txtRate * txtExRate
+                CType(rep.FindControl("textBaseAmount"), TextBox).Text = txtRateI * txtRate * txtExRate
+                CType(rep.FindControl("TextBox5"), TextBox).Text = txtRateI * txtRate * txtExRate / 100 * 18
+                CType(rep.FindControl("textBaseAmount"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox6"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox5"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox6"), TextBox).Text = Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text) + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text)
+
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    Sub checkExRate(ByVal sender As Object, ByVal e As System.EventArgs)
+        Try
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+            Dim txtExRate As TextBox = sender
+            Dim txtRate As Double = 0
+            Dim txtQnty As Double = 0
+            Dim txtBaseAmount As Double = 0
+            Dim txtPerc As Double = 0
+            Dim txtRateI As Double = 0
+            Dim index1 As Integer = Integer.Parse(txtExRate.ClientID.Substring("ctl00_ContentPlaceHolder1_repTaxHead_ctl".Length, txtExRate.ClientID.IndexOf("_textExRate") - "ctl00_ContentPlaceHolder1_repTaxHead_ctl".Length))
+            Dim rep As RepeaterItem
+            rep = repTaxHead.Items(index1 - 1)
+            If txtExRate.Text <> "" Then
+                'CType(rep.FindControl("hdnServiceId"), HiddenField).Value = 1
+                txtRateI = Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text)
+                txtRate = Double.Parse(CType(rep.FindControl("textRate"), TextBox).Text)
+                Try
+                    If CType(rep.FindControl("lstService"), DropDownList).SelectedValue = 4 Then
+                        txtPerc = 0
+                        CType(rep.FindControl("textPerc"), TextBox).Text = 0
+                    Else
+                        txtPerc = 18
+                        CType(rep.FindControl("textPerc"), TextBox).Text = 18
+                    End If
+
+                Catch ex As Exception
+                    txtPerc = 0
+                End Try
+
+                CType(rep.FindControl("textRate"), TextBox).Text = txtRateI * txtRate
+                txtBaseAmount = txtRateI * txtRate * txtExRate.Text
+                CType(rep.FindControl("textBaseAmount"), TextBox).Text = txtRateI * txtRate * txtExRate.Text
+                CType(rep.FindControl("TextBox5"), TextBox).Text = txtRateI * txtRate * txtExRate.Text / 100 * txtPerc
+                CType(rep.FindControl("textBaseAmount"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox6"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox5"), TextBox).Enabled = False
+                CType(rep.FindControl("textPerc"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox6"), TextBox).Text = Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text) + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text)
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    Sub checkRate(ByVal sender As Object, ByVal e As System.EventArgs)
+        Try
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+            Dim txtRate As TextBox = sender
+            Dim txtExRate As Double = 0
+            Dim txtQnty As Double = 0
+            Dim txtBaseAmount As Double = 0
+            Dim txtPerc As Double = 0
+            Dim txtRateI As Double = 0
+            Dim index1 As Integer = Integer.Parse(txtRate.ClientID.Substring("ctl00_ContentPlaceHolder1_repTaxHead_ctl".Length, txtRate.ClientID.IndexOf("_textRate") - "ctl00_ContentPlaceHolder1_repTaxHead_ctl".Length))
+            Dim rep As RepeaterItem
+            rep = repTaxHead.Items(index1 - 1)
+            If txtRate.Text <> "" Then
+                'CType(rep.FindControl("hdnServiceId"), HiddenField).Value = 1
+                txtRateI = Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text)
+                txtExRate = Double.Parse(CType(rep.FindControl("textExRate"), TextBox).Text)
+                Try
+                    If CType(rep.FindControl("lstService"), DropDownList).SelectedValue = 4 Then
+                        txtPerc = 0
+                        CType(rep.FindControl("textPerc"), TextBox).Text = 0
+                    Else
+                        txtPerc = 18
+                        CType(rep.FindControl("textPerc"), TextBox).Text = 18
+                    End If
+
+                Catch ex As Exception
+                    txtPerc = 0
+                End Try
+
+                CType(rep.FindControl("textRate"), TextBox).Text = txtRateI * txtRate.Text
+                txtBaseAmount = txtRateI * txtRate.Text * txtExRate
+                CType(rep.FindControl("textBaseAmount"), TextBox).Text = txtRateI * txtRate.Text * txtExRate
+                CType(rep.FindControl("TextBox5"), TextBox).Text = txtRateI * txtRate.Text * txtExRate / 100 * txtPerc
+                CType(rep.FindControl("textBaseAmount"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox6"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox5"), TextBox).Enabled = False
+                CType(rep.FindControl("textPerc"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox6"), TextBox).Text = Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text) + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text)
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    Sub checkqnty(ByVal sender As Object, ByVal e As System.EventArgs)
+        Try
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+            Dim txtQnty As TextBox = sender
+            Dim txtExRate As Double = 0
+            Dim textRate As Double = 0
+            Dim txtBaseAmount As Double = 0
+            Dim txtPerc As Double = 0
+            Dim txtRateI As Double = 0
+            Dim index1 As Integer = Integer.Parse(txtQnty.ClientID.Substring("ctl00_ContentPlaceHolder1_repTaxHead_ctl".Length, txtQnty.ClientID.IndexOf("_textQnty") - "ctl00_ContentPlaceHolder1_repTaxHead_ctl".Length))
+            Dim rep As RepeaterItem
+            rep = repTaxHead.Items(index1 - 1)
+            If txtQnty.Text <> "" Then
+                'CType(rep.FindControl("hdnServiceId"), HiddenField).Value = 1
+                txtRateI = Double.Parse(CType(rep.FindControl("textRate"), TextBox).Text)
+                txtExRate = Double.Parse(CType(rep.FindControl("textExRate"), TextBox).Text)
+                Try
+                    If CType(rep.FindControl("lstService"), DropDownList).SelectedValue = 4 Then
+                        txtPerc = 0
+                        CType(rep.FindControl("textPerc"), TextBox).Text = 0
+                    Else
+                        txtPerc = 18
+                        CType(rep.FindControl("textPerc"), TextBox).Text = 18
+                    End If
+
+                Catch ex As Exception
+                    txtPerc = 0
+                End Try
+
+                CType(rep.FindControl("textRate"), TextBox).Text = txtRateI * txtQnty.Text
+                txtBaseAmount = txtRateI * txtQnty.Text * txtExRate
+                CType(rep.FindControl("textBaseAmount"), TextBox).Text = txtRateI * txtQnty.Text * txtExRate
+                CType(rep.FindControl("TextBox5"), TextBox).Text = txtRateI * txtQnty.Text * txtExRate / 100 * txtPerc
+                CType(rep.FindControl("TextBox6"), TextBox).Text = Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text) + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text)
+                CType(rep.FindControl("textBaseAmount"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox6"), TextBox).Enabled = False
+                CType(rep.FindControl("TextBox5"), TextBox).Enabled = False
+                CType(rep.FindControl("textPerc"), TextBox).Enabled = False
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+
+
+    Protected Sub btnGo_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnGo.Click
+        'Dim pAllPartyAccount As New AllPartyAccount
+        'pAllPartyAccount.BlNo = textBlNo.Text
+        'AllPartyAccount.ReturnAllPartyAccountByContJoId(pAllPartyAccount)
+
+        Dim strpParms As String = "'" & textBlNo.Text & "'"
+
+        Dim dbr As OleDb.OleDbDataReader
+        Dim db As New DBConnect
+        dbr = db.StoredProcedureReadDB("REPORT_PKG.SP_ALL_PARTY_BY_BL_NO", strpParms)
+        gvContainerDetails.DataSource = dbr
+        gvContainerDetails.DataBind()
+        If dbr.HasRows = False Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "No record Found")
+        End If
+        dbr.Close()
+        db.CloseDB()
+        btnSearch.Visible = False
+    End Sub
+
+    Protected Sub BtnConfirm_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles BtnConfirm.Click
+        Dim dblRate As Double = 0.0
+        Dim dbltaxamt As Double = 0.0
+        Dim dblbaseamt As Double = 0.0
+        Dim dblTotal As Double = 0.0
+        Dim dbltaxamtcont As Double = 0.0
+        Dim dblbaseamtcont As Double = 0.0
+        Dim dblTotalcont As Double = 0.0
+        Dim dbltotalchk As Double = 0.0
+        Dim txtExRate As Double = 0
+        Dim textRate As Double = 0
+        Dim txtBaseAmount As Double = 0
+        Dim txtPerc As Double = 0
+        Dim txtQnty As Double = 0
+        Dim service As Long = 0
+        Dim dblCGSTRate As Double = 0
+        Dim dblIGSTRate As Double = 0
+        Dim dblSGSTRate As Double = 0
+        Dim dblCGSTAmt As Double = 0
+        Dim dblIGSTAmt As Double = 0
+        Dim dblSGSTAmt As Double = 0
+        Dim dblTDSAmt As Double = 0.0
+        For Each rep As RepeaterItem In repTaxHead.Items
+            service = CType(rep.FindControl("lstService"), DropDownList).SelectedValue
+            If service > 0 Then
+                Try
+                    textRate = Double.Parse(CType(rep.FindControl("textRate"), TextBox).Text)
+                Catch ex As Exception
+                    textRate = 0
+                End Try
+                Try
+                    txtExRate = Double.Parse(CType(rep.FindControl("textExRate"), TextBox).Text)
+                Catch ex As Exception
+                    txtExRate = 1
+                End Try
+                Try
+                    txtQnty = Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text)
+                Catch ex As Exception
+                    txtQnty = 1
+                End Try
+
+                'Try
+                '    If CType(rep.FindControl("lstService"), DropDownList).SelectedValue = 4 Then
+                '        txtPerc = 0
+                '        CType(rep.FindControl("textPerc"), TextBox).Text = 0
+                '    Else
+                '        txtPerc = 18
+                '        CType(rep.FindControl("textPerc"), TextBox).Text = 18
+                '    End If
+
+                'Catch ex As Exception
+                '    txtPerc = 0
+                'End Try
+
+                Dim pServiceMaster As New ServiceMaster
+                pServiceMaster.ServiceId = CType(rep.FindControl("lstService"), DropDownList).SelectedValue
+                pServiceMaster.TerminalId = Session.Item("LoginTerminal")
+                ServiceMaster.ReturnServiceMasterByServiceId(pServiceMaster)
+
+                Dim pCustomerMaster As New CustomerMaster
+                pCustomerMaster.TerminalId = Session.Item("LoginTerminal")
+                pCustomerMaster.CustomerId = lstShippingLine.SelectedValue
+                CustomerMaster.ReturnCustomerMaster(pCustomerMaster)
+
+                Dim pTaxGroupHeads As New TaxGroupHeads
+                pTaxGroupHeads.TaxGroupId = pServiceMaster.TaxGroupId
+                pTaxGroupHeads.TerminalId = Session.Item("LoginTerminal")
+                Dim arrTaxGroupHeads As New ArrayList
+                TaxGroupHeads.ReturnTaxGroupHeadsListByTaxGroupIdAndIGST(pTaxGroupHeads)
+                'CType(rep.FindControl("textRate"), TextBox).Text = textRate * txtQnty
+                txtBaseAmount = textRate * txtQnty * txtExRate
+                CType(rep.FindControl("textBaseAmount"), TextBox).Text = Math.Round(textRate * txtQnty * txtExRate, 2)
+                Dim pCom As New CompanyMaster
+                pCom.CompanyId = Session.Item("CompanyId")
+                CompanyMaster.ReturnCompanyMasterbyId(pCom)
+
+                If lstState.SelectedValue = pCom.StateCode Then
+                    CType(rep.FindControl("txtCGSTRATE"), TextBox).Text = pTaxGroupHeads.TaxPercentage / 2
+                    CType(rep.FindControl("txtSGSTRATE"), TextBox).Text = pTaxGroupHeads.TaxPercentage / 2
+                    CType(rep.FindControl("txtCGSTAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * (pTaxGroupHeads.TaxPercentage / 2) / 100, 2)
+                    CType(rep.FindControl("txtSGSTAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * (pTaxGroupHeads.TaxPercentage / 2) / 100, 2)
+                    CType(rep.FindControl("txtIGSTRATE"), TextBox).Text = 0
+                    CType(rep.FindControl("txtIGSTAmount"), TextBox).Text = 0
+
+                    CType(rep.FindControl("TextBox5"), TextBox).Text = Math.Round(textRate * txtQnty * txtExRate / 100 * pTaxGroupHeads.TaxPercentage, 2)
+                    CType(rep.FindControl("TextBox6"), TextBox).Text = Math.Round(Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text) + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text), 2)
+                    CType(rep.FindControl("textPerc"), TextBox).Text = pTaxGroupHeads.TaxPercentage
+                    CType(rep.FindControl("textBaseAmount"), TextBox).Enabled = False
+                    CType(rep.FindControl("TextBox6"), TextBox).Enabled = False
+                    CType(rep.FindControl("TextBox5"), TextBox).Enabled = False
+                    CType(rep.FindControl("textPerc"), TextBox).Enabled = False
+                    CType(rep.FindControl("textQnty"), TextBox).Enabled = False
+                    CType(rep.FindControl("textRate"), TextBox).Enabled = False
+                    CType(rep.FindControl("textExRate"), TextBox).Enabled = False
+                    CType(rep.FindControl("lstService"), DropDownList).Enabled = False
+                    CType(rep.FindControl("txtCGSTRATE"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtSGSTRATE"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtIGSTRATE"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtCGSTAmount"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtSGSTAmount"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtIGSTAmount"), TextBox).Enabled = False
+                Else
+                    CType(rep.FindControl("txtCGSTRATE"), TextBox).Text = 0
+                    CType(rep.FindControl("txtSGSTRATE"), TextBox).Text = 0
+                    CType(rep.FindControl("txtCGSTAmount"), TextBox).Text = 0
+                    CType(rep.FindControl("txtSGSTAmount"), TextBox).Text = 0
+                    CType(rep.FindControl("txtIGSTRATE"), TextBox).Text = pTaxGroupHeads.TaxPercentage
+                    CType(rep.FindControl("txtIGSTAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * (pTaxGroupHeads.TaxPercentage) / 100, 2)
+
+                    CType(rep.FindControl("TextBox5"), TextBox).Text = Math.Round(textRate * txtQnty * txtExRate / 100 * pTaxGroupHeads.TaxPercentage, 2)
+                    CType(rep.FindControl("TextBox6"), TextBox).Text = Math.Round(Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text) + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text), 2)
+                    CType(rep.FindControl("textPerc"), TextBox).Text = pTaxGroupHeads.TaxPercentage
+                    CType(rep.FindControl("textBaseAmount"), TextBox).Enabled = False
+                    CType(rep.FindControl("TextBox6"), TextBox).Enabled = False
+                    CType(rep.FindControl("TextBox5"), TextBox).Enabled = False
+                    CType(rep.FindControl("textPerc"), TextBox).Enabled = False
+                    CType(rep.FindControl("textQnty"), TextBox).Enabled = False
+                    CType(rep.FindControl("textRate"), TextBox).Enabled = False
+                    CType(rep.FindControl("textExRate"), TextBox).Enabled = False
+                    CType(rep.FindControl("lstService"), DropDownList).Enabled = False
+                    CType(rep.FindControl("txtCGSTRATE"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtSGSTRATE"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtIGSTRATE"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtCGSTAmount"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtSGSTAmount"), TextBox).Enabled = False
+                    CType(rep.FindControl("txtIGSTAmount"), TextBox).Enabled = False
+                End If
+
+                If lstPurchaseType.SelectedValue = "L" AndAlso lstTdsApplicable.SelectedValue = "Y" Then
+                    Try
+                        CType(rep.FindControl("textTDSAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * pCustomerMaster.Exemption / 100, 2)
+                    Catch ex As Exception
+                    End Try
+                ElseIf lstPurchaseType.SelectedValue = "M" AndAlso lstTdsApplicable.SelectedValue = "Y" Then
+
+                    Dim pVendorMaster As New VendorMaster
+                    pVendorMaster.TerminalId = Session.Item("LoginTerminal")
+                    pVendorMaster.VendorId = lstVendorList.SelectedValue
+                    VendorMaster.ReturnVendorMaster(pVendorMaster)
+                    c = GetChar(pVendorMaster.Pan, 4)
+
+                    If c = "C" Then
+                        Try
+                            CType(rep.FindControl("textTDSAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * 2 / 100, 2)
+                        Catch ex As Exception
+                        End Try
+                    Else
+                        Try
+                            CType(rep.FindControl("textTDSAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * 1 / 100, 2)
+                        Catch ex As Exception
+                        End Try
+                    End If
+                End If
+            ElseIf lstPurchaseType.SelectedValue = "S" AndAlso lstTdsApplicable.SelectedValue = "Y" Then
+
+                If c = "C" Then
+                    Try
+                        CType(rep.FindControl("textTDSAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * 2 / 100, 2)
+                    Catch ex As Exception
+                    End Try
+                Else
+                    Try
+                        CType(rep.FindControl("textTDSAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * 1 / 100, 2)
+                    Catch ex As Exception
+                    End Try
+                End If
+            ElseIf lstPurchaseType.SelectedValue = "C" AndAlso lstTdsApplicable.SelectedValue = "Y" Then
+
+                If c = "C" Then
+                    Try
+                        CType(rep.FindControl("textTDSAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * 2 / 100, 2)
+                    Catch ex As Exception
+                    End Try
+                Else
+                    Try
+                        CType(rep.FindControl("textTDSAmount"), TextBox).Text = Math.Round(CType(rep.FindControl("textBaseAmount"), TextBox).Text * 1 / 100, 2)
+                    Catch ex As Exception
+                    End Try
+                End If
+            Else
+                CType(rep.FindControl("textTDSAmount"), TextBox).Text = 0
+            End If
+
+            Try
+                dbltotalchk = Double.Parse(CType(rep.FindControl("TextBox6"), TextBox).Text)
+            Catch ex As Exception
+                dbltotalchk = 0
+            End Try
+            If dbltotalchk > 0 Then
+                dblCGSTAmt = Math.Round(dblCGSTAmt + Double.Parse(CType(rep.FindControl("txtCGSTAmount"), TextBox).Text), 2)
+                dblSGSTAmt = Math.Round(dblSGSTAmt + Double.Parse(CType(rep.FindControl("txtSGSTAmount"), TextBox).Text), 2)
+                dblIGSTAmt = Math.Round(dblIGSTAmt + Double.Parse(CType(rep.FindControl("txtIGSTAmount"), TextBox).Text), 2)
+
+                dblTDSAmt = Math.Round(dblTDSAmt + Double.Parse(CType(rep.FindControl("textTDSAmount"), TextBox).Text), 2)
+
+                dbltaxamt = Math.Round(dbltaxamt + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text), 2)
+                dblbaseamt = Math.Round(dblbaseamt + Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text), 2)
+                dblRate = Math.Round(dblRate + Double.Parse(CType(rep.FindControl("textRate"), TextBox).Text), 2)
+                dblTotal = Math.Round(dblTotal + Double.Parse(CType(rep.FindControl("TextBox6"), TextBox).Text), 2)
+                dblTotalcont = Math.Round(dblTotalcont + Double.Parse(CType(rep.FindControl("TextBox6"), TextBox).Text) / Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text), 2)
+                dblbaseamtcont = Math.Round(dblbaseamtcont + Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text) / Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text), 2)
+                dbltaxamtcont = Math.Round(dbltaxamtcont + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text) / Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text), 2)
+            End If
+
+        Next
+        For Each row As GridViewRow In gvContainerDetails.Rows
+            If row.RowType = DataControlRowType.DataRow Then
+                Dim txtTotal As Label = TryCast(row.Cells(0).FindControl("txtTotal"), Label)
+                Dim txtTaxAmt As Label = TryCast(row.Cells(0).FindControl("txtTaxAmt"), Label)
+                Dim txtBaseAmt As Label = TryCast(row.Cells(0).FindControl("txtBaseAmt"), Label)
+                txtTotal.Text = Math.Round(dblTotalcont, 2)
+                txtTaxAmt.Text = Math.Round(dbltaxamtcont, 2)
+                txtBaseAmt.Text = Math.Round(dblbaseamtcont, 2)
+            End If
+        Next
+        LblTaxAmt.Text = Math.Round(dbltaxamt, 2)
+        lblBaseAmt.Text = Math.Round(dblbaseamt, 2)
+        LblTotalAmt.Text = Math.Round(dblTotal, 2)
+        lblCGSTAmount.Text = Math.Round(dblCGSTAmt, 2)
+        lblSGSTAmount.Text = Math.Round(dblSGSTAmt, 2)
+        lblIGSTAmount.Text = Math.Round(dblIGSTAmt, 2)
+        lblTotalTDS.Text = Math.Round(dblTDSAmt, 2)
+        LblRate.Text = Math.Round(dblRate, 2)
+        btnSave.Visible = True
+        btnSave.Enabled = True
+        BtnEditDetails.Enabled = True
+        BtnEditDetails.Visible = True
+        BtnConfirm.Enabled = True
+        BtnConfirm.Visible = True
+    End Sub
+
+    Protected Sub BtnEditDetails_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles BtnEditDetails.Click
+        For Each rep As RepeaterItem In repTaxHead.Items
+            CType(rep.FindControl("textQnty"), TextBox).Enabled = True
+            CType(rep.FindControl("textRate"), TextBox).Enabled = True
+            CType(rep.FindControl("textExRate"), TextBox).Enabled = True
+            CType(rep.FindControl("lstService"), DropDownList).Enabled = True
+        Next
+        textToDate0.Enabled = True
+        textBlNo.Enabled = True
+        TextInvNo.Enabled = True
+        btnSave.Visible = False
+        btnSave.Enabled = False
+        BtnConfirm.Visible = True
+        BtnConfirm.Enabled = True
+    End Sub
+
+    Protected Sub lstPurchaseType_SelectedIndexChanged(sender As Object, e As System.EventArgs) Handles lstPurchaseType.SelectedIndexChanged
+        ListControlDataBind()
+        If lstPurchaseType.SelectedValue = "L" Then
+            lstShippingLine.Visible = True
+            textBlNo.Visible = True
+            lblBlNo.Visible = True
+            lblShippingLine.Visible = True
+            lstShippingLine.Visible = True
+            lstVendorList.Visible = False
+            btnGo.Visible = True
+            lstJoNo.Visible = False
+            lblBlNo.Text = "BL No"
+        ElseIf lstPurchaseType.SelectedValue = "C" Then
+            textBlNo.Visible = True
+            lblBlNo.Visible = True
+            lblShippingLine.Visible = True
+            lstShippingLine.Visible = False
+            lstVendorList.Visible = True
+            btnGo.Visible = True
+            lstJoNo.Visible = False
+            lblBlNo.Text = "BL No"
+        ElseIf lstPurchaseType.SelectedValue = "M" Then
+            textBlNo.Visible = False
+            lblBlNo.Text = "Jo No"
+            lblBlNo.Visible = True
+            lblShippingLine.Visible = True
+            lstShippingLine.Visible = False
+            lstVendorList.Visible = True
+            btnGo.Visible = False
+            Dim strConnectionString, cmd1 As String
+            Dim con As OleDbConnection
+            Dim ada As New OleDbDataAdapter
+            strConnectionString = System.Configuration.ConfigurationManager.AppSettings("DBConnectionString")
+            cmd1 = "  SELECT FJD.JO_ID, JO_NO FROM FLEET_JO_DTLS FJD  WHERE CLOSE_DATE IS NOT NULL AND NVL(COST_ID,0)=0 ORDER BY FJD.JO_ID DESC"
+            con = New OleDbConnection(strConnectionString)
+            con.Open()
+            ada = New OleDbDataAdapter(cmd1, con)
+            Dim ds As New DataSet("CONTAINER")
+            Try
+                ada.Fill(ds)
+                lstJoNo.DataSource = ds.Tables(0)
+                lstJoNo.DataTextField = "JO_NO"
+                lstJoNo.DataValueField = "JO_ID"
+                lstJoNo.DataBind()
+                lstJoNo.Items.Insert(0, (New ListItem("---Select---", "0")))
+            Catch ex As Exception
+            End Try
+            ds.Clear()
+            con.Close()
+            lstJoNo.Visible = True
+        Else
+            textBlNo.Visible = False
+            lblBlNo.Visible = False
+            lblShippingLine.Visible = True
+            lstShippingLine.Visible = False
+            lstVendorList.Visible = True
+            btnGo.Visible = False
+            lstJoNo.Visible = False
+            lblBlNo.Text = "BL No"
+        End If
+        lstPurchaseType.Enabled = False
+    End Sub
+
+    Protected Sub lstShippingLine_SelectedIndexChanged(sender As Object, e As System.EventArgs) Handles lstShippingLine.SelectedIndexChanged
+        If lstPurchaseType.SelectedValue = "L" Then
+            Dim pCustomerMaster As New CustomerMaster
+            pCustomerMaster.CustomerId = lstShippingLine.SelectedValue
+            pCustomerMaster.TerminalId = Session.Item("LoginTerminal")
+            CustomerMaster.ReturnCustomerMaster(pCustomerMaster)
+            Try
+                lstState.SelectedValue = pCustomerMaster.StateCode
+                txtGSTIN.Text = pCustomerMaster.GSTN
+            Catch ex As Exception
+
+            End Try
+            lstState.Enabled = False
+            txtGSTIN.Enabled = False
+        End If
+    End Sub
+
+    Protected Sub lstVendorList_SelectedIndexChanged(sender As Object, e As System.EventArgs) Handles lstVendorList.SelectedIndexChanged
+        If lstPurchaseType.SelectedValue <> "L" Then
+            Dim pVendorMaster As New VendorMaster
+            pVendorMaster.VendorId = lstVendorList.SelectedValue
+            pVendorMaster.TerminalId = Session.Item("LoginTerminal")
+            VendorMaster.ReturnVendorMaster(pVendorMaster)
+            Try
+                lstState.SelectedValue = pVendorMaster.State
+                txtGSTIN.Text = pVendorMaster.GSTIN
+            Catch ex As Exception
+
+            End Try
+            lstState.Enabled = False
+            txtGSTIN.Enabled = False
+        End If
+    End Sub
+
+    Protected Sub btnSearch_Click(sender As Object, e As System.EventArgs) Handles btnSearch.Click
+        Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Clear, lblErrorMessage, "")
+        Functions.clearControls(Me.dvControl.Controls)
+        manageUserControls(True)
+        ButtonControlSetup(True)
+        btnSearchInvoice.Visible = True
+        TextInvNo.Enabled = True
+        btnSearchInvoice.Visible = True
+        btnSave.Visible = False
+        btnAdd.Visible = True
+        btnCancel.Visible = True
+        BtnConfirm.Visible = True
+        BtnEditDetails.Visible = True
+    End Sub
+
+    Protected Sub btnSearchInvoice_Click(sender As Object, e As System.EventArgs) Handles btnSearchInvoice.Click
+        Dim p As New CostBooking
+        p.LinerInvoiceNo = TextInvNo.Text.Trim
+
+        CostBooking.ReturnPurchaseByInvoice(p)
+        If p.CostID = 0 Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Invalid Liner Invoice No")
+            Functions.ControlFocus(TextInvNo)
+            Return
+        End If
+        ListControlDataBind()
+        lstPurchaseType.SelectedValue = p.PurchaseType
+        LstBillingParty.SelectedValue = p.CompanyId
+        textBlNo.Text = p.BLNO
+        If lstPurchaseType.SelectedValue = "S" Then
+            lstVendorList.SelectedValue = p.BillingParty
+
+        Else
+            lstShippingLine.SelectedValue = p.BillingParty
+        End If
+        If lstPurchaseType.SelectedValue = "L" Then
+            Dim pCustomerMaster As New CustomerMaster
+            Try
+                pCustomerMaster.CustomerId = lstShippingLine.SelectedValue
+            Catch ex As Exception
+                pCustomerMaster.CustomerId = 0
+            End Try
+
+            pCustomerMaster.TerminalId = Session.Item("LoginTerminal")
+            CustomerMaster.ReturnCustomerMaster(pCustomerMaster)
+            Try
+                lstState.SelectedValue = pCustomerMaster.StateCode
+                txtGSTIN.Text = pCustomerMaster.GSTN
+            Catch ex As Exception
+
+            End Try
+            textBlNo.Text = p.BLNO
+            textBlNo.Visible = True
+            lblBlNo.Visible = True
+        Else
+            Dim pVendorMaster As New VendorMaster
+            pVendorMaster.VendorId = lstVendorList.SelectedValue
+            pVendorMaster.TerminalId = Session.Item("LoginTerminal")
+            VendorMaster.ReturnVendorMaster(pVendorMaster)
+            Try
+                lstState.SelectedValue = pVendorMaster.State
+                txtGSTIN.Text = pVendorMaster.GSTIN
+            Catch ex As Exception
+
+            End Try
+            textBlNo.Visible = False
+
+            lblBlNo.Visible = False
+        End If
+        TextInvNo.Text = p.LinerInvoiceNo
+        textToDate0.Text = p.LinerInvoiceDate
+        textDueDate.Text = p.DueDate
+        Dim pCostDtls As New CostBookingDtls
+        pCostDtls.CostID = p.CostID
+        hdnCostId.Value = p.CostID
+        pCostDtls.CostBookingList = CostBookingDtls.ReturnCostBookingDtlsByCostId(pCostDtls)
+        fillRepeator(pCostDtls.CostBookingList)
+
+
+        btnSearchInvoice.Visible = False
+        btnSearch.Visible = True
+        btnSave.Visible = False
+        btnEdit.Visible = False
+        btnAdd.Visible = True
+        manageUserControls(True)
+
+        btnDelete.Visible = True
+        BtnConfirm.Visible = True
+        totalfooter()
+        BtnEditDetails.Visible = True
+    End Sub
+
+    Sub totalfooter()
+        Dim dblRate As Double = 0.0
+        Dim dbltaxamt As Double = 0.0
+        Dim dblbaseamt As Double = 0.0
+        Dim dblTotal As Double = 0.0
+        Dim dbltaxamtcont As Double = 0.0
+        Dim dblbaseamtcont As Double = 0.0
+        Dim dblTotalcont As Double = 0.0
+        Dim dbltotalchk As Double = 0.0
+        Dim txtExRate As Double = 0
+        Dim textRate As Double = 0
+        Dim txtBaseAmount As Double = 0
+        Dim txtPerc As Double = 0
+        Dim txtQnty As Double = 0
+        Dim service As Long = 0
+        Dim dblCGSTRate As Double = 0
+        Dim dblIGSTRate As Double = 0
+        Dim dblSGSTRate As Double = 0
+        Dim dblCGSTAmt As Double = 0
+        Dim dblIGSTAmt As Double = 0
+        Dim dblSGSTAmt As Double = 0
+        For Each rep As RepeaterItem In repTaxHead.Items
+
+            Try
+                dbltotalchk = Double.Parse(CType(rep.FindControl("TextBox6"), TextBox).Text)
+            Catch ex As Exception
+                dbltotalchk = 0
+            End Try
+            If dbltotalchk > 0 Then
+                dblCGSTAmt = dblCGSTAmt + Double.Parse(CType(rep.FindControl("txtCGSTAmount"), TextBox).Text)
+                dblSGSTAmt = dblSGSTAmt + Double.Parse(CType(rep.FindControl("txtSGSTAmount"), TextBox).Text)
+                dblIGSTAmt = dblIGSTAmt + Double.Parse(CType(rep.FindControl("txtIGSTAmount"), TextBox).Text)
+
+                dbltaxamt = dbltaxamt + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text)
+                dblbaseamt = dblbaseamt + Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text)
+                dblRate = dblRate + Double.Parse(CType(rep.FindControl("textRate"), TextBox).Text)
+                dblTotal = dblTotal + Double.Parse(CType(rep.FindControl("TextBox6"), TextBox).Text)
+                dblTotalcont = dblTotalcont + Double.Parse(CType(rep.FindControl("TextBox6"), TextBox).Text) / Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text)
+                dblbaseamtcont = dblbaseamtcont + Double.Parse(CType(rep.FindControl("textBaseAmount"), TextBox).Text) / Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text)
+                dbltaxamtcont = dbltaxamtcont + Double.Parse(CType(rep.FindControl("TextBox5"), TextBox).Text) / Double.Parse(CType(rep.FindControl("textQnty"), TextBox).Text)
+            End If
+
+        Next
+        LblTaxAmt.Text = dbltaxamt
+        lblBaseAmt.Text = dblbaseamt
+        LblTotalAmt.Text = dblTotal
+        lblCGSTAmount.Text = dblCGSTAmt
+        lblSGSTAmount.Text = dblSGSTAmt
+        lblIGSTAmount.Text = dblIGSTAmt
+        LblRate.Text = dblRate
+
+    End Sub
+
+    'Protected Sub repTaxHead_ItemDataBound(sender As Object, e As System.Web.UI.WebControls.RepeaterItemEventArgs) Handles repTaxHead.ItemDataBound
+    '    If e.Item.ItemType = ListItemType.AlternatingItem Or e.Item.ItemType = ListItemType.Item Then
+    '        If CType(e.Item.FindControl("lstService"), DropDownList).SelectedValue <> Nothing AndAlso CType(e.Item.FindControl("lstService"), DropDownList).SelectedValue > 0 And CType(e.Item.FindControl("hdnCostDtlsId"), HiddenField).Value > 0 Then
+
+    '        End If
+    '    End If
+
+
+    'End Sub
+
+    Sub search(ByVal InvoiceNo As String)
+        Dim p As New CostBooking
+        p.LinerInvoiceNo = InvoiceNo
+
+        CostBooking.ReturnPurchaseByInvoice(p)
+        If p.CostID = 0 Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Invalid Liner Invoice No")
+            Functions.ControlFocus(TextInvNo)
+            Return
+        End If
+        ListControlDataBind()
+        lstPurchaseType.SelectedValue = p.PurchaseType
+        LstBillingParty.SelectedValue = p.CompanyId
+        hdnCostId.Value = p.CostID
+        textBlNo.Text = p.BLNO
+        If lstPurchaseType.SelectedValue = "S" Then
+            lstVendorList.SelectedValue = p.BillingParty
+        Else
+            lstShippingLine.SelectedValue = p.BillingParty
+        End If
+        If lstPurchaseType.SelectedValue = "L" Then
+            Dim pCustomerMaster As New CustomerMaster
+            Try
+                pCustomerMaster.CustomerId = lstShippingLine.SelectedValue
+            Catch ex As Exception
+                pCustomerMaster.CustomerId = 0
+            End Try
+
+            pCustomerMaster.TerminalId = Session.Item("LoginTerminal")
+            CustomerMaster.ReturnCustomerMaster(pCustomerMaster)
+            Try
+                lstState.SelectedValue = pCustomerMaster.StateCode
+                txtGSTIN.Text = pCustomerMaster.GSTN
+            Catch ex As Exception
+
+            End Try
+        Else
+            Dim pVendorMaster As New VendorMaster
+            pVendorMaster.VendorId = lstVendorList.SelectedValue
+            pVendorMaster.TerminalId = Session.Item("LoginTerminal")
+            VendorMaster.ReturnVendorMaster(pVendorMaster)
+            Try
+                lstState.SelectedValue = pVendorMaster.State
+                txtGSTIN.Text = pVendorMaster.GSTIN
+            Catch ex As Exception
+
+            End Try
+        End If
+        TextInvNo.Text = p.LinerInvoiceNo
+        textToDate0.Text = p.LinerInvoiceDate
+        textDueDate.Text = p.DueDate
+        Dim pCostDtls As New CostBookingDtls
+        pCostDtls.CostID = p.CostID
+
+        pCostDtls.CostBookingList = CostBookingDtls.ReturnCostBookingDtlsByCostId(pCostDtls)
+        fillRepeator(pCostDtls.CostBookingList)
+
+
+        btnSearchInvoice.Visible = False
+        btnSearch.Visible = True
+        btnSave.Visible = False
+        btnEdit.Visible = False
+        btnAdd.Visible = True
+        manageUserControls(True)
+
+        btnDelete.Visible = True
+        BtnConfirm.Visible = True
+        totalfooter()
+        BtnEditDetails.Visible = True
+    End Sub
+
+    Protected Sub btnDelete_Click(sender As Object, e As System.EventArgs) Handles btnDelete.Click
+        Dim confirmValue As String = Request.Form("confirm_value")
+        If confirmValue = "Yes" Then
+            If hdnCostId.Value <> "0" Then
+                Dim pCostBooking As New CostBooking
+                pCostBooking.CostID = hdnCostId.Value
+                CostBooking.DeletePurchaseEntryByCostId(pCostBooking)
+                btnDelete.Visible = False
+                btnSearch.Visible = True
+                btnAdd.Visible = True
+            End If
+        Else
+            Return
+        End If
+
+    End Sub
+    Protected Sub TextInvNo_TextChanged(sender As Object, e As EventArgs) Handles TextInvNo.TextChanged
+        Dim p As New CostBooking
+        p.LinerInvoiceNo = TextInvNo.Text.Trim
+
+        CostBooking.ReturnPurchaseByInvoice(p)
+        If p.CostID = 0 Then
+            Functions.setMsgErrorClear_Setup(Functions.ErrMsgMode.Errors, lblErrorMessage, "Invalid Liner Invoice No")
+            Functions.ControlFocus(TextInvNo)
+            Return
+        End If
+        ListControlDataBind()
+        lstPurchaseType.SelectedValue = p.PurchaseType
+        LstBillingParty.SelectedValue = p.CompanyId
+        textBlNo.Text = p.BLNO
+        If lstPurchaseType.SelectedValue = "S" Then
+            lstVendorList.SelectedValue = p.BillingParty
+        Else
+            lstShippingLine.SelectedValue = p.BillingParty
+        End If
+        If lstPurchaseType.SelectedValue = "L" Then
+            Dim pCustomerMaster As New CustomerMaster
+            Try
+                pCustomerMaster.CustomerId = lstShippingLine.SelectedValue
+            Catch ex As Exception
+                pCustomerMaster.CustomerId = 0
+            End Try
+
+            pCustomerMaster.TerminalId = Session.Item("LoginTerminal")
+            CustomerMaster.ReturnCustomerMaster(pCustomerMaster)
+            Try
+                lstState.SelectedValue = pCustomerMaster.StateCode
+                txtGSTIN.Text = pCustomerMaster.GSTN
+            Catch ex As Exception
+
+            End Try
+        Else
+            Dim pVendorMaster As New VendorMaster
+            pVendorMaster.VendorId = lstVendorList.SelectedValue
+            pVendorMaster.TerminalId = Session.Item("LoginTerminal")
+            VendorMaster.ReturnVendorMaster(pVendorMaster)
+            Try
+                lstState.SelectedValue = pVendorMaster.State
+                txtGSTIN.Text = pVendorMaster.GSTIN
+            Catch ex As Exception
+
+            End Try
+        End If
+        TextInvNo.Text = p.LinerInvoiceNo
+        textToDate0.Text = p.LinerInvoiceDate
+        textDueDate.Text = p.DueDate
+        Dim pCostDtls As New CostBookingDtls
+        pCostDtls.CostID = p.CostID
+        hdnCostId.Value = p.CostID
+        pCostDtls.CostBookingList = CostBookingDtls.ReturnCostBookingDtlsByCostId(pCostDtls)
+        fillRepeator(pCostDtls.CostBookingList)
+
+
+        btnSearchInvoice.Visible = False
+        btnSearch.Visible = True
+        btnSave.Visible = False
+        btnEdit.Visible = False
+        btnAdd.Visible = True
+        manageUserControls(True)
+        BtnConfirm.Visible = False
+        btnDelete.Visible = True
+        BtnConfirm.Visible = True
+        BtnEditDetails.Visible = True
+        totalfooter()
+    End Sub
+End Class

@@ -1,0 +1,116 @@
+﻿
+body
+{
+}
+
+.menucolorHome
+{
+    background-color: #A5E1FF;
+    width: 80%;
+}
+.marginHome
+{
+    font-family: Times New Roman;
+    margin-top: -16px;
+    margin-left: -10px;
+    margin-right: -10px;
+    margin-bottom: -10px;
+}
+.btnHome
+{
+    background-color: White;
+    color: #CC0000;
+    font-family: Verdana;
+    font-size: 9pt;
+    border-width: 1pt;
+    border-color: Red;
+}
+.style6
+{
+    height: 39px;
+    text-align:center;
+    vertical-align:middle;
+    background-color:Teal;
+}
+.style7
+{
+    height: 39px;
+    width: 225px;
+    text-align:right;
+}
+.style8 {
+	height: 39px;
+	text-align: right;
+	width: 200px;
+	background-color: #74b752;
+}
+.style9
+{
+    height: 39px;
+    text-align: left;
+    width: 455px;
+}
+.style10
+{
+    height: 39px;
+    text-align: left;
+    width: 959px;
+}
+.copyRight
+{
+    font-family:Verdana;
+    font-size:x-small;
+    text-align:center;
+}
+.menuCss
+{
+    background-color:White;
+    vertical-align:top;
+    border-style:none;
+    margin-left:-1px;
+    margin-right:-2px;
+}
+.headingCss
+{
+    font-family:Verdana;
+    font-size:medium;
+    font-weight:bold;
+    color:Black;
+    text-align: left;
+}
+
+.tabelCss {
+	border-style: none;
+	border-color: inherit;
+	border-width: 0;
+	background-color: #74b752;
+	height: 0px;
+	width: 100%;
+	text-align: justify;
+}
+.style11
+{
+    height: 39px;
+    width: 183px;
+    text-align: right;
+    vertical-align:middle;
+    background-color:Teal;
+}
+.menuBgcolor {
+	background-color: #89ae83;
+}
+.lblCss
+{
+    font-family: Verdana;
+    font-size: small;
+    color: Black;
+}
+ .loginterminaltd
+        {
+            text-align:right;
+            font-family: Verdana;
+            font-size: 8pt;
+            height: 20px;
+            width: 310px;
+           
+        }       

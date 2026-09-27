@@ -1,0 +1,264 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/MasterPage.master" AutoEventWireup="false"
+    CodeFile="~/Fleet/Tracking.aspx.vb" Inherits="Fleet_Activity" Title="LogiPark::  Activity" Theme="Forms" %>
+
+<%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="ajaxToolkit" %>
+<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <script language="javascript" type="text/javascript" src="../Script/validation.js">
+    </script>
+    <script language="javascript" type="text/javascript" src="../Script/jquery-1.4.4.min.js"></script>
+    <table width="100%" cellpadding="0" cellspacing="0" style="vertical-align: top; height: 100%;">
+        <tr style="margin-top: -1px;">
+            <td valign="top">
+                <div id="dvPage" style="vertical-align: top; overflow: auto; width: 100%;">
+                    <table style="width: 100%; border-style: none;">
+                        <tr style="height: 20px;">
+                            <td>
+                                <asp:Label ID="lblScreenTitle" runat="server" Width="400px" Text="Tracking" CssClass="FormLabelTitle">
+                                </asp:Label>
+                                <asp:Label ID="lblErrorMessage" runat="server" CssClass="FormLabel"></asp:Label>
+                            </td>
+                            <td align="right">
+                                <asp:Label ID="lblmandatory" runat="server" CssClass="FormLabel" Text="* mandatory field"
+                                    ForeColor="Red"></asp:Label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                <hr />
+                            </td>
+                        </tr>
+                        <tr class="UserControls" style="height: 380px; margin-top: 0px;">
+                            <td style="width: 80%; vertical-align: top;" align="center" colspan="3">
+                                <div id="dvControl" runat="server" style="width: 100%; vertical-align: top;">
+                                    <table>
+                                        <tr>
+                                            <td class="tdstyle">
+                                                <asp:Label ID="lblBookingNo" runat="server" CssClass="FormLabel" Text="Booking No"></asp:Label>
+                                            </td>
+                                            <td class="tdstyle">
+                                                <asp:TextBox ID="textBookingNo" runat="server" Width="120px" CssClass="FormTextBoxMedium"
+                                                    onkeypress="kp_convert_upper()" MaxLength="15" Enabled="false">
+                                                </asp:TextBox>
+                                                <asp:Button ID="btnAddBookinNO" runat="server" Width="30px" Visible="false" Text="Go" CssClass="FormButton" />
+                                                <asp:Button ID="btnSearchBookingNo" runat="server" Width="30px" Visible="false" Text="Go" CssClass="FormButton" />
+                                                <span class="mandatory">*</span>
+                                                <asp:HiddenField ID="hdnBookingId" runat="server" />
+                                            </td>
+                                            <td width="10px" rowspan="2">
+                                            </td>
+                                            <td class="tdstyle">
+                                                <asp:Label ID="lblBookingDate" runat="server" CssClass="FormLabel" Text="Booking Date"></asp:Label>
+                                            </td>
+                                            <td class="tdstyle">
+                                                <asp:TextBox ID="textBookingDate" runat="server" Width="150px" CssClass="RptFormTextBoxMediumSys"
+                                                    Enabled="false">
+                                                </asp:TextBox>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <br />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="6" align="center">
+                                                <div>
+                                                    <table>
+                                                        <tr class="RepHead">
+                                                            <td>
+                                                                <asp:CheckBox ID="lblChk" CssClass="FormLabel" runat="server" Width="40px"></asp:CheckBox>
+                                                            </td>
+                                                            <td>
+                                                                <asp:Label ID="lblContNO" CssClass="FormLabel" runat="server" Width="110px" Text="Cont No">
+                                                                </asp:Label>
+                                                            </td>
+                                                            <td>
+                                                                <asp:Label ID="lblSize" Width="60px" runat="server" CssClass="FormLabel" Text="Size"></asp:Label>
+                                                            </td>
+                                                            <td>
+                                                                <asp:Label ID="lblType" CssClass="FormLabel" Width="60px" runat="server" Text="Type">
+                                                                </asp:Label>
+                                                            </td>
+                                                            <td>
+                                                                <asp:Label ID="lblPOL" Width="85px" runat="server" CssClass="FormLabel" Text="POL"></asp:Label>
+                                                            </td>
+                                                            <td>
+                                                                <asp:Label ID="lblpod" CssClass="FormLabel" Width="85px" runat="server" Text="POD">
+                                                                </asp:Label>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="6" align="center">
+                                                <div style="overflow: auto; height: 120px">
+                                                    <asp:GridView ID="gvContDtls" ShowHeader="False" AlternatingRowStyle-CssClass="FormListBoxLarg"
+                                                        RowStyle-CssClass="FormListBoxLarg" AutoGenerateColumns="False" runat="server">
+                                                        <RowStyle CssClass="FormListBoxLarg"></RowStyle>
+                                                        <Columns>
+                                                            <asp:TemplateField ItemStyle-HorizontalAlign="Center">
+                                                                <ItemTemplate>
+                                                                    <asp:CheckBox ID="chkcont" Enabled="true" runat="server" Width="40px" AutoPostBack="true"
+                                                                        OnCheckedChanged="CheckBox1_CheckedChanged" />
+                                                                </ItemTemplate>
+                                                            </asp:TemplateField>
+                                                            <asp:BoundField ItemStyle-Width="110px" DataField="CONT_NO">
+                                                                <ItemStyle Width="110px" />
+                                                            </asp:BoundField>
+                                                            <asp:BoundField ItemStyle-Width="60px" DataField="CONT_SIZE">
+                                                                <ItemStyle Width="60px" />
+                                                            </asp:BoundField>
+                                                            <asp:BoundField ItemStyle-Width="60px" DataField="CONT_TYPE">
+                                                                <ItemStyle Width="60px" />
+                                                            </asp:BoundField>
+                                                            <asp:BoundField ItemStyle-Width="85px" DataField="POL">
+                                                                <ItemStyle Width="85px" />
+                                                            </asp:BoundField>
+                                                            <asp:BoundField ItemStyle-Width="85px" DataField="POD">
+                                                                <ItemStyle Width="85px" />
+                                                            </asp:BoundField>
+                                                            <asp:TemplateField>
+                                                                <ItemTemplate>
+                                                                    <input type="hidden" runat="server" id="hdnContId" value='<%#Eval("CONT_ID") %>' />
+                                                                </ItemTemplate>
+                                                            </asp:TemplateField>
+                                                        </Columns>
+                                                        <AlternatingRowStyle CssClass="FormListBoxLarg"></AlternatingRowStyle>
+                                                    </asp:GridView>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table id="tblCont" runat="server" cellspacing="0" style="margin-left: 0px; padding: 0px;">
+                                        <tr class="RepHead">
+                                            <td>
+                                                <asp:Label ID="lblrActivity" CssClass="FormLabel" runat="server" Width="180px" Text='Activity<span class="mandatory"> *</span>'>
+                                                </asp:Label>
+                                            </td>
+                                            <td>
+                                                <asp:Label ID="lblrDate" Width="80px" runat="server" CssClass="FormLabel" Text='Date<span class="mandatory"> *</span>'></asp:Label>
+                                            </td>
+                                            <td>
+                                                <asp:Label ID="lblrRemark" Width="200px" runat="server" CssClass="FormLabel" Text='Remark<span class="mandatory"> *</span>'></asp:Label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3" valign="top" align="center">
+                                                <div class="RepScroling" style="height: 120px; text-align: center">
+                                                    <asp:Repeater ID="rcActivityDtls" runat="server">
+                                                        <HeaderTemplate>
+                                                            <table id="cont" cellspacing="0">
+                                                        </HeaderTemplate>
+                                                        <ItemTemplate>
+                                                            <tr>
+                                                                <td>
+                                                                    <asp:DropDownList ID="lstActivity" runat="server" CssClass="FormListBoxMedium" Width="180px"
+                                                                        OnDataBinding="prepareActivity">
+                                                                    </asp:DropDownList>
+                                                                    <asp:HiddenField ID="hdnActicityId" runat="server" Value='<%# Eval("ActivityId") %>' />
+                                                                </td>
+                                                                <td>
+                                                                </td>
+                                                                <td>
+                                                                    <asp:TextBox CssClass="FormTextBoxSmall" Width="70px" ID="textDate" runat="server"
+                                                                        ToolTip="date">
+                                                                    </asp:TextBox>
+                                                                    <ajaxToolkit:CalendarExtender ID="CalendarExtender4" Format="dd/MM/yyyy" runat="server"
+                                                                        TargetControlID="textDate" />
+                                                                </td>
+                                                                <td>
+                                                                    <asp:TextBox CssClass="FormTextBoxSmall" Width="200px" ID="textRemark" runat="server"
+                                                                        ToolTip="Remark">
+                                                                    </asp:TextBox>
+                                                                </td>
+                                                            </tr>
+                                                        </ItemTemplate>
+                                                        <FooterTemplate>
+                                                            </table>
+                                                        </FooterTemplate>
+                                                    </asp:Repeater>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                            <td style="vertical-align: top">
+                                <table>
+                                    <tr>
+                                        <td align="center">
+                                            <div>
+                                                <table>
+                                                    <tr class="RepHead">
+                                                        <td>
+                                                            <asp:Label ID="lblgvActivity" CssClass="FormLabel" runat="server" Width="180px" Text="Activity">
+                                                            </asp:Label>
+                                                        </td>
+                                                        <td>
+                                                            <asp:Label ID="lblgvDateTime" Width="80px" runat="server" CssClass="FormLabel" Text="Date & Time"></asp:Label>
+                                                        </td>
+                                                        <td>
+                                                            <asp:Label ID="lblRemarks" Width="200px" runat="server" CssClass="FormLabel" Text="Remarks"></asp:Label>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" align="center">
+                                            <div style="overflow: auto; height: 100px">
+                                                <asp:GridView ID="gvactivity" ShowHeader="False" AlternatingRowStyle-CssClass="FormListBoxLarg"
+                                                    RowStyle-CssClass="FormListBoxLarg" AutoGenerateColumns="False" runat="server">
+                                                    <RowStyle CssClass="FormListBoxLarg"></RowStyle>
+                                                    <Columns>
+                                                        <asp:BoundField ItemStyle-Width="180px" DataField="ACTIVITY">
+                                                            <ItemStyle Width="180px" />
+                                                        </asp:BoundField>
+                                                        <asp:BoundField ItemStyle-Width="80px" DataField="ACTIVITY_DATE">
+                                                            <ItemStyle Width="80px" />
+                                                        </asp:BoundField>
+                                                        <asp:BoundField ItemStyle-Width="200px" DataField="REMARKS">
+                                                            <ItemStyle Width="200px" />
+                                                        </asp:BoundField>
+                                                        <asp:TemplateField>
+                                                            <ItemTemplate>
+                                                                <input type="hidden" runat="server" id="hdnActivityId" value='<%#Eval("ACTIVITY_ID") %>' />
+                                                            </ItemTemplate>
+                                                        </asp:TemplateField>
+                                                    </Columns>
+                                                    <AlternatingRowStyle CssClass="FormListBoxLarg"></AlternatingRowStyle>
+                                                </asp:GridView>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div id="dvButton" style="vertical-align: bottom;">
+                                    <table width="100%" style="vertical-align: bottom; height: 25px; background-repeat: no-repeat;">
+                                        <tr style="margin-top: 0px;">
+                                            <td align="center">
+                                                <asp:Button ID="btnAdd" runat="server" Text="Add" CssClass="FormButton" />
+                                                <asp:Button ID="btnSave" runat="server" Visible="false" Text="Save" CssClass="FormButton"
+                                                    OnClientClick="return saveValidationExportBooking();" />
+                                                <asp:Button ID="btnSearch" runat="server" Text="Search" CssClass="FormButton" />
+                                                <asp:Button ID="btnEdit" runat="server" Text="Edit" CssClass="FormButton" />
+                                                <asp:Button ID="btnCancel" runat="server" Visible="false" Text="Cancel" CssClass="FormButton" />
+                                                <asp:Button ID="btnExit" runat="server" Text="Exit" CssClass="FormButton" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

@@ -1,0 +1,2 @@
+Sr,TerminalName,FromDate,ToDate,ServiceName,CustomerType,CustomerName,Remarks,CustomerTypeTable,CustomerNameTable,LineName,ContSize,ContType,ContStatus,DocType,FromLocation,ToLocation,HandoverLocation,POL,POD,Commodity,FromRange,ToRange,RateMethod,BaseRate,Currency,Enable/Disable,DiscountType,Discount,Rate
+1,TRANSWORLD-DADRI,1/1/2020,15/02/2020,Toll Charges - Line,E,AL- R.N.A ENTERPRISES,OK 123,C,ALL,MAERSK LINE INDIA PVT.LTD.-KERALA,20,ALL,L,ALL,TRANSWORLD-DADRI,BIHAR,TRANSWORLD-DADRI,MUNDRA,GAPOG,ALL,0,2,SOB,0,INR,ENABLE,None,0,0

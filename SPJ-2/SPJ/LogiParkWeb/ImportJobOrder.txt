@@ -1,0 +1,30 @@
+                           Kanpur Logistics Park
+           Plot No. 5, Bhatta Area, Raniganj, Panki, Kanpur (U.P)
+                     Import Job Order - ICD Destuffing
+       To
+         Vendor/Operation Manager
+       Sir,
+           Please allow ICD Destuffing for below Container
+
+JO Ref No   :IIDJO00757        JO Date   :22/11/2014 19:17        JO Validity Date   :25/11/2014
+IGM No      :2470512              IGM Date  :        Line Item                :ABA
+BL No       :ITA14115423        BL Date          :31/10/2014        BOE No                    :7423240
+BOE Date    :18/11/2014        FCL/LCL       :FCL        Cargo Detail               :
+Shiping Line:MSC        Imporer  :V.K.PACKWELL PVT. LTD        CHA                 :NARENDRA
+
+SR No  Cont No      Size  Type  Gate In Date  Custom Seal  Agent Seal  Packages  Weight  Service Mode 
+1     MEDU1395063   20  DV  19/11/2014  1234518    20.000  20200.000  I 
+
+
+
+  --------------------  -----------------------  --------------
+   CFS Executive Seal    Custom Inspector Seal     Tally Clerk /
+    Cutiing Permitted     Cutting Permotted         Supervisor
+
+I will insure release of my import container(s) with seal after customs examination,
+ failing which cargo will be lying at my sole risk / responsibility.
+
+
+                                   --------------------
+                               Signature of Importer / CHA
+-----------------------------------------------------------------------------------

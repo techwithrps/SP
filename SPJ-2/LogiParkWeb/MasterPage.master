@@ -1,0 +1,136 @@
+﻿<%@ Master Language="VB" CodeFile="MasterPage.master.vb" Inherits="MasterPage" AutoEventWireup="true" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <link rel="shortcut icon" href="Images/logo.ico" type="image/x-icon" />
+    <title>eLOGiFreight :: Freight Forwarding System</title>
+    <link href="Master_Themes/StyleSheet.css" rel="Stylesheet" type="text/css" />
+    <style type="text/css">
+        .logo-screen img {
+            width: auto !important;
+            height: 330px !important;
+        }
+
+        .logo-screen {
+            position: relative;
+        }
+
+            .logo-screen p {
+                font-size: 20px;
+                position: absolute;
+                bottom: 0px;
+                left: 24%;
+                top: 400px;
+            }
+    </style>
+</head>
+<body>
+    <form id="form1" runat="server" class="marginHome">
+        <table width="100%" border="0" cellspacing="1" cellpadding="0">
+            <tr>
+                <td>
+                    <div id="dvMaster" runat="server" style="width: 100%; height: 100%; border-style: none; border-top-color: White; margin-top: -1;">
+                        <div>
+                            <table class="tabelCss">
+                                <tr>
+                                    <td></td>
+                                </tr>
+                                <tr style="vertical-align: middle; margin-top: 0px;">
+                                    <td class="lblCss" align="left" style="font-size: medium; vertical-align: middle; font-weight: 700; width: 100%">&nbsp;
+                                    eLOGiFreight™
+                                    </td>
+                                    <td class="style8">
+                                        <asp:DropDownList ID="lstCompany" CssClass="FormListBoxSmall" Width="200px" runat="server"
+                                            AutoPostBack="True" OnSelectedIndexChanged="State_SelectedIndexChanged">
+                                        </asp:DropDownList>
+                                    </td>
+                                    <td></td>
+                                    <td>&nbsp;</td>
+                                    <td align="center" style="height: 39px; text-align: right;">
+
+                                        <asp:DropDownList ID="lstBranch" Width="180px" runat="server" CssClass="FormListBoxSmall"
+                                            AutoPostBack="True" OnSelectedIndexChanged="State_SelectedIndexChanged">
+                                        </asp:DropDownList>
+
+                                    </td>
+                                    <td></td>
+                                    <td>&nbsp;</td>
+                                    <td align="right" style="width: 300px">
+                                        <asp:ImageButton ID="ImageButton1" runat="server" ImageUrl="~/Images/user5.png" Height="26px" Width="34px" ToolTip="Login User" />
+                                    </td>
+                                    <td align="left">
+                                        <asp:Label ID="lblLoginUser" runat="server" CssClass="lblCss" Text="Administrator"></asp:Label>
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td align="right">
+                                        <asp:ImageButton ID="ImageChangePass0" runat="server" ImageUrl="~/Images/12345.png" Height="36px" Width="42px" ToolTip="Notification" />
+                                    </td>
+                                    <td align="left">
+                                        <asp:LinkButton ID="linkNotification" CssClass="lblCss" runat="server"></asp:LinkButton>
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td align="right">
+                                        <asp:ImageButton ID="ImageChangePass" runat="server" ImageUrl="~/Images/p.png" Height="25px" Width="28px" ToolTip="Change Password" />
+                                    </td>
+                                    <td></td>
+                                    <td align="center">
+                                        <asp:ImageButton ID="ImgLogout" runat="server" ImageUrl="~/Images/logout.png" Height="26px" Width="27px" ToolTip="Logout" />
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="menuBgcolor">
+                            <table width="100%">
+                                <tr style="background-color: white;">
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="menuBgcolor">
+                                        <asp:Menu ID="mnLogiPark" runat="server" BorderWidth="2px" DynamicHorizontalOffset="2"
+                                            DynamicTopSeparatorImageUrl="~/Images/menu_seprator.jpg" DynamicVerticalOffset="2"
+                                            DynamicEnableDefaultPopOutImage="true" StaticEnableDefaultPopOutImage="false"
+                                            StaticBottomSeparatorImageUrl="~/Images/menu_seprator1.jpg" DynamicPopOutImageUrl=""
+                                            Font-Bold="True" Font-Names="Calibri" Font-Size="11pt" ForeColor="black" ItemWrap="True"
+                                            StaticSubMenuIndent="10px" Orientation="Horizontal" BackColor="cornflowerblue">
+                                            <StaticMenuItemStyle BorderStyle="None" HorizontalPadding="0px" VerticalPadding="0px"
+                                                ForeColor="white" Width="110px" />
+                                            <DynamicHoverStyle BorderStyle="None" ForeColor="White" BackColor="#1976D2" />
+                                            <DynamicMenuStyle BorderStyle="None" BackColor="#89ae83" />
+                                            <StaticSelectedStyle BorderWidth="2px" ForeColor="white" BackColor="#89ae83" />
+                                            <DynamicSelectedStyle BorderStyle="None" ForeColor="white" BackColor="#89ae83" />
+                                            <DynamicMenuItemStyle BorderStyle="None" HorizontalPadding="5px" VerticalPadding="2px"
+                                                ForeColor="white" BackColor="#89ae83" />
+                                            <StaticHoverStyle ForeColor="white" />
+                                            <DynamicItemTemplate>
+                                                <%# Eval("Text") %>
+                                            </DynamicItemTemplate>
+                                            <StaticMenuStyle BorderStyle="None" BackColor="#89ae83" />
+                                        </asp:Menu>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div>
+                            <asp:ScriptManager runat="server" EnablePageMethods="True" ScriptMode="Release" LoadScriptsBeforeUI="true" ID="ScriptManager2">
+                            </asp:ScriptManager>
+                            <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                            </asp:ContentPlaceHolder>
+                            <asp:UpdatePanel ID="UpdatePanel1" runat="server">
+                                <ContentTemplate>
+                                </ContentTemplate>
+                            </asp:UpdatePanel>
+                        </div>
+                        <div class="copyRight">
+                            © 2020-21 TEAM ELOGISOL, All rights reserved.
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </form>
+</body>
+</html>

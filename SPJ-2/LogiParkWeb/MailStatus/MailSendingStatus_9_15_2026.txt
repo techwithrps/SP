@@ -1,0 +1,28 @@
+Rate Master Updated - 15/09/2026 12:14:01
+Mail Sent Successfully.
+Credit Note Request - 15/09/2026 15:25:43
+Mail Sent Successfully.
+Credit Note Request - 15/09/2026 15:31:40
+Mail Sent Successfully.
+Credit Note Request - 15/09/2026 15:32:58
+Mail Sent Successfully.
+Credit Note Request - 15/09/2026 15:33:56
+Mail Sent Successfully.
+Credit Note Request - 15/09/2026 15:35:08
+Mail Sent Successfully.
+Credit Note Request - 15/09/2026 15:36:00
+Mail Sent Successfully.
+Rate Master Updated - 15/09/2026 18:26:08
+Mail Sent Successfully.
+Rate Master Updated - 15/09/2026 18:27:57
+Mail Sent Successfully.
+Rate Master Updated - 15/09/2026 18:29:14
+Mail Sent Successfully.
+Rate Master Updated - 15/09/2026 18:30:55
+Mail Sent Successfully.
+Rate Master Updated - 15/09/2026 18:32:32
+Mail Sent Successfully.
+Credit Note Request - 15/09/2026 18:34:23
+Mail Sent Successfully.
+Login attempted from Unknown Device - 15/09/2026 22:05:20
+A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond 103.205.65.60:587

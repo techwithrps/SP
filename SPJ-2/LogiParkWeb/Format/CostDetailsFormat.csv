@@ -1,0 +1,5 @@
+TerminalName,FromDate,ToDate,ServiceName,CustomerType,CustomerName,Remarks,Port,ContSize,ContType,ContStatus,DocType,PickupTerminal,DropLocation,POL,Commodity,FromRange,ToRange,BaseRate,Currency,DetMethod,RateMethod,TTDays,PODFreeDays
+ALBATROSS,01-01-2021,15-02-2021,Detention Charges - INR,C,AOG LOGISTICS,OK 123,AJMAN-UAE,20,ALL,ALL,ALL,ALBATROSS,LONI,MUNDRA,VEGETABLES,0,2,0,INR,Port To Port,SOB,2 Days,4 Days
+,,,,,,,AJMAN-UAE,20,ALL,L,E,HAZIRA,ALL,TUTICORIN,VEGETABLES,3,4,200,INR,Port To Terminal,Handover,4 Days,6
+,,,,,,,AL KHOMS-LIBYA,40,DR,E,E,ALL,MUNDRA,ALL,FISH,5,8,400,USD,Terminal To Terminal,Pickup,15 Days,21
+,,,,,,,AL MUKALLA-YEMEN,2*20,OT,L,I,KANPUR- PANKI,SILIGURI,NHAVA SHEVA-NSICT,ALL,5,8,400,USD,Terminal To Port,ALL,70 Days,25

@@ -1,0 +1,4 @@
+Sr,TerminalName,FromDate,ToDate,ServiceName,CustomerType,CustomerName,Remarks,CustomerTypeTable,CustomerNameTable,LineName,ContSize,ContType,ContStatus,DocType,FromLocation,ToLocation,HandoverLocation,POL,POD,Commodity,FromRange,ToRange,RateMethod,BaseRate,Currency,Enable/Disable,DiscountType,Discount,Rate
+1,PIPAVAV,01/042026,31/12/2028,Facility Charges,E,AMBAR FROZEN FOODS,OK 123,C,ALL,HAPAG GROUP,40,RF,L,E,ALL,ALL,ALL,ALL,ALL,ALL,0,99999,SOB,1120,INR,ENABLE,None,0,1120
+2,PIPAVAV,01/042026,31/12/2028,Facility Charges,E,AMBAR FROZEN FOODS,OK 123,C,ALL,GOLD STAR SHIPPING GROUP,40,RF,L,E,ALL,ALL,ALL,ALL,ALL,ALL,0,99999,SOB,1250,INR,ENABLE,None,0,1250
+3,PIPAVAV,01/042026,31/12/2028,Facility Charges,E,AMBAR FROZEN FOODS,OK 123,C,ALL,CMA CGM GROUP,40,RF,L,E,ALL,ALL,ALL,ALL,ALL,ALL,0,99999,SOB,14,USD,ENABLE,None,0,14

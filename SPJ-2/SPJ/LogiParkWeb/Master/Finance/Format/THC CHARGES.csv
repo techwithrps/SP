@@ -1,0 +1,2 @@
+sr,TerminalName,FromDate,ToDate,ServiceName,CustomerType,CustomerName,Remarks,CustomerTypeTable,CustomerNameTable,LineName,ContSize,ContType,ContStatus,DocType,FromLocation,ToLocation,HandoverLocation,POL,POD,Commodity,FromRange,ToRange,RateMethod,BaseRate,Currency,Enable/Disable,DiscountType,Discount,Rate
+1,PIPAVAV,1/9/2023,30/12/2023,Line THC And Repo Charges,E,MARUTI FROZEN FOODS,OK 123,C,ALL,STAR SHIPPING GROUP,40,RF,L,E,ALL,ALL,PIPAVAV,ALL,ALL,ALL,0,99999,SOB,38250,INR,ENABLE,None,0,38250
