@@ -28,8 +28,6 @@ import * as XLSX from 'xlsx';
 import AnimatedCounter from './AnimatedCounter';
 import { formatCurrency, formatNumber } from './analytics/analyticsUtils';
 import BranchPerformanceTable from './analytics/BranchPerformanceTable';
-import YoYAnalyticsSection from './analytics/YoYAnalyticsSection';
-import ExecutiveDecisionBI from './analytics/ExecutiveDecisionBI';
 import { CustomerLeaderboardTable, ServiceCatalogTable } from './analytics/CustomerServiceLeaderboard';
 import KPICards from './KPICards';
 
@@ -447,8 +445,17 @@ export default function AnalyticsCharts({
     XLSX.utils.book_append_sheet(wb, wsCust, 'Top_Sales_Customers');
     const wsSvc = XLSX.utils.json_to_sheet(topServices);
     XLSX.utils.book_append_sheet(wb, wsSvc, 'Top_Logistics_Services');
-    const wsYoY = XLSX.utils.json_to_sheet(yoyChartData);
-    XLSX.utils.book_append_sheet(wb, wsYoY, 'Fiscal_YoY_Comparison');
+    const wsTerminals = XLSX.utils.json_to_sheet(displayTerminals.map(t => ({
+      Terminal_ID: t.terminalId,
+      Terminal_Name: t.terminalName,
+      Gross_Revenue: t.grossSale,
+      Invoices: t.invoiceCount,
+      Containers: t.totalContainers,
+      TEUs: t.displayTeus,
+      Operating_Share: `${t.share}%`
+    })));
+    XLSX.utils.book_append_sheet(wb, wsTerminals, 'Branch_Performance');
+
     XLSX.writeFile(wb, `SPJ_Branch_Analytics_${selectedFY || 'ALL'}.xlsx`);
   };
 
@@ -457,7 +464,7 @@ export default function AnalyticsCharts({
     return sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 inline text-purple-700" /> : <ArrowDown className="w-3 h-3 inline text-purple-700" />;
   };
 
-  // Unified 9 Verified KPIs computed dynamically from active database scope
+  // Unified 6 Verified KPIs computed dynamically from active database scope
   const chartKPIs = useMemo(() => {
     const fk = finData?.kpis || (kpis && (kpis.grossRevenue || kpis.totalGrossAmount || kpis.invoiceCount) ? kpis : null);
     if (fk) {
@@ -507,7 +514,7 @@ export default function AnalyticsCharts({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* 1. TOP DYNAMIC METRICS BANNER (Unified 9 Verified KPI Cards) */}
+      {/* 1. TOP DYNAMIC METRICS BANNER (Unified 6 Verified KPI Cards) */}
       <KPICards kpis={chartKPIs} loading={loading} />
 
       {/* 2. SUB-VIEW NAVIGATION */}
@@ -515,8 +522,6 @@ export default function AnalyticsCharts({
         <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto py-0.5">
           {[
             { key: 'branches', label: 'Branch Matrix', fullLabel: 'Branch Performance Matrix', icon: Building2 },
-            { key: 'yoy', label: 'YoY Trends', fullLabel: 'Fiscal Year-over-Year (YoY)', icon: Calendar },
-            { key: 'decision_bi', label: 'Owner BI', fullLabel: 'Owner Intelligence & Decision Support', icon: Award },
             { key: 'customer_bi', label: 'Top Clients', fullLabel: 'Top Customer Leaders', icon: Users },
             { key: 'service_bi', label: 'Services', fullLabel: 'Service & Tariff Breakdown', icon: Layers }
           ].map(tab => {
@@ -574,26 +579,6 @@ export default function AnalyticsCharts({
           SortIcon={SortIcon}
           customerName={customerEntry?.customerName || (selectedCustomer !== 'ALL' ? selectedCustomer : null)}
           companyName={activeCompanyName}
-        />
-      )}
-
-      {activeTab === 'yoy' && (
-        <YoYAnalyticsSection
-          yoyChartData={yoyChartData}
-          selectedTerminal={selectedTerminal}
-          terminals={terminals}
-        />
-      )}
-
-      {activeTab === 'decision_bi' && (
-        <ExecutiveDecisionBI
-          topCustomers={topCustomers}
-          topServices={topServices}
-          displayTerminals={displayTerminals}
-          dynamicMetrics={dynamicMetrics}
-          dbTotals={dbTotals}
-          selectedFY={selectedFY}
-          activeCompanyName={activeCompanyName}
         />
       )}
 

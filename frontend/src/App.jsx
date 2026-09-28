@@ -14,7 +14,6 @@ import { authFetch, getAuthToken } from './utils/api';
 import AnalyticsCharts from './components/AnalyticsCharts';
 import ContainerFleetView from './components/ContainerFleetView';
 import FleetView from './components/FleetView';
-import OperationsView from './components/OperationsView';
 import DualSalesLeaderboard from './components/analytics/DualSalesLeaderboard';
 
 function TabLoadingSkeleton() {
@@ -764,20 +763,6 @@ export default function App() {
             {activeTab === 'fleet' && (
               <div className="space-y-6 animate-fade-in">
                 <FleetView
-                  selectedTerminal={selectedTerminal}
-                  setSelectedTerminal={handleSetSelectedTerminal}
-                  selectedFY={selectedFY}
-                  setSelectedFY={setSelectedFY}
-                  terminals={allTerminals.length > 0 ? allTerminals : (masters?.terminals || [])}
-                  financialYears={financialYears}
-                />
-              </div>
-            )}
-
-            {/* Tab 5: Yard Operations */}
-            {activeTab === 'operations' && (
-              <div className="space-y-6 animate-fade-in">
-                <OperationsView
                   selectedTerminal={selectedTerminal}
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}

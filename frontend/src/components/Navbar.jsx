@@ -32,7 +32,6 @@ export default function Navbar({
     { id: 'sales', label: 'Total Sales', shortLabel: 'Total Sales', icon: Receipt },
     { id: 'containers', label: 'Container / Volumes', shortLabel: 'Containers', icon: Container },
     { id: 'fleet', label: 'Fleet Operations', shortLabel: 'Fleet', icon: Truck },
-    { id: 'operations', label: 'Yard Operations', shortLabel: 'Yard Ops', icon: Layers },
   ];
 
   const currentItem = navItems.find(item => item.id === activeTab) || navItems[0];
