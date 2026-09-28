@@ -96,20 +96,65 @@ export async function authFetch(url, options = {}) {
 
   if (pathname.includes('/containers')) {
     const analytics = computeFinancialAnalytics(searchParams);
+    const rawRecs = (analytics.records && analytics.records.length > 0) ? analytics.records : recentRecords;
+
+    const formattedContainers = rawRecs.map((r, i) => ({
+      id: r.id || i + 1,
+      contNo: r.CONT_NO || r.contNo || `MNBU${900000 + i}`,
+      contSize: String(r.SIZE || r.contSize || (i % 8 === 0 ? '20' : '40')).replace(/[^0-9]/g, '') || '40',
+      contType: r.CONT_TYPE || r.contType || 'RF',
+      tripType: r.TRIP_TYPE === 'I' ? 'Import' : (r.TRIP_TYPE === 'E' ? 'Export' : (r.tripType || 'Export')),
+      joNo: r.PARTY_INV_NO || r.INVOICE_NO || r.joNo || `24${3800 + i}`,
+      joDate: r.LINE_HANDOVER_DATE || r.INVOICE_DATE || r.joDate || '26/09/2026',
+      customerName: r.CUSTOMER_NAME || r.customerName || 'SPJ LOGISTICS CLIENT',
+      customerId: r.CUSTOMER_ID || r.customerId || 1,
+      lineOperator: 'SPJ LOGISTICS',
+      bookingNo: r.BL_NO || r.bookingNo || `BL-277${5000 + i}`,
+      sealNo: 'SPJ-' + (r.INVOICE_NO || 56210 + i),
+      icdInDate: r.LINE_HANDOVER_DATE || r.INVOICE_DATE || '25/09/2026',
+      icdOutDate: r.SAILED || '-',
+      terminalName: r.TERMINAL_NAME || r.terminalName || 'TRANSWORLD-DADRI',
+      terminalId: r.TERMINAL_ID || 31,
+      tareWeight: 2200,
+      cargoWeight: 14000,
+      status: r.SAILED ? 'Dispatched / Sailed' : 'Active / In Yard',
+      chamberNo: 'CH-01',
+      temperature: '-18°C',
+      companyId: r.COMPANY_ID || 2
+    }));
+
+    const page = Number(searchParams.page) || 1;
+    const limit = Number(searchParams.limit) || 25;
+    const totalRecords = formattedContainers.length;
+    const totalPages = Math.ceil(totalRecords / limit) || 1;
+    const startIndex = (page - 1) * limit;
+    const paginated = formattedContainers.slice(startIndex, startIndex + limit);
+
     return new Response(JSON.stringify({
       success: true,
-      data: analytics.records.map((r, i) => ({
-        id: i + 1,
-        contNo: r.CONT_NO || `SPJU${100000 + i}`,
-        size: '40',
-        type: 'HC',
-        status: 'In Transit',
-        terminal: r.TERMINAL_NAME,
-        customer: r.CUSTOMER_NAME,
-        blNo: r.BL_NO || 'BL-0001',
-        invoiceNo: r.INVOICE_NO,
-      })),
-      kpis: analytics.kpis,
+      data: {
+        source: 'SPJ_ENTERPRISE_CONTAINER_ENGINE',
+        total: totalRecords,
+        totalRecords: totalRecords,
+        page,
+        limit,
+        totalPages,
+        count: paginated.length,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+        stats: {
+          totalDBJobs: 89633,
+          totalDBContainers: 89633,
+          distinctContainers: 81428,
+          totalDBTeus: 172761,
+          units20ft: 6509,
+          units40ft: 83126,
+          filteredContainers: totalRecords,
+          inYard: Math.round(totalRecords * 0.55),
+          dispatched: Math.round(totalRecords * 0.45)
+        },
+        containers: paginated
+      }
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
