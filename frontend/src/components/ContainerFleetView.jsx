@@ -149,10 +149,10 @@ export default function ContainerFleetView({
                     Total Fleet Containers
                   </p>
                   <h3 className="text-sm sm:text-2xl font-black font-display text-[#2b1f55] mt-1 sm:mt-2 truncate">
-                    <AnimatedCounter value={displayStats.totalContainers} suffix=" Units" />
+                    <AnimatedCounter value={displayStats.distinctContainers} suffix=" Units" />
                   </h3>
                   <p className="text-[9px] sm:text-[11px] text-purple-700 font-semibold mt-0.5 truncate">
-                    Distinct Physical: {displayStats.distinctContainers.toLocaleString('en-IN')}
+                    Total Move Entries: {displayStats.totalContainers.toLocaleString('en-IN')}
                   </p>
                 </div>
                 <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs shrink-0">
