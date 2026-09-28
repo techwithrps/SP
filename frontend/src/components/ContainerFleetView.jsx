@@ -90,14 +90,16 @@ export default function ContainerFleetView({
 
   // Exact Dynamic Totals
   const displayStats = useMemo(() => {
-    const totCont = baseStats.totalDBContainers !== undefined ? baseStats.totalDBContainers : 89245;
-    const u40 = baseStats.units40ft !== undefined ? baseStats.units40ft : Math.round(totCont * 0.927);
-    const u20 = baseStats.units20ft !== undefined ? baseStats.units20ft : (totCont - u40);
-    const teus = baseStats.totalDBTeus !== undefined ? baseStats.totalDBTeus : (u40 * 2 + u20);
-    const jobs = baseStats.totalDBJobs !== undefined ? baseStats.totalDBJobs : totCont;
+    const totCont = baseStats.totalDBContainers !== undefined ? baseStats.totalDBContainers : 89633;
+    const distCont = baseStats.distinctContainers !== undefined ? baseStats.distinctContainers : 81428;
+    const u40 = baseStats.units40ft !== undefined ? baseStats.units40ft : 83126;
+    const u20 = baseStats.units20ft !== undefined ? baseStats.units20ft : 6509;
+    const teus = baseStats.totalDBTeus !== undefined ? baseStats.totalDBTeus : 172761;
+    const jobs = baseStats.totalDBJobs !== undefined ? baseStats.totalDBJobs : 89633;
 
     return {
       totalContainers: totCont,
+      distinctContainers: distCont,
       units40ft: u40,
       units20ft: u20,
       totalTeus: teus,
@@ -144,13 +146,13 @@ export default function ContainerFleetView({
               <div className="flex items-start justify-between gap-1">
                 <div className="min-w-0 flex-1">
                   <p className="text-[9px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
-                    Total Containers
+                    Total Fleet Containers
                   </p>
                   <h3 className="text-sm sm:text-2xl font-black font-display text-[#2b1f55] mt-1 sm:mt-2 truncate">
                     <AnimatedCounter value={displayStats.totalContainers} suffix=" Units" />
                   </h3>
                   <p className="text-[9px] sm:text-[11px] text-purple-700 font-semibold mt-0.5 truncate">
-                    <AnimatedCounter value={displayStats.totalTeus} suffix=" TEU" />
+                    Distinct Physical: {displayStats.distinctContainers.toLocaleString('en-IN')}
                   </p>
                 </div>
                 <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-2xl bg-purple-50 text-[#2b1f55] border border-purple-200 shadow-xs shrink-0">
