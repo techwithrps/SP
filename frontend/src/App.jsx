@@ -784,6 +784,8 @@ export default function App() {
                   setSelectedTerminal={handleSetSelectedTerminal}
                   selectedFY={selectedFY}
                   setSelectedFY={setSelectedFY}
+                  customFromDate={customFromDate}
+                  customToDate={customToDate}
                   terminals={allTerminals.length > 0 ? allTerminals : (masters?.terminals || [])}
                   financialYears={financialYears}
                 />

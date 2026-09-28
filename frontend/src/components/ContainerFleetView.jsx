@@ -31,6 +31,8 @@ export default function ContainerFleetView({
   setSelectedTerminal,
   selectedFY = 'ALL',
   setSelectedFY,
+  customFromDate = '',
+  customToDate = '',
   terminals = [],
   financialYears = []
 }) {
@@ -59,7 +61,13 @@ export default function ContainerFleetView({
       if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') queryParams.append('companyId', selectedCompany);
       if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') queryParams.append('customerId', selectedCustomer);
       if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') queryParams.append('terminalId', selectedTerminal);
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') queryParams.append('financialYear', selectedFY);
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all' && selectedFY !== 'Custom Date Range' && selectedFY !== 'CUSTOM_RANGE') {
+        queryParams.append('financialYear', selectedFY);
+      }
+      if ((selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM_RANGE')) {
+        if (customFromDate && customFromDate.trim()) queryParams.append('fromDate', customFromDate);
+        if (customToDate && customToDate.trim()) queryParams.append('toDate', customToDate);
+      }
       if (statusFilter && statusFilter !== 'all') queryParams.append('status', statusFilter);
       if (sizeFilter && sizeFilter !== 'all') queryParams.append('contSize', sizeFilter);
       if (typeFilter && typeFilter !== 'all') queryParams.append('contType', typeFilter);
@@ -82,7 +90,7 @@ export default function ContainerFleetView({
       fetchContainers();
     }, 200);
     return () => clearTimeout(timer);
-  }, [selectedCompany, selectedCustomer, selectedTerminal, selectedFY, statusFilter, sizeFilter, typeFilter, search, currentPage]);
+  }, [selectedCompany, selectedCustomer, selectedTerminal, selectedFY, customFromDate, customToDate, statusFilter, sizeFilter, typeFilter, search, currentPage]);
 
   const containers = data?.containers || [];
   const paginatedContainers = data?.containers || [];
