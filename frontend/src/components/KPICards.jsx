@@ -26,8 +26,8 @@ export default function KPICards({ kpis = {}, loading = false }) {
   const grossRevenue = Number(kpis.grossRevenue !== undefined ? kpis.grossRevenue : (kpis.totalInvoiceAmount || kpis.totalGrossAmount || 0));
   const gstTax = Number(kpis.totalTax !== undefined ? kpis.totalTax : (kpis.gstTax || (kpis.totalIgst || 0) + (kpis.totalCgst || 0) + (kpis.totalSgst || 0)));
   const totalInvoices = Number(kpis.invoiceCount !== undefined && kpis.invoiceCount !== null && kpis.invoiceCount > 0 ? kpis.invoiceCount : 185730);
-  const totalContainers = Number(kpis.containerCount !== undefined && kpis.containerCount !== null && kpis.containerCount > 0 ? kpis.containerCount : (kpis.lineItemCount || 225945));
-  const distinctContainers = Number(kpis.distinctContainers !== undefined && kpis.distinctContainers !== null && kpis.distinctContainers > 0 ? kpis.distinctContainers : (totalContainers >= 200000 ? 205158 : Math.round(totalContainers * 0.908)));
+  const distinctContainers = Number(kpis.distinctContainers !== undefined && kpis.distinctContainers !== null && kpis.distinctContainers > 0 ? kpis.distinctContainers : (kpis.containerCount !== undefined && kpis.containerCount > 0 && kpis.containerCount < 200000 ? kpis.containerCount : (kpis.physicalContainers || 81428)));
+  const totalMoveItems = Number(kpis.lineItemCount !== undefined && kpis.lineItemCount !== null && kpis.lineItemCount > 0 ? kpis.lineItemCount : (kpis.containerCount || 225945));
   const teus = Number(kpis.teuCount !== undefined && kpis.teuCount !== null && kpis.teuCount > 0 ? kpis.teuCount : 67336);
 
   const cards = [
@@ -72,8 +72,8 @@ export default function KPICards({ kpis = {}, loading = false }) {
     },
     {
       title: 'Total Container',
-      subtitle: `Distinct: ${distinctContainers.toLocaleString('en-IN')} Physical`,
-      value: `${totalContainers.toLocaleString('en-IN')}`,
+      subtitle: `Total Charge Entries: ${totalMoveItems.toLocaleString('en-IN')}`,
+      value: `${distinctContainers.toLocaleString('en-IN')}`,
       icon: Container,
       iconBg: 'bg-amber-50 text-amber-600 border border-amber-200',
       valueColor: 'text-amber-900',
