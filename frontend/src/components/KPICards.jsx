@@ -78,22 +78,13 @@ export default function KPICards({ kpis = {}, loading = false }) {
       iconBg: 'bg-amber-50 text-amber-600 border border-amber-200',
       valueColor: 'text-amber-900',
       subColor: 'text-amber-700'
-    },
-    {
-      title: 'Total TEUs',
-      subtitle: '20ft × 1 + 40ft × 2',
-      value: `${teus.toLocaleString('en-IN')}`,
-      icon: Container,
-      iconBg: 'bg-orange-50 text-orange-600 border border-orange-200',
-      valueColor: 'text-orange-600',
-      subColor: 'text-orange-700'
     }
   ];
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5 animate-fade-in">
-        {Array.from({ length: 6 }).map((_, idx) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 animate-fade-in">
+        {Array.from({ length: 5 }).map((_, idx) => (
           <SkeletonKPICard key={idx} />
         ))}
       </div>
@@ -102,8 +93,8 @@ export default function KPICards({ kpis = {}, loading = false }) {
 
   return (
     <div className="space-y-3 animate-slide-up">
-      {/* 6 Core Verified KPIs Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
+      {/* 5 Core Verified KPIs Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (
