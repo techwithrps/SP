@@ -34,7 +34,8 @@ export async function authFetch(url, options = {}) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 18000);
+    // 60-second timeout to handle Render cold-start behavior without premature aborts
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     const res = await fetch(targetUrl, {
       ...options,
@@ -50,14 +51,21 @@ export async function authFetch(url, options = {}) {
     console.warn(`[SPJ API] Live backend call to ${targetUrl} failed or timed out:`, err.message);
   }
 
-  // Resilient Fallback to High-Speed Engine if Backend is sleeping or unreachable
+  // Explicit Fallback: If Live Oracle backend is offline/unreachable after 60s, label explicitly
   const urlObj = new URL(url.startsWith('http') ? url : `http://localhost${url.startsWith('/') ? url : '/' + url}`);
   const pathname = urlObj.pathname;
   const searchParams = Object.fromEntries(urlObj.searchParams.entries());
 
   if (pathname.includes('/financial-analytics')) {
     const data = computeFinancialAnalytics(searchParams);
-    return new Response(JSON.stringify(data), {
+    // Explicitly label offline static fallback so it is never presented as live Oracle SPJLIVE data
+    const offlinePayload = {
+      ...data,
+      source: 'SNAPSHOT_FALLBACK_OFFLINE',
+      isOfflineFallback: true,
+      executionMode: 'OFFLINE_STATIC_SNAPSHOT'
+    };
+    return new Response(JSON.stringify(offlinePayload), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -65,7 +73,13 @@ export async function authFetch(url, options = {}) {
 
   if (pathname.includes('/cir-report')) {
     const data = computeCIRReport(searchParams);
-    return new Response(JSON.stringify(data), {
+    const offlinePayload = {
+      ...data,
+      source: 'SNAPSHOT_FALLBACK_OFFLINE',
+      isOfflineFallback: true,
+      executionMode: 'OFFLINE_STATIC_SNAPSHOT'
+    };
+    return new Response(JSON.stringify(offlinePayload), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -73,6 +87,7 @@ export async function authFetch(url, options = {}) {
 
   if (pathname.includes('/masters')) {
     const data = getClientMasters();
+
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

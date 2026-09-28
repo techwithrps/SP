@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Globe2, Ship, Truck, Users } from 'lucide-react';
+import { Globe2, Ship, Truck, Users, AlertTriangle, RefreshCw } from 'lucide-react';
 import Navbar from './components/Navbar';
 import GlobalFilterBar from './components/GlobalFilterBar';
 import FilterBar from './components/FilterBar';
@@ -554,7 +554,38 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-3 sm:space-y-6">
         
+        {/* Explicit Offline Snapshot Banner if Live Oracle DB is unreachable */}
+        {(financialData?.isOfflineFallback || financialData?.source === 'SNAPSHOT_FALLBACK_OFFLINE') && (
+
+          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm animate-fade-in text-amber-900">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0 text-amber-700 font-bold">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-amber-900 flex items-center gap-2">
+                  <span>Offline Snapshot Mode</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900 font-extrabold border border-amber-300">
+                    UNABLE TO REACH LIVE ORACLE SPJLIVE
+                  </span>
+                </h4>
+                <p className="text-[11px] text-amber-800 mt-0.5">
+                  Live backend API timed out or is starting up. Displaying cached offline snapshot. Click retry to connect to live Oracle DB.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => fetchSynchronizedAnalytics()}
+              className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 shrink-0 cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
+              <span>Retry Live Connection</span>
+            </button>
+          </div>
+        )}
+
         {/* Master Global Filter Bar (Company, Customer, Terminal & FY Filter) across ALL pages - Rendered first on top */}
+
         <div className="animate-slide-up">
           <GlobalFilterBar
             selectedCompany={selectedCompany}

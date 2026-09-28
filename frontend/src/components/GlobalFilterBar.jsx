@@ -10,7 +10,8 @@ import {
   Sparkles,
   ShieldCheck,
   FileSpreadsheet,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -729,12 +730,20 @@ export default function GlobalFilterBar({
           </span>
         </div>
 
-        {/* Right: Database Source */}
-        <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500 font-mono">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Oracle Live</span>
-          <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">SPJLIVE</span>
-        </div>
+        {/* Right: Database Source Indicator (Live Oracle vs Offline Snapshot) */}
+        {financialData?.isOfflineFallback || financialData?.source === 'SNAPSHOT_FALLBACK_OFFLINE' ? (
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-amber-600 font-mono">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+            <span>Offline Snapshot</span>
+            <span className="font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">OFFLINE CACHED</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500 font-mono">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Oracle Live</span>
+            <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">SPJLIVE</span>
+          </div>
+        )}
 
       </div>
 
