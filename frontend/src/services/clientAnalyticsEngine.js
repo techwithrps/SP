@@ -36,9 +36,7 @@ export function computeFinancialAnalytics(filters = {}) {
   if (fromDate && fromDate.trim() !== '') fYMD = toYMD(fromDate);
   if (toDate && toDate.trim() !== '') tYMD = toYMD(toDate);
 
-  // Defaults if no dates provided
-  if (!fYMD) fYMD = '2025-01-01';
-  if (!tYMD) tYMD = '2026-12-31';
+  // Defaults: if no dates or FY provided, fYMD and tYMD remain null (All Time)
 
   let totalInvs = 0, totalConts = 0, totalJobs = 0, totalTeus = 0;
   let totalBase = 0, totalIgst = 0, totalCgst = 0, totalSgst = 0, totalGross = 0;
@@ -63,7 +61,8 @@ export function computeFinancialAnalytics(filters = {}) {
   for (let i = 0; i < dataset.length; i++) {
     const r = dataset[i];
 
-    if (r.date < fYMD || r.date > tYMD) continue;
+    if (fYMD && r.date < fYMD) continue;
+    if (tYMD && r.date > tYMD) continue;
     if (cleanCompany && String(r.companyId) !== cleanCompany) continue;
     if (cleanTerminal && String(r.terminalId) !== cleanTerminal) continue;
     if (cleanCustomer && String(r.customerId) !== cleanCustomer && !r.customerName.toLowerCase().includes(cleanCustomer)) continue;
