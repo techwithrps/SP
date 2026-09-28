@@ -13,7 +13,73 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { formatToDDMMYYYY, formatToReadableIndian } from '../utils/dateFormatter';
+import { formatToDDMMYYYY, formatToReadableIndian, parseToYYYYMMDD } from '../utils/dateFormatter';
+
+function IndianDateInput({ value, onChange, placeholder = 'DD/MM/YYYY' }) {
+  const hiddenInputRef = React.useRef(null);
+  const [textVal, setTextVal] = React.useState(() => formatToDDMMYYYY(value));
+
+  React.useEffect(() => {
+    setTextVal(formatToDDMMYYYY(value));
+  }, [value]);
+
+  const handleTextChange = (e) => {
+    const raw = e.target.value;
+    setTextVal(raw);
+    const parsed = parseToYYYYMMDD(raw);
+    if (parsed) {
+      onChange(parsed);
+    }
+  };
+
+  const handlePickerChange = (e) => {
+    const val = e.target.value;
+    if (val) {
+      onChange(val);
+      setTextVal(formatToDDMMYYYY(val));
+    }
+  };
+
+  const openCalendar = () => {
+    if (hiddenInputRef.current) {
+      if (typeof hiddenInputRef.current.showPicker === 'function') {
+        hiddenInputRef.current.showPicker();
+      } else {
+        hiddenInputRef.current.focus();
+        hiddenInputRef.current.click();
+      }
+    }
+  };
+
+  return (
+    <div className="relative flex items-center w-full">
+      <input
+        type="text"
+        value={textVal}
+        placeholder={placeholder}
+        onChange={handleTextChange}
+        onClick={openCalendar}
+        className="w-full h-8 pl-2 pr-7 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] shadow-xs cursor-pointer tracking-wide text-center"
+      />
+      <button
+        type="button"
+        onClick={openCalendar}
+        className="absolute right-1.5 p-1 text-slate-400 hover:text-[#ff6a00] transition-colors cursor-pointer"
+        title="Open Calendar Picker"
+      >
+        <Calendar className="w-3.5 h-3.5" />
+      </button>
+      <input
+        ref={hiddenInputRef}
+        type="date"
+        value={value || ''}
+        onChange={handlePickerChange}
+        className="absolute opacity-0 pointer-events-none w-0 h-0"
+        tabIndex={-1}
+      />
+    </div>
+  );
+}
 
 function getCanonicalFY(fy) {
   if (!fy || fy === 'ALL' || fy === 'all' || fy === 'All Financial Years' || fy === 'CUSTOM_RANGE' || fy === 'Custom Date Range' || fy === 'CUSTOM') return null;
@@ -491,55 +557,39 @@ export default function GlobalFilterBar({
                   </div>
                 )}
 
-                {/* From & To Inputs (HTML5 date with explicit DD/MM/YYYY hint & click to pick) */}
+                {/* From & To Custom Indian DD/MM/YYYY Inputs */}
                 <div className="flex items-center gap-1.5">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-[9px] font-extrabold text-slate-600 uppercase">
-                        From (DD/MM/YYYY)
-                      </span>
-                      {customFromDate && (
-                        <span className="text-[8px] font-bold text-indigo-600 bg-indigo-50 px-1 rounded">
-                          {formatToDDMMYYYY(customFromDate)}
-                        </span>
-                      )}
-                    </div>
-                    <input
-                      type="date"
+                    <span className="text-[9px] font-extrabold text-slate-600 uppercase block mb-0.5">
+                      From (DD/MM/YYYY)
+                    </span>
+                    <IndianDateInput
                       value={customFromDate || ''}
-                      onChange={(e) => {
-                        if (setCustomFromDate) setCustomFromDate(e.target.value);
+                      onChange={(newVal) => {
+                        if (setCustomFromDate) setCustomFromDate(newVal);
                         if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
                       }}
-                      className="w-full h-8 px-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] cursor-pointer shadow-xs"
+                      placeholder="DD/MM/YYYY"
                     />
                   </div>
                   <span className="text-slate-400 font-bold text-xs mt-3.5">→</span>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-[9px] font-extrabold text-slate-600 uppercase">
-                        To (DD/MM/YYYY)
-                      </span>
-                      {customToDate && (
-                        <span className="text-[8px] font-bold text-indigo-600 bg-indigo-50 px-1 rounded">
-                          {formatToDDMMYYYY(customToDate)}
-                        </span>
-                      )}
-                    </div>
-                    <input
-                      type="date"
+                    <span className="text-[9px] font-extrabold text-slate-600 uppercase block mb-0.5">
+                      To (DD/MM/YYYY)
+                    </span>
+                    <IndianDateInput
                       value={customToDate || ''}
-                      onChange={(e) => {
-                        if (setCustomToDate) setCustomToDate(e.target.value);
+                      onChange={(newVal) => {
+                        if (setCustomToDate) setCustomToDate(newVal);
                         if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
                       }}
-                      className="w-full h-8 px-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] cursor-pointer shadow-xs"
+                      placeholder="DD/MM/YYYY"
                     />
                   </div>
                 </div>
 
-                {/* 1-Click Date Presets */}
-                <div className="flex items-center gap-1 pt-1.5 border-t border-slate-200 overflow-x-auto">
+                {/* Clean 1-Click Quick Filter Tags */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-slate-200">
                   <button
                     type="button"
                     onClick={() => {
@@ -547,13 +597,13 @@ export default function GlobalFilterBar({
                       if (setCustomToDate) setCustomToDate('2026-09-28');
                       if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
                     }}
-                    className={`text-[9px] font-extrabold px-2 py-1 rounded-md border transition-all cursor-pointer shrink-0 ${
+                    className={`text-[9px] font-bold px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
                       customFromDate === '2026-08-01' && customToDate === '2026-09-28'
                         ? 'bg-[#ff6a00] text-white border-[#ff6a00] shadow-xs'
                         : 'bg-white hover:bg-orange-50 text-slate-700 border-slate-200'
                     }`}
                   >
-                    Aug–Sep 2026 (01/08 - 28/09)
+                    Aug–Sep 2026
                   </button>
                   <button
                     type="button"
@@ -562,13 +612,13 @@ export default function GlobalFilterBar({
                       if (setCustomToDate) setCustomToDate('2026-09-28');
                       if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
                     }}
-                    className={`text-[9px] font-extrabold px-2 py-1 rounded-md border transition-all cursor-pointer shrink-0 ${
+                    className={`text-[9px] font-bold px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
                       customFromDate === '2026-09-01' && customToDate === '2026-09-28'
                         ? 'bg-[#ff6a00] text-white border-[#ff6a00] shadow-xs'
                         : 'bg-white hover:bg-orange-50 text-slate-700 border-slate-200'
                     }`}
                   >
-                    Sep 2026 (01/09 - 28/09)
+                    Sep 2026
                   </button>
                   <button
                     type="button"
@@ -577,13 +627,13 @@ export default function GlobalFilterBar({
                       if (setCustomToDate) setCustomToDate('2026-08-31');
                       if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
                     }}
-                    className={`text-[9px] font-extrabold px-2 py-1 rounded-md border transition-all cursor-pointer shrink-0 ${
+                    className={`text-[9px] font-bold px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
                       customFromDate === '2026-08-01' && customToDate === '2026-08-31'
                         ? 'bg-[#ff6a00] text-white border-[#ff6a00] shadow-xs'
                         : 'bg-white hover:bg-orange-50 text-slate-700 border-slate-200'
                     }`}
                   >
-                    Aug 2026 (01/08 - 31/08)
+                    Aug 2026
                   </button>
                   <button
                     type="button"
@@ -592,13 +642,28 @@ export default function GlobalFilterBar({
                       if (setCustomToDate) setCustomToDate('2026-09-28');
                       if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
                     }}
-                    className={`text-[9px] font-extrabold px-2 py-1 rounded-md border transition-all cursor-pointer shrink-0 ${
+                    className={`text-[9px] font-bold px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
                       customFromDate === '2026-04-01' && customToDate === '2026-09-28'
                         ? 'bg-[#ff6a00] text-white border-[#ff6a00] shadow-xs'
                         : 'bg-white hover:bg-orange-50 text-slate-700 border-slate-200'
                     }`}
                   >
-                    FY 26-27 (01/04 - 28/09)
+                    FY 26-27
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (setCustomFromDate) setCustomFromDate('2025-04-01');
+                      if (setCustomToDate) setCustomToDate('2026-03-31');
+                      if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
+                    }}
+                    className={`text-[9px] font-bold px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
+                      customFromDate === '2025-04-01' && customToDate === '2026-03-31'
+                        ? 'bg-[#ff6a00] text-white border-[#ff6a00] shadow-xs'
+                        : 'bg-white hover:bg-orange-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    FY 25-26
                   </button>
                 </div>
               </div>
