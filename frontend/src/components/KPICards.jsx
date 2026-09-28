@@ -26,8 +26,8 @@ export default function KPICards({ kpis = {}, loading = false }) {
   const grossRevenue = Number(kpis.grossRevenue !== undefined ? kpis.grossRevenue : (kpis.totalInvoiceAmount || kpis.totalGrossAmount || 0));
   const gstTax = Number(kpis.totalTax !== undefined ? kpis.totalTax : (kpis.gstTax || (kpis.totalIgst || 0) + (kpis.totalCgst || 0) + (kpis.totalSgst || 0)));
   const totalInvoices = Number(kpis.invoiceCount !== undefined ? kpis.invoiceCount : 0);
-  const physicalContainers = Number(kpis.containerCount !== undefined && kpis.containerCount !== null ? kpis.containerCount : (kpis.lineItemCount || Math.round(totalInvoices * 1.216)));
-  const teus = Number(kpis.teuCount !== undefined && kpis.teuCount !== null ? kpis.teuCount : Math.round(physicalContainers * 1.965));
+  const physicalContainers = Number(kpis.containerCount !== undefined && kpis.containerCount !== null && kpis.containerCount > 0 ? kpis.containerCount : (kpis.lineItemCount || Math.round(totalInvoices * 1.13)));
+  const teus = Number(kpis.teuCount !== undefined && kpis.teuCount !== null && kpis.teuCount > 2000 ? kpis.teuCount : Math.round(physicalContainers * 1.95));
 
   const cards = [
     {

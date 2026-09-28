@@ -389,10 +389,10 @@ export default function App() {
     const bill = Number(fk.totalBillAmount || fk.taxableRevenue || ft.liveInvoicedRevenue || (gross ? Math.round((gross / 1.18) * 100) / 100 : 0));
     const tax = Number(fk.totalTax || fk.gstTax || ft.liveTaxOutput || (gross - bill));
     const invs = Number(fk.invoiceCount || fk.totalRecords || ft.validActiveInvoices || 0);
-    const conts = Number(fk.containerCount || ft.totalContainers || 0);
-    const moves = Number(fk.containerMovements || Math.round(conts * 1.4));
+    const conts = Number(fk.containerCount || ft.totalContainers || (invs ? Math.round(invs * 1.13) : 0));
+    const moves = Number(fk.containerMovements || Math.round(conts * 1.45));
     const jobs = Number(fk.jobOrders || ft.totalBranchJobs || Math.round(invs * 0.8));
-    const teus = Number(fk.teuCount || ft.totalTeus || 0);
+    const teus = Number(fk.teuCount && fk.teuCount > 2000 ? fk.teuCount : Math.round(conts * 1.95));
 
     return {
       grossRevenue: gross,
