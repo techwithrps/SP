@@ -67,40 +67,30 @@ export default function CompactFilterGroup({
         </select>
       </div>
 
-      {/* 2. Compact FY Dropdown */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5">
-        <div className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl px-2.5 py-1.5 shadow-sm transition-all">
-          <Calendar className="w-3.5 h-3.5 text-[#ff6a00] shrink-0" />
-          <select
-            value={selectedFY}
-            onChange={(e) => setSelectedFY && setSelectedFY(e.target.value)}
-            className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
-          >
-            <option value="ALL">📅 All FYs (Cumulative)</option>
-            <option value="FY 2026-27">FY 2026-27</option>
-            <option value="FY 2025-26">FY 2025-26</option>
-            <option value="FY 2024-25">FY 2024-25</option>
-            <option value="CUSTOM_RANGE">📆 Custom Date Range</option>
-          </select>
+      {/* 2. Compact Date Range Inputs */}
+      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1 shadow-xs">
+        <Calendar className="w-3.5 h-3.5 text-[#ff6a00] shrink-0" />
+        <div className="flex items-center gap-1">
+          <input
+            type="date"
+            value={customFromDate || ''}
+            onChange={(e) => {
+              if (setCustomFromDate) setCustomFromDate(e.target.value);
+              if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
+            }}
+            className="h-7 px-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
+          />
+          <span className="text-[10px] font-bold text-slate-400">→</span>
+          <input
+            type="date"
+            value={customToDate || ''}
+            onChange={(e) => {
+              if (setCustomToDate) setCustomToDate(e.target.value);
+              if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
+            }}
+            className="h-7 px-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
+          />
         </div>
-
-        {(selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range') && (
-          <div className="flex items-center gap-1.5 bg-amber-50 p-1 px-2 border border-amber-200 rounded-xl">
-            <input
-              type="date"
-              value={customFromDate || ''}
-              onChange={(e) => setCustomFromDate && setCustomFromDate(e.target.value)}
-              className="h-7 px-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none"
-            />
-            <span className="text-[10px] font-bold text-amber-700">to</span>
-            <input
-              type="date"
-              value={customToDate || ''}
-              onChange={(e) => setCustomToDate && setCustomToDate(e.target.value)}
-              className="h-7 px-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none"
-            />
-          </div>
-        )}
       </div>
 
       {/* 3. Reset Button (If active) */}

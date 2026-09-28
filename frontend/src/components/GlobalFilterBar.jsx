@@ -445,88 +445,57 @@ export default function GlobalFilterBar({
           {/* Controls Group: 1. Financial Year -> 2. Company -> 3. Branch -> 4. Customer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 w-full lg:w-auto flex-1">
             
-            {/* 1. Financial Year / Date Range Selector */}
+            {/* 1. Date Range Selector (From & To) */}
             <div className="flex flex-col min-w-0">
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" />
-                  Financial Year
+                  Date Range
                 </span>
-                {(selectedFY !== 'ALL' || customFromDate || customToDate) && (
+                {(customFromDate || customToDate) ? (
                   <button
                     onClick={() => {
-                      if (setSelectedFY) setSelectedFY('ALL');
                       if (setCustomFromDate) setCustomFromDate('');
                       if (setCustomToDate) setCustomToDate('');
+                      if (setSelectedFY) setSelectedFY('ALL');
                     }}
-                    className="text-[9px] font-bold text-[#ff6a00] hover:underline cursor-pointer"
+                    className="text-[9px] font-bold text-rose-600 hover:underline cursor-pointer"
                   >
-                    Reset
+                    Clear Dates
                   </button>
+                ) : (
+                  <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200">
+                    All Time Data
+                  </span>
                 )}
               </label>
 
-              <div className="space-y-1.5">
-                <div className="relative">
-                  <select
-                    value={selectedFY || 'ALL'}
+              <div className="flex items-center gap-1.5 p-1.5 bg-slate-50 border border-slate-300 rounded-xl shadow-xs h-9 sm:h-11">
+                <div className="flex-1 min-w-0">
+                  <span className="text-[8px] font-extrabold text-slate-400 block uppercase leading-none mb-0.5">From</span>
+                  <input
+                    type="date"
+                    value={customFromDate || ''}
                     onChange={(e) => {
-                      const val = e.target.value;
-                      if (setSelectedFY) setSelectedFY(val);
-                      if (val === 'ALL' || val === 'All Financial Years') {
-                        if (setCustomFromDate) setCustomFromDate('');
-                        if (setCustomToDate) setCustomToDate('');
-                      } else if (val === 'FY 2026-27' || val === '2026-2027') {
-                        if (setCustomFromDate) setCustomFromDate('2026-04-01');
-                        if (setCustomToDate) setCustomToDate('2027-03-31');
-                      } else if (val === 'FY 2025-26' || val === '2025-2026') {
-                        if (setCustomFromDate) setCustomFromDate('2025-04-01');
-                        if (setCustomToDate) setCustomToDate('2026-03-31');
-                      } else if (val === 'FY 2024-25' || val === '2024-2025') {
-                        if (setCustomFromDate) setCustomFromDate('2024-04-01');
-                        if (setCustomToDate) setCustomToDate('2025-03-31');
-                      }
+                      if (setCustomFromDate) setCustomFromDate(e.target.value);
+                      if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
                     }}
-                    className="w-full h-9 sm:h-11 pl-3 pr-8 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff6a00] transition-all cursor-pointer shadow-xs truncate"
-                  >
-                    <option value="ALL">📅 All Financial Years (Cumulative Total)</option>
-                    <option value="FY 2026-27">📅 FY 2026-27</option>
-                    <option value="FY 2025-26">📅 FY 2025-26</option>
-                    <option value="FY 2024-25">📅 FY 2024-25</option>
-                    <option value="CUSTOM_RANGE">📆 Custom Date Range...</option>
-                  </select>
+                    className="w-full h-5 px-1 bg-white border border-slate-200 rounded text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
+                  />
                 </div>
-
-                {/* Custom Date Range Inputs (Shown when Custom Date Range is active) */}
-                {(selectedFY === 'CUSTOM_RANGE' || selectedFY === 'Custom Date Range' || (customFromDate && selectedFY !== 'FY 2026-27' && selectedFY !== 'FY 2025-26' && selectedFY !== 'FY 2024-25')) && (
-                  <div className="flex items-center gap-1.5 p-1.5 bg-amber-50/80 border border-amber-200 rounded-xl animate-fade-in">
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[8px] font-extrabold text-amber-800 block uppercase mb-0.5">From</span>
-                      <input
-                        type="date"
-                        value={customFromDate || ''}
-                        onChange={(e) => {
-                          if (setCustomFromDate) setCustomFromDate(e.target.value);
-                          if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
-                        }}
-                        className="w-full h-7 px-1.5 bg-white border border-amber-300 rounded-lg text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
-                      />
-                    </div>
-                    <span className="text-amber-500 font-bold text-xs mt-3">→</span>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[8px] font-extrabold text-amber-800 block uppercase mb-0.5">To</span>
-                      <input
-                        type="date"
-                        value={customToDate || ''}
-                        onChange={(e) => {
-                          if (setCustomToDate) setCustomToDate(e.target.value);
-                          if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
-                        }}
-                        className="w-full h-7 px-1.5 bg-white border border-amber-300 rounded-lg text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
-                      />
-                    </div>
-                  </div>
-                )}
+                <span className="text-slate-400 font-bold text-xs mt-2.5">→</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[8px] font-extrabold text-slate-400 block uppercase leading-none mb-0.5">To</span>
+                  <input
+                    type="date"
+                    value={customToDate || ''}
+                    onChange={(e) => {
+                      if (setCustomToDate) setCustomToDate(e.target.value);
+                      if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
+                    }}
+                    className="w-full h-5 px-1 bg-white border border-slate-200 rounded text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
+                  />
+                </div>
               </div>
             </div>
 
