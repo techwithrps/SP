@@ -181,6 +181,10 @@ export default function VesselScheduleView() {
 
   useEffect(() => {
     fetchSchedules();
+    const autoTriggerInterval = setInterval(() => {
+      fetchSchedules();
+    }, 30000); // 30-second continuous background auto-trigger
+    return () => clearInterval(autoTriggerInterval);
   }, [carrier, pol, pod]);
 
   useEffect(() => {
@@ -730,8 +734,9 @@ export default function VesselScheduleView() {
                 <span className="text-xs font-bold text-slate-700">
                   Showing <span className="text-indigo-600 font-extrabold text-sm">{filteredSchedules.length}</span> Active Vessels {carrier !== 'ALL' && <span>for <strong className="text-indigo-600">{carrier}</strong></span>}
                 </span>
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                  ● Live Carrier API Synced
+                <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                  <span>● Auto-Trigger Live Active (30s Refresh)</span>
                 </span>
               </div>
 
