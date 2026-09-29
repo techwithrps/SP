@@ -422,15 +422,35 @@ export default function VesselScheduleView() {
                   </div>
                 </div>
 
-                {/* Cutoff Details */}
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="bg-amber-50/60 border border-amber-200/70 p-2.5 rounded-xl">
-                    <div className="text-[10px] font-bold text-amber-800 uppercase">Gate Cutoff</div>
-                    <div className="font-extrabold text-amber-950 mt-0.5">{s.gateCutoff}</div>
+                {/* JSB-Style Terminal & VIA Info Pill */}
+                {s.terminalName && (
+                  <div className="bg-slate-100 p-2.5 rounded-xl text-xs flex items-center justify-between font-semibold text-slate-700">
+                    <span className="text-indigo-700 font-extrabold flex items-center gap-1">
+                      🏢 {s.terminalName}
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      {s.viaNo || s.rotationNo}
+                    </span>
                   </div>
-                  <div className="bg-blue-50/60 border border-blue-200/70 p-2.5 rounded-xl">
-                    <div className="text-[10px] font-bold text-blue-800 uppercase">Doc Cutoff</div>
-                    <div className="font-extrabold text-blue-950 mt-0.5">{s.docCutoff}</div>
+                )}
+
+                {/* JSB-Style 4-Column Cutoff Details Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div className="bg-emerald-50/60 border border-emerald-200/70 p-2 rounded-xl">
+                    <div className="text-[9px] font-bold text-emerald-800 uppercase">Gate Open</div>
+                    <div className="font-extrabold text-emerald-950 mt-0.5 text-[11px]">{s.gateOpenDate || 'Open'}</div>
+                  </div>
+                  <div className="bg-amber-50/60 border border-amber-200/70 p-2 rounded-xl">
+                    <div className="text-[9px] font-bold text-amber-800 uppercase">Gate Cutoff</div>
+                    <div className="font-extrabold text-amber-950 mt-0.5 text-[11px]">{s.gateCutoff}</div>
+                  </div>
+                  <div className="bg-blue-50/60 border border-blue-200/70 p-2 rounded-xl">
+                    <div className="text-[9px] font-bold text-blue-800 uppercase">Doc Cutoff</div>
+                    <div className="font-extrabold text-blue-950 mt-0.5 text-[11px]">{s.docCutoff}</div>
+                  </div>
+                  <div className="bg-purple-50/60 border border-purple-200/70 p-2 rounded-xl">
+                    <div className="text-[9px] font-bold text-purple-800 uppercase">S/Bill Cutoff</div>
+                    <div className="font-extrabold text-purple-950 mt-0.5 text-[11px]">{s.sbCutoff || s.docCutoff}</div>
                   </div>
                 </div>
 
