@@ -139,12 +139,12 @@ export default function CIRTable({
                 onClick={() => onSelectRecord(row)}
                 className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs active:scale-[0.99] transition-all cursor-pointer space-y-2 hover:border-[#2b1f55]"
               >
-                {/* Header: Inv No, Date, Type Badge & Amount */}
+                {/* Header: Service Name, Inv No, Type Badge & Amount */}
                 <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-mono font-black text-[#2b1f55] bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-                        {row.INVOICE_REF_NO || row.INVOICE_NO || 'INV-0'}
+                      <span className="text-xs font-extrabold text-slate-900">
+                        {row.SERVICE_NAME || row.SERVICE_TYPE || 'Reefer Transportation & CFS Handling'}
                       </span>
                       <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold ${
                         isCreditNote
@@ -154,9 +154,14 @@ export default function CIRTable({
                         {isCreditNote ? 'Credit' : 'Invoice'}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
-                      {row.INVOICE_DATE || '-'} {row.JOB_NO ? `• Job: ${row.JOB_NO}` : ''}
-                    </span>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-[10px] font-mono font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                        {row.INVOICE_REF_NO || row.INVOICE_NO || 'INV-0'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {row.INVOICE_DATE || '-'} {row.JOB_NO ? `• Job: ${row.JOB_NO}` : ''}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="text-right shrink-0">
