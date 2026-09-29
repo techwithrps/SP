@@ -350,7 +350,7 @@ export default function VesselScheduleView() {
           </div>
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Live Data Sync</div>
-            <div className="text-lg font-bold text-slate-900">JSB Live API</div>
+            <div className="text-lg font-bold text-slate-900">SPJ Live API</div>
           </div>
         </div>
 
