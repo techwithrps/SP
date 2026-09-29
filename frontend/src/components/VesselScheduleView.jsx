@@ -432,7 +432,7 @@ export default function VesselScheduleView() {
 
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 rounded-full border border-rose-200 text-xs font-extrabold shadow-xs">
-              ⚓ 189 sailings available
+              ⚓ {schedules.length} sailings available
             </span>
 
             {/* View Mode Switcher */}
