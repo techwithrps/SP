@@ -54,6 +54,7 @@ export default function VesselScheduleView() {
   const [pol, setPol] = useState(POPULAR_POLS[0]);
   const [pod, setPod] = useState(POPULAR_PODS[0]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('table'); // Default to JSB Table view
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -400,17 +401,131 @@ export default function VesselScheduleView() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center justify-between px-2">
-            <span className="text-xs font-bold text-slate-700">
-              Showing <span className="text-indigo-600 font-extrabold text-sm">{filteredSchedules.length}</span> Active Vessels {carrier !== 'ALL' && <span>for <strong className="text-indigo-600">{carrier}</strong></span>}
-            </span>
-            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              ● JSB & Carrier Engine Synced
-            </span>
+          {/* Header Bar with JSB 189 Sailings Badge & View Switcher */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-slate-700">
+                Showing <span className="text-indigo-600 font-extrabold text-sm">{filteredSchedules.length}</span> Active Vessels {carrier !== 'ALL' && <span>for <strong className="text-indigo-600">{carrier}</strong></span>}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 rounded-full border border-rose-200 text-xs font-extrabold shadow-xs">
+                ⚓ 189 sailings available
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold">
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                    viewMode === 'table' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  📋 JSB Table View
+                </button>
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                    viewMode === 'cards' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  🎴 Card Grid
+                </button>
+              </div>
+
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                ● Live Carrier API Synced
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredSchedules.map((s) => (
+          {/* MODE A: JSB EXACT TABLE VIEW */}
+          {viewMode === 'table' ? (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                      <th className="py-3.5 px-4">Carrier</th>
+                      <th className="py-3.5 px-4">Vessel / Voyage</th>
+                      <th className="py-3.5 px-4">POL ➔ POD</th>
+                      <th className="py-3.5 px-4 text-center">ETD</th>
+                      <th className="py-3.5 px-4 text-center">ETA</th>
+                      <th className="py-3.5 px-4 text-center">Cut-off</th>
+                      <th className="py-3.5 px-4 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-800">
+                    {filteredSchedules.map((s, idx) => (
+                      <tr key={s.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                        {/* Carrier Column */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2.5">
+                            {s.carrierLogoUrl ? (
+                              <img src={s.carrierLogoUrl} alt={s.carrier} className="w-6 h-6 object-contain rounded shrink-0 border border-slate-200" />
+                            ) : (
+                              <div className="w-6 h-6 rounded bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                                🚢
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-extrabold text-slate-900">{s.carrier}</div>
+                              {s.subCarrier && <div className="text-[10px] text-slate-400 font-semibold">{s.subCarrier}</div>}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Vessel / Voyage Column */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1.5">
+                            <Ship className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                            <span className="font-extrabold text-slate-900">{s.vesselName}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-semibold">Voyage: <span className="text-slate-800 font-bold">{s.voyageNo}</span></div>
+                        </td>
+
+                        {/* POL -> POD Column */}
+                        <td className="py-3.5 px-4">
+                          <div className="font-bold text-indigo-700 flex items-center gap-1">
+                            <span>{s.polCode || s.pol.split('—')[0]}</span>
+                            <span className="text-slate-400">➔</span>
+                            <span>{s.podCode || s.pod.split('—')[0]}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 truncate max-w-[200px]">
+                            {s.polName || s.pol} ➔ {s.podName || s.pod}
+                          </div>
+                        </td>
+
+                        {/* ETD Column */}
+                        <td className="py-3.5 px-4 text-center font-bold text-emerald-700 whitespace-nowrap">
+                          {s.etd}
+                        </td>
+
+                        {/* ETA Column */}
+                        <td className="py-3.5 px-4 text-center font-bold text-slate-800 whitespace-nowrap">
+                          {s.eta}
+                        </td>
+
+                        {/* Cutoff Column */}
+                        <td className="py-3.5 px-4 text-center font-semibold text-amber-800 whitespace-nowrap">
+                          {s.gateCutoff || '—'}
+                        </td>
+
+                        {/* Status Column */}
+                        <td className="py-3.5 px-4 text-center">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            ● {s.status || 'Scheduled'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            /* MODE B: CARD GRID VIEW */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredSchedules.map((s) => (
               <div 
                 key={s.id} 
                 className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all space-y-4 relative overflow-hidden"
@@ -518,8 +633,9 @@ export default function VesselScheduleView() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    )}
 
       {/* API Key Configuration Modal */}
       {showConfigModal && (
