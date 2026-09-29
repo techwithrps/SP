@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Ship, 
   Search, 
@@ -21,6 +21,7 @@ import {
 import { authFetch } from '../utils/api';
 
 const POPULAR_POLS = [
+  'ALL — All Origin Ports (JNPT, Mundra, Chennai)',
   'GTIL — GATEWAY TERMINALS PVT LTD (JNPT)',
   'NHAVA SHEVA — INNSA1 (India)',
   'MUNDRA PORT — INMUN1 (India)',
@@ -29,6 +30,7 @@ const POPULAR_POLS = [
 ];
 
 const POPULAR_PODS = [
+  'ALL — All Destination Ports (Jakarta, Alexandria, Jebel Ali)',
   'Jakarta — JAKARTA (Indonesia)',
   'ALEXANDRIA — EGYPT',
   'JEBEL ALI — UAE',
@@ -38,17 +40,20 @@ const POPULAR_PODS = [
 ];
 
 const CARRIERS = [
-  { name: 'Evergreen', logo: '🌲', code: 'EMC' },
-  { name: 'Hapag-Lloyd', logo: '🟠', code: 'HAP' },
-  { name: 'MSC', logo: '🟡', code: 'MSC' },
-  { name: 'Maersk', logo: '🟦', code: 'MSK' },
-  { name: 'CMA CGM', logo: '🔵', code: 'CMA' }
+  { name: 'ALL', label: 'All Shipping Lines / Carriers', logo: '🌐', code: 'ALL' },
+  { name: 'Evergreen', label: 'Evergreen Line', logo: '🌲', code: 'EMC' },
+  { name: 'Hapag-Lloyd', label: 'Hapag-Lloyd', logo: '🟠', code: 'HAP' },
+  { name: 'MSC', label: 'MSC (Mediterranean Shipping)', logo: '🟡', code: 'MSC' },
+  { name: 'Maersk', label: 'Maersk Line', logo: '🟦', code: 'MSK' },
+  { name: 'CMA CGM', label: 'CMA CGM', logo: '🔵', code: 'CMA' },
+  { name: 'ONE (Ocean Network Express)', label: 'ONE Line', logo: '🔴', code: 'ONE' }
 ];
 
 export default function VesselScheduleView() {
-  const [carrier, setCarrier] = useState('Evergreen');
+  const [carrier, setCarrier] = useState('ALL');
   const [pol, setPol] = useState(POPULAR_POLS[0]);
   const [pod, setPod] = useState(POPULAR_PODS[0]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -162,6 +167,34 @@ export default function VesselScheduleView() {
     fetchConfig();
   }, []);
 
+  const filteredSchedules = useMemo(() => {
+    return schedules.filter(s => {
+      // Carrier filter
+      if (carrier !== 'ALL' && s.carrier) {
+        const cLower = carrier.toLowerCase();
+        const sLower = s.carrier.toLowerCase();
+        if (!sLower.includes(cLower) && !cLower.includes(sLower)) return false;
+      }
+      // POL filter
+      if (pol && !pol.startsWith('ALL') && s.pol) {
+        const pLoc = pol.split('—')[0].trim().toLowerCase();
+        if (!s.pol.toLowerCase().includes(pLoc)) return false;
+      }
+      // POD filter
+      if (pod && !pod.startsWith('ALL') && s.pod) {
+        const pLoc = pod.split('—')[0].trim().toLowerCase();
+        if (!s.pod.toLowerCase().includes(pLoc)) return false;
+      }
+      // Search Query filter
+      if (searchQuery) {
+        const q = searchQuery.trim().toLowerCase();
+        const haystack = `${s.vesselName} ${s.carrier} ${s.voyageNo} ${s.terminalName || ''} ${s.pol} ${s.pod}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [schedules, carrier, pol, pod, searchQuery]);
+
   const handleSaveConfig = async (e) => {
     e.preventDefault();
     setConfigSaving(true);
@@ -266,9 +299,23 @@ export default function VesselScheduleView() {
 
       {/* Point-to-Point Search Filter Bar */}
       <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-          <Search className="w-4 h-4 text-indigo-600" />
-          <h2 className="text-sm font-bold text-slate-800">Point-to-Point Sailing Schedule Search</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <Search className="w-4 h-4 text-indigo-600" />
+            <h2 className="text-sm font-bold text-slate-800">Point-to-Point Sailing Schedule Search</h2>
+          </div>
+
+          {/* Quick Search Text Filter */}
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              placeholder="Search Vessel, Voyage, Terminal..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+            />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -282,7 +329,7 @@ export default function VesselScheduleView() {
             >
               {CARRIERS.map(c => (
                 <option key={c.name} value={c.name}>
-                  {c.logo} {c.name} ({c.code})
+                  {c.logo} {c.label || c.name}
                 </option>
               ))}
             </select>
@@ -347,23 +394,23 @@ export default function VesselScheduleView() {
             Retry Search
           </button>
         </div>
-      ) : schedules.length === 0 ? (
+      ) : filteredSchedules.length === 0 ? (
         <div className="bg-white rounded-3xl p-8 text-center border border-slate-200 text-slate-500 text-xs">
-          No active vessel schedules found for the selected route. Try changing the POL or POD.
+          No active vessel schedules found matching your filter criteria. Try selecting "ALL" or clearing search query.
         </div>
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
             <span className="text-xs font-bold text-slate-700">
-              Showing {schedules.length} Live Vessels for <span className="text-indigo-600 font-extrabold">{carrier}</span> ({pol.split('—')[0]} ➔ {pod.split('—')[0]})
+              Showing <span className="text-indigo-600 font-extrabold text-sm">{filteredSchedules.length}</span> Active Vessels {carrier !== 'ALL' && <span>for <strong className="text-indigo-600">{carrier}</strong></span>}
             </span>
             <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              ● Live Carrier Engine Synced
+              ● JSB & Carrier Engine Synced
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {schedules.map((s) => (
+            {filteredSchedules.map((s) => (
               <div 
                 key={s.id} 
                 className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all space-y-4 relative overflow-hidden"
