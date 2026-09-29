@@ -144,7 +144,7 @@ export default function CIRTable({
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-xs font-extrabold text-slate-900">
-                        {row.SERVICE_NAME || row.SERVICE_TYPE || 'Reefer Transportation & CFS Handling'}
+                        {row.SERVICE_NAME || row.SERVICE_TYPE || row.SERVICE_DESCRIPTION || row.CHARGE_HEAD_NAME || 'Service Charge'}
                       </span>
                       <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold ${
                         isCreditNote
