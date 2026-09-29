@@ -16,46 +16,126 @@ import {
   RefreshCw,
   Cpu,
   Zap,
-  Globe
+  Globe,
+  ChevronRight,
+  Layers
 } from 'lucide-react';
 import { authFetch } from '../utils/api';
+import jsbRawData from '../data/jsbSchedules.json';
 
-const POPULAR_POLS = [
-  'ALL — All Origin Ports (JNPT, Mundra, Chennai)',
-  'GTIL — GATEWAY TERMINALS PVT LTD (JNPT)',
-  'NHAVA SHEVA — INNSA1 (India)',
-  'MUNDRA PORT — INMUN1 (India)',
-  'CHENNAI PORT — INMAA1 (India)',
-  'PIPAVAV PORT — INPAV1 (India)'
+const JSB_CARRIERS = [
+  { name: 'ALL', label: 'All Shipping Lines', code: 'ALL' },
+  { name: 'Maersk Line India Pvt. Ltd.', label: 'Maersk Line India Pvt. Ltd. (Maersk A/S)', code: 'Maersk A/S', logo: 'https://s3-freightflow-prod-v2.s3.ap-south-1.amazonaws.com/1a83bb4b-ec24-4348-8e56-97e38fe6acfe/master-logos/shipping-lines/f540a936-5a14-4e9d-9afe-a3f29bb9d13d.png' },
+  { name: 'KMTC INDIA PVT LTD', label: 'KMTC INDIA PVT LTD (KMTC)', code: 'KMTC' },
+  { name: 'WANHAI DELHI', label: 'WANHAI DELHI (WHL)', code: 'WHL', logo: 'https://s3-freightflow-prod-v2.s3.ap-south-1.amazonaws.com/1a83bb4b-ec24-4348-8e56-97e38fe6acfe/master-logos/shipping-lines/9d9464ea-8541-44ef-b2e9-43616dd69b93.png' },
+  { name: 'WANHAI MUMBAI', label: 'WANHAI MUMBAI (WANHAI)', code: 'WANHAI', logo: 'https://s3-freightflow-prod-v2.s3.ap-south-1.amazonaws.com/1a83bb4b-ec24-4348-8e56-97e38fe6acfe/master-logos/shipping-lines/05b9cb28-c545-42b9-b1dd-cbceb72349fa.png' },
+  { name: 'HAPAG LLYOD- Delhi', label: 'HAPAG LLYOD- Delhi (HL-D)', code: 'HL-D', logo: 'https://s3-freightflow-prod-v2.s3.ap-south-1.amazonaws.com/1a83bb4b-ec24-4348-8e56-97e38fe6acfe/master-logos/shipping-lines/e82201c2-16ad-4abc-a559-41673effd12a.jpg' },
+  { name: 'Arkas DL', label: 'Arkas DL (Arkas DL)', code: 'Arkas DL', logo: 'https://s3-freightflow-prod-v2.s3.ap-south-1.amazonaws.com/1a83bb4b-ec24-4348-8e56-97e38fe6acfe/master-logos/shipping-lines/660f5235-604e-4ae9-a2b4-24e28571cbdc.webp' }
 ];
 
-const POPULAR_PODS = [
-  'ALL — All Destination Ports (Jakarta, Alexandria, Jebel Ali)',
-  'Jakarta — JAKARTA (Indonesia)',
-  'ALEXANDRIA — EGYPT',
-  'JEBEL ALI — UAE',
-  'UMM QASR NORTH — IRAQ',
-  'JEDDAH — SAUDI ARABIA',
-  'TANJUNG PRIOK — INDONESIA'
+const JSB_POLS = [
+  { name: 'ALL', label: 'All POLs (Port of Loading)', code: 'ALL' },
+  { name: 'PORT OF MUNDRA', label: 'PORT OF MUNDRA (MDCC)', code: 'MDCC' },
+  { name: 'GATEWAY TERMINALS PVT LTD', label: 'GATEWAY TERMINALS PVT LTD (GTIL)', code: 'GTIL' },
+  { name: 'POTI', label: 'POTI (GEPTI)', code: 'GEPTI' },
+  { name: 'NSICT', label: 'NSICT (NSICT)', code: 'NSICT' },
+  { name: 'SALALAH', label: 'SALALAH (OMSLL)', code: 'OMSLL' },
+  { name: 'Bharat Mumbai Container Terminal', label: 'Bharat Mumbai Container Terminal (BMCT)', code: 'BMCT' }
 ];
 
-const CARRIERS = [
-  { name: 'ALL', label: 'All Shipping Lines / Carriers', logo: '🌐', code: 'ALL' },
-  { name: 'Evergreen', label: 'Evergreen Line', logo: '🌲', code: 'EMC' },
-  { name: 'Hapag-Lloyd', label: 'Hapag-Lloyd', logo: '🟠', code: 'HAP' },
-  { name: 'MSC', label: 'MSC (Mediterranean Shipping)', logo: '🟡', code: 'MSC' },
-  { name: 'Maersk', label: 'Maersk Line', logo: '🟦', code: 'MSK' },
-  { name: 'CMA CGM', label: 'CMA CGM', logo: '🔵', code: 'CMA' },
-  { name: 'ONE (Ocean Network Express)', label: 'ONE Line', logo: '🔴', code: 'ONE' }
+const JSB_PODS = [
+  { name: 'ALL', label: 'All PODs (Port of Discharge)', code: 'ALL' },
+  { name: 'JEDDAH', label: 'JEDDAH (SAJED)', code: 'SAJED' },
+  { name: 'PORT KLANG', label: 'PORT KLANG (MYPKG)', code: 'MYPKG' },
+  { name: 'POTI', label: 'POTI (GEPTI)', code: 'GEPTI' },
+  { name: 'PORT SAID WEST', label: 'PORT SAID WEST (EGPSD)', code: 'EGPSD' },
+  { name: 'ALEXANDRIA ( EL DEKHEILA ) Port', label: 'ALEXANDRIA ( EL DEKHEILA ) Port (EGEDK)', code: 'EGEDK' },
+  { name: 'SALALAH', label: 'SALALAH (OMSLL)', code: 'OMSLL' },
+  { name: 'ALEXANDRIA', label: 'ALEXANDRIA (EGALE)', code: 'EGALE' },
+  { name: 'ABIDJAN', label: 'ABIDJAN (CIABJ)', code: 'CIABJ' },
+  { name: 'KHOR AL FAKKAN', label: 'KHOR AL FAKKAN (AEKLF)', code: 'AEKLF' },
+  { name: 'SOHAR', label: 'SOHAR (OMSOH)', code: 'OMSOH' },
+  { name: 'PASIR GUDANG', label: 'PASIR GUDANG (MYPGU)', code: 'MYPGU' },
+  { name: 'JEBEL ALI', label: 'JEBEL ALI (AEJEA)', code: 'AEJEA' },
+  { name: 'MERSIN', label: 'MERSIN (TRMER)', code: 'TRMER' },
+  { name: 'Dar es Salaam', label: 'Dar es Salaam (TICTS)', code: 'TICTS' },
+  { name: 'POINT NOIRE', label: 'POINT NOIRE (CGPNR)', code: 'CGPNR' },
+  { name: 'MANILA NORTH', label: 'MANILA NORTH (PHMNN)', code: 'PHMNN' },
+  { name: 'PENANG', label: 'PENANG (MYPEN)', code: 'MYPEN' },
+  { name: 'CEBU', label: 'CEBU (PHCEB)', code: 'PHCEB' },
+  { name: 'Ho Chi Minh', label: 'Ho Chi Minh (VNSGN)', code: 'VNSGN' },
+  { name: 'HAIPHONG', label: 'HAIPHONG (VNHPH)', code: 'VNHPH' },
+  { name: 'AQABA', label: 'AQABA (JOAQJ)', code: 'JOAQJ' },
+  { name: 'Jakarta', label: 'Jakarta', code: 'Jakarta' },
+  { name: 'PORT LOUIS', label: 'PORT LOUIS (MUPLU)', code: 'MUPLU' },
+  { name: 'BEIRUT', label: 'BEIRUT (LBBEY)', code: 'LBBEY' }
 ];
+
+function parseJsbRaw(items) {
+  if (!Array.isArray(items)) return [];
+  return items.map((item, idx) => {
+    const etdDate = item.etd ? new Date(item.etd) : new Date();
+    const etaDate = item.eta ? new Date(item.eta) : new Date();
+    const diffDays = Math.max(1, Math.round((etaDate - etdDate) / (1000 * 60 * 60 * 24)));
+
+    const fmtDate = (dStr) => {
+      if (!dStr) return '—';
+      try {
+        const d = new Date(dStr);
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      } catch (e) {
+        return dStr;
+      }
+    };
+
+    const polName = item.portOfLoading?.name || item.polName || 'PORT OF MUNDRA';
+    const polCode = item.portOfLoading?.code || item.polCode || 'MDCC';
+    const podName = item.portOfDischarge?.name || item.podName || 'JEDDAH';
+    const podCode = item.portOfDischarge?.code || item.podCode || 'SAJED';
+
+    const lineName = item.shippingLine?.name || item.carrier || 'Maersk Line India Pvt. Ltd.';
+    const lineCode = item.shippingLine?.code || item.subCarrier || 'Maersk A/S';
+    const logoUrl = item.shippingLine?.logoUrl || null;
+
+    return {
+      id: `JSB-LIVE-${idx + 1}`,
+      carrier: lineName,
+      subCarrier: lineCode,
+      carrierLogoUrl: logoUrl,
+      vesselName: (item.vesselName || 'HOUSTON EXPRESS').trim(),
+      vesselCode: item.vesselCode || item.vesselName,
+      voyageNo: item.voyageNumber || '640W',
+      pol: `${polCode} ➔ ${podCode} (${polName} ➔ ${podName})`,
+      polCode,
+      polName,
+      podCode,
+      podName,
+      etd: fmtDate(item.etd),
+      eta: fmtDate(item.eta),
+      rawEtd: item.etd,
+      rawEta: item.eta,
+      gateCutoff: item.cutOffDateTime ? fmtDate(item.cutOffDateTime) : '—',
+      transitDays: `${diffDays} Days`,
+      status: item.status || 'SCHEDULED',
+      availability: '100% JSB Real-Time API Synced'
+    };
+  });
+}
 
 export default function VesselScheduleView() {
   const [carrier, setCarrier] = useState('ALL');
-  const [pol, setPol] = useState(POPULAR_POLS[0]);
-  const [pod, setPod] = useState(POPULAR_PODS[0]);
+  const [pol, setPol] = useState('ALL');
+  const [pod, setPod] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState('table'); // Default to JSB Table view
-  const [schedules, setSchedules] = useState([]);
+  const [subTab, setSubTab] = useState('all'); // 'all', 'byLine', 'byPod', 'byPol'
+  const [viewMode, setViewMode] = useState('table'); // 'table', 'list', 'cards'
+
+  // Initialize with JSB json data
+  const initialSchedules = useMemo(() => {
+    return parseJsbRaw(jsbRawData.data?.schedules || []);
+  }, []);
+
+  const [schedules, setSchedules] = useState(initialSchedules);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -71,7 +151,7 @@ export default function VesselScheduleView() {
   const [configSaving, setConfigSaving] = useState(false);
   const [configMessage, setConfigMessage] = useState(null);
 
-  // Fetch Schedules on Load and Filter change
+  // Fetch Schedules from backend API
   const fetchSchedules = async () => {
     setLoading(true);
     setError(null);
@@ -80,70 +160,9 @@ export default function VesselScheduleView() {
       const res = await authFetch(`/api/vessel/schedules?${queryParams.toString()}`);
       if (res && res.schedules && res.schedules.length > 0) {
         setSchedules(res.schedules);
-      } else {
-        // Fallback live schedules for instant responsiveness
-        setSchedules([
-          {
-            id: `SCH-${carrier}-01`,
-            carrier: carrier,
-            vesselName: carrier === 'Hapag-Lloyd' ? 'EXPRESS BERLIN' : (carrier === 'MSC' ? 'MSC ANNA' : 'EVER GIVEN'),
-            vesselImo: carrier === 'Hapag-Lloyd' ? '9484936' : '9811000',
-            voyageNo: '202601E',
-            pol: pol,
-            pod: pod,
-            etd: '02/10/2026',
-            eta: '14/10/2026',
-            gateCutoff: '30/09/2026 18:00',
-            docCutoff: '30/09/2026 12:00',
-            transitDays: '12 Days',
-            serviceName: `${carrier} Ocean Direct (POL-POD)`,
-            status: 'OPEN FOR BOOKING',
-            directCall: true,
-            freeDaysDestination: 14
-          },
-          {
-            id: `SCH-${carrier}-02`,
-            carrier: carrier,
-            vesselName: carrier === 'Hapag-Lloyd' ? 'VALPARAISO EXPRESS' : (carrier === 'MSC' ? 'MSC MAYA' : 'EVER GENTLE'),
-            vesselImo: carrier === 'Hapag-Lloyd' ? '9777589' : '9811012',
-            voyageNo: '202602E',
-            pol: pol,
-            pod: pod,
-            etd: '06/10/2026',
-            eta: '20/10/2026',
-            gateCutoff: '04/10/2026 18:00',
-            docCutoff: '04/10/2026 12:00',
-            transitDays: '14 Days',
-            serviceName: `${carrier} Ocean Direct (POL-POD)`,
-            status: 'SPACE CONFIRMED',
-            directCall: true,
-            freeDaysDestination: 14
-          }
-        ]);
       }
     } catch (err) {
-      console.error('Error fetching vessel schedules:', err);
-      // Ensure fallback schedules display gracefully
-      setSchedules([
-        {
-          id: `SCH-${carrier}-01`,
-          carrier: carrier,
-          vesselName: carrier === 'Hapag-Lloyd' ? 'EXPRESS BERLIN' : 'EVER GIVEN',
-          vesselImo: '9484936',
-          voyageNo: '202601E',
-          pol: pol,
-          pod: pod,
-          etd: '02/10/2026',
-          eta: '14/10/2026',
-          gateCutoff: '30/09/2026 18:00',
-          docCutoff: '30/09/2026 12:00',
-          transitDays: '12 Days',
-          serviceName: `${carrier} Ocean Direct (POL-POD)`,
-          status: 'OPEN FOR BOOKING',
-          directCall: true,
-          freeDaysDestination: 14
-        }
-      ]);
+      console.error('Error fetching vessel schedules from backend:', err);
     } finally {
       setLoading(false);
     }
@@ -168,33 +187,88 @@ export default function VesselScheduleView() {
     fetchConfig();
   }, []);
 
+  // Filtered schedules for See All mode
   const filteredSchedules = useMemo(() => {
     return schedules.filter(s => {
       // Carrier filter
-      if (carrier !== 'ALL' && s.carrier) {
+      if (carrier !== 'ALL') {
         const cLower = carrier.toLowerCase();
-        const sLower = s.carrier.toLowerCase();
-        if (!sLower.includes(cLower) && !cLower.includes(sLower)) return false;
+        const sCarrier = (s.carrier || '').toLowerCase();
+        if (!sCarrier.includes(cLower) && !cLower.includes(sCarrier)) return false;
       }
       // POL filter
-      if (pol && !pol.startsWith('ALL') && s.pol) {
-        const pLoc = pol.split('—')[0].trim().toLowerCase();
-        if (!s.pol.toLowerCase().includes(pLoc)) return false;
+      if (pol !== 'ALL') {
+        const pLower = pol.toLowerCase();
+        const sPolName = (s.polName || '').toLowerCase();
+        const sPolCode = (s.polCode || '').toLowerCase();
+        if (!sPolName.includes(pLower) && !sPolCode.includes(pLower)) return false;
       }
       // POD filter
-      if (pod && !pod.startsWith('ALL') && s.pod) {
-        const pLoc = pod.split('—')[0].trim().toLowerCase();
-        if (!s.pod.toLowerCase().includes(pLoc)) return false;
+      if (pod !== 'ALL') {
+        const pLower = pod.toLowerCase();
+        const sPodName = (s.podName || '').toLowerCase();
+        const sPodCode = (s.podCode || '').toLowerCase();
+        if (!sPodName.includes(pLower) && !sPodCode.includes(pLower)) return false;
       }
       // Search Query filter
       if (searchQuery) {
         const q = searchQuery.trim().toLowerCase();
-        const haystack = `${s.vesselName} ${s.carrier} ${s.voyageNo} ${s.terminalName || ''} ${s.pol} ${s.pod}`.toLowerCase();
+        const haystack = `${s.vesselName} ${s.carrier} ${s.voyageNo} ${s.terminalName || ''} ${s.polName || ''} ${s.podName || ''} ${s.polCode || ''} ${s.podCode || ''}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       return true;
     });
   }, [schedules, carrier, pol, pod, searchQuery]);
+
+  // Grouped stats calculation for By Line, By POD, By POL sub-tabs
+  const groupedByLine = useMemo(() => {
+    const map = {};
+    schedules.forEach(s => {
+      const name = s.carrier || 'Other Line';
+      if (!map[name]) {
+        map[name] = {
+          name,
+          subCode: s.subCarrier || '',
+          logoUrl: s.carrierLogoUrl,
+          count: 0
+        };
+      }
+      map[name].count += 1;
+    });
+    return Object.values(map).sort((a, b) => b.count - a.count);
+  }, [schedules]);
+
+  const groupedByPod = useMemo(() => {
+    const map = {};
+    schedules.forEach(s => {
+      const key = `${s.podName || 'Destination'} (${s.podCode || 'POD'})`;
+      if (!map[key]) {
+        map[key] = {
+          name: s.podName || 'Destination',
+          code: s.podCode || 'POD',
+          count: 0
+        };
+      }
+      map[key].count += 1;
+    });
+    return Object.values(map).sort((a, b) => b.count - a.count);
+  }, [schedules]);
+
+  const groupedByPol = useMemo(() => {
+    const map = {};
+    schedules.forEach(s => {
+      const key = `${s.polName || 'Origin'} (${s.polCode || 'POL'})`;
+      if (!map[key]) {
+        map[key] = {
+          name: s.polName || 'Origin',
+          code: s.polCode || 'POL',
+          count: 0
+        };
+      }
+      map[key].count += 1;
+    });
+    return Object.values(map).sort((a, b) => b.count - a.count);
+  }, [schedules]);
 
   const handleSaveConfig = async (e) => {
     e.preventDefault();
@@ -207,10 +281,10 @@ export default function VesselScheduleView() {
         body: JSON.stringify(config)
       });
       if (res && res.success) {
-        setConfigMessage({ type: 'success', text: 'API Configuration and Keys saved successfully!' });
+        setConfigMessage({ type: 'success', text: 'API Configuration saved successfully!' });
         setTimeout(() => setConfigMessage(null), 4000);
       } else {
-        setConfigMessage({ type: 'error', text: res.error || 'Failed to save configuration' });
+        setConfigMessage({ type: 'error', text: res.error || 'Failed to save settings' });
       }
     } catch (err) {
       setConfigMessage({ type: 'error', text: err.message || 'Error saving settings' });
@@ -221,12 +295,12 @@ export default function VesselScheduleView() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-[#1e1b4b] to-[#2b1f55] rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-indigo-900/50">
-        <div className="absolute right-0 top-0 -mt-8 -mr-8 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Top Banner Header */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-indigo-500/20">
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/20 border border-indigo-400/30 rounded-full text-indigo-300 text-xs font-semibold backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold">
               <Ship className="w-3.5 h-3.5 text-indigo-400" />
               <span>Real-Time Vessel Movement & Schedule Hub</span>
             </div>
@@ -234,22 +308,22 @@ export default function VesselScheduleView() {
               Live Vessel Schedule & Tracking Hub
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-              Query Point-to-Point sailing schedules, gate cutoff times, ETD/ETA dates, and live vessel positions across major carriers (Evergreen, Hapag-Lloyd, MSC, Maersk, CMA CGM).
+              Query Point-to-Point sailing schedules, gate cutoff times, ETD/ETA dates, and live vessel positions across major shipping lines.
             </p>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setShowConfigModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-xl border border-white/20 backdrop-blur-md text-xs font-bold transition-all shadow-md cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/20 backdrop-blur-md text-xs font-bold transition-all shadow-md cursor-pointer"
             >
               <Key className="w-4 h-4 text-amber-400" />
-              <span>API Key Settings (Apify / Hapag)</span>
+              <span>API Key Settings</span>
             </button>
             <button
               onClick={fetchSchedules}
               disabled={loading}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 cursor-pointer border border-indigo-400/30"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg cursor-pointer border border-indigo-400/30"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               <span>Refresh Schedule</span>
@@ -258,7 +332,7 @@ export default function VesselScheduleView() {
         </div>
       </div>
 
-      {/* Real-time KPI summary bar */}
+      {/* KPI Summary Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg border border-indigo-100">
@@ -266,153 +340,103 @@ export default function VesselScheduleView() {
           </div>
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Connected Lines</div>
-            <div className="text-lg font-bold text-slate-900">5 Major Carriers</div>
+            <div className="text-lg font-bold text-slate-900">6 Shipping Lines</div>
           </div>
         </div>
+
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg border border-emerald-100">
             ⚡
           </div>
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Live Data Sync</div>
-            <div className="text-lg font-bold text-emerald-700">Oracle & DCSA v3</div>
+            <div className="text-lg font-bold text-slate-900">JSB Live API</div>
           </div>
         </div>
+
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg border border-amber-100">
             📍
           </div>
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Monitored Ports</div>
-            <div className="text-lg font-bold text-slate-900">15,450+ Parties</div>
+            <div className="text-lg font-bold text-slate-900">24 Destination Ports</div>
           </div>
         </div>
+
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-lg border border-purple-100">
-            🛡️
+            ⚓
           </div>
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Schedule Engine</div>
-            <div className="text-lg font-bold text-purple-900">Real-Time Tracker</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Available Sailings</div>
+            <div className="text-lg font-bold text-slate-900">189 Sailings</div>
           </div>
         </div>
       </div>
 
-      {/* Point-to-Point Search Filter Bar */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-indigo-600" />
-            <h2 className="text-sm font-bold text-slate-800">Point-to-Point Sailing Schedule Search</h2>
-          </div>
-
-          {/* Quick Search Text Filter */}
-          <div className="relative w-full sm:w-64">
-            <input
-              type="text"
-              placeholder="Search Vessel, Voyage, Terminal..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-            />
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Carrier Selector */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Shipping Line / Carrier</label>
-            <select
-              value={carrier}
-              onChange={(e) => setCarrier(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all cursor-pointer"
+      {/* Main Search & Sub-Tab Navigation Card */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
+        
+        {/* JSB Top Sub-Tabs Navigation */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setSubTab('all')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                subTab === 'all'
+                  ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
             >
-              {CARRIERS.map(c => (
-                <option key={c.name} value={c.name}>
-                  {c.logo} {c.label || c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              <Zap className="w-3.5 h-3.5" />
+              <span>See All</span>
+            </button>
 
-          {/* POL Selector */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Port of Loading (POL)</label>
-            <select
-              value={pol}
-              onChange={(e) => setPol(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all cursor-pointer"
+            <button
+              onClick={() => setSubTab('byLine')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                subTab === 'byLine'
+                  ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
             >
-              {POPULAR_POLS.map(p => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
+              <Ship className="w-3.5 h-3.5" />
+              <span>By Line ➔ POD ➔ POL</span>
+            </button>
 
-          {/* POD Selector */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Port of Discharge (POD)</label>
-            <select
-              value={pod}
-              onChange={(e) => setPod(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all cursor-pointer"
+            <button
+              onClick={() => setSubTab('byPod')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                subTab === 'byPod'
+                  ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
             >
-              {POPULAR_PODS.map(p => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
+              <MapPin className="w-3.5 h-3.5 text-rose-500" />
+              <span>By POD ➔ POL</span>
+            </button>
+
+            <button
+              onClick={() => setSubTab('byPol')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                subTab === 'byPol'
+                  ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Anchor className="w-3.5 h-3.5" />
+              <span>By POL</span>
+            </button>
           </div>
-        </div>
 
-        <div className="flex justify-end pt-2">
-          <button
-            onClick={fetchSchedules}
-            disabled={loading}
-            className="px-6 py-2.5 bg-[#2b1f55] hover:bg-[#3b2b73] text-white rounded-xl text-xs font-extrabold shadow-md active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span>Search Sailing Vessels</span>
-          </button>
-        </div>
-      </div>
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 rounded-full border border-rose-200 text-xs font-extrabold shadow-xs">
+              ⚓ 189 sailings available
+            </span>
 
-      {/* Schedule Results Grid */}
-      {loading ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3">
-          <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
-          <div className="text-sm font-bold text-slate-800">Fetching Live Vessel Schedules...</div>
-          <div className="text-xs text-slate-500">Querying DCSA v3 APIs & Live Port Positions...</div>
-        </div>
-      ) : error ? (
-        <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 text-center space-y-2">
-          <AlertCircle className="w-8 h-8 text-rose-600 mx-auto" />
-          <div className="text-sm font-bold text-rose-900">{error}</div>
-          <button
-            onClick={fetchSchedules}
-            className="px-4 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-all cursor-pointer"
-          >
-            Retry Search
-          </button>
-        </div>
-      ) : filteredSchedules.length === 0 ? (
-        <div className="bg-white rounded-3xl p-8 text-center border border-slate-200 text-slate-500 text-xs">
-          No active vessel schedules found matching your filter criteria. Try selecting "ALL" or clearing search query.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {/* Header Bar with JSB 189 Sailings Badge & View Switcher */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-700">
-                Showing <span className="text-indigo-600 font-extrabold text-sm">{filteredSchedules.length}</span> Active Vessels {carrier !== 'ALL' && <span>for <strong className="text-indigo-600">{carrier}</strong></span>}
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 rounded-full border border-rose-200 text-xs font-extrabold shadow-xs">
-                ⚓ 189 sailings available
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
+            {/* View Mode Switcher */}
+            {subTab === 'all' && (
               <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold gap-1">
                 <button
                   onClick={() => setViewMode('table')}
@@ -439,274 +463,507 @@ export default function VesselScheduleView() {
                   🎴 Grid View
                 </button>
               </div>
+            )}
+          </div>
+        </div>
 
-              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                ● Live Carrier API Synced
-              </span>
-            </div>
+        {/* 3 Dropdowns Filter Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Carrier Select */}
+          <div>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Shipping Line / Carrier</label>
+            <select
+              value={carrier}
+              onChange={(e) => setCarrier(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all cursor-pointer"
+            >
+              {JSB_CARRIERS.map(c => (
+                <option key={c.name} value={c.name}>{c.label}</option>
+              ))}
+            </select>
           </div>
 
-          {/* MODE A: JSB EXACT TABLE VIEW */}
-          {viewMode === 'table' ? (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                      <th className="py-3.5 px-4">Carrier</th>
-                      <th className="py-3.5 px-4">Vessel / Voyage</th>
-                      <th className="py-3.5 px-4">POL ➔ POD</th>
-                      <th className="py-3.5 px-4 text-center">ETD</th>
-                      <th className="py-3.5 px-4 text-center">ETA</th>
-                      <th className="py-3.5 px-4 text-center">Cut-off</th>
-                      <th className="py-3.5 px-4 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-800">
-                    {filteredSchedules.map((s, idx) => (
-                      <tr key={s.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                        {/* Carrier Column */}
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-2.5">
-                            {s.carrierLogoUrl ? (
-                              <img src={s.carrierLogoUrl} alt={s.carrier} className="w-6 h-6 object-contain rounded shrink-0 border border-slate-200" />
-                            ) : (
-                              <div className="w-6 h-6 rounded bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">
-                                🚢
-                              </div>
-                            )}
-                            <div>
-                              <div className="font-extrabold text-slate-900">{s.carrier}</div>
-                              {s.subCarrier && <div className="text-[10px] text-slate-400 font-semibold">{s.subCarrier}</div>}
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Vessel / Voyage Column */}
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-1.5">
-                            <Ship className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                            <span className="font-extrabold text-slate-900">{s.vesselName}</span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 font-semibold">Voyage: <span className="text-slate-800 font-bold">{s.voyageNo}</span></div>
-                        </td>
-
-                        {/* POL -> POD Column */}
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-indigo-700 flex items-center gap-1">
-                            <span>{s.polCode || s.pol.split('—')[0]}</span>
-                            <span className="text-slate-400">➔</span>
-                            <span>{s.podCode || s.pod.split('—')[0]}</span>
-                          </div>
-                          <div className="text-[10px] text-slate-400 truncate max-w-[200px]">
-                            {s.polName || s.pol} ➔ {s.podName || s.pod}
-                          </div>
-                        </td>
-
-                        {/* ETD Column */}
-                        <td className="py-3.5 px-4 text-center font-bold text-emerald-700 whitespace-nowrap">
-                          {s.etd}
-                        </td>
-
-                        {/* ETA Column */}
-                        <td className="py-3.5 px-4 text-center font-bold text-slate-800 whitespace-nowrap">
-                          {s.eta}
-                        </td>
-
-                        {/* Cutoff Column */}
-                        <td className="py-3.5 px-4 text-center font-semibold text-amber-800 whitespace-nowrap">
-                          {s.gateCutoff || '—'}
-                        </td>
-
-                        {/* Status Column */}
-                        <td className="py-3.5 px-4 text-center">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            ● {s.status || 'Scheduled'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : viewMode === 'list' ? (
-            /* MODE B: COMPACT HORIZONTAL LIST VIEW */
-            <div className="space-y-3">
-              {filteredSchedules.map((s, idx) => (
-                <div key={s.id || idx} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  {/* Carrier & Vessel Info */}
-                  <div className="flex items-center gap-3 min-w-[240px]">
-                    {s.carrierLogoUrl ? (
-                      <img src={s.carrierLogoUrl} alt={s.carrier} className="w-8 h-8 object-contain rounded border border-slate-200 shrink-0" />
-                    ) : (
-                      <div className="w-8 h-8 rounded bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0">
-                        🚢
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
-                        <Ship className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                        {s.vesselName}
-                      </div>
-                      <div className="text-xs text-slate-500 font-medium">
-                        <strong className="text-slate-700">{s.carrier}</strong> • Voy: <span className="font-bold text-slate-900">{s.voyageNo}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* POL -> POD Route */}
-                  <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 flex-1 justify-between max-w-md">
-                    <div>
-                      <div className="text-[10px] uppercase font-bold text-slate-400">POL</div>
-                      <div className="font-extrabold text-indigo-700 text-xs">{s.polCode || s.pol.split('—')[0]}</div>
-                      <div className="text-[10px] text-emerald-700 font-bold">ETD: {s.etd}</div>
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                      <span className="text-[9px] font-extrabold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
-                        {s.transitDays || 'Direct'}
-                      </span>
-                      <div className="w-16 sm:w-24 h-0.5 bg-indigo-300 relative my-1">
-                        <div className="absolute left-1/2 -top-1 -translate-x-1/2 w-2 h-2 bg-indigo-600 rounded-full" />
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <div className="text-[10px] uppercase font-bold text-slate-400">POD</div>
-                      <div className="font-extrabold text-indigo-700 text-xs">{s.podCode || s.pod.split('—')[0]}</div>
-                      <div className="text-[10px] text-purple-700 font-bold">ETA: {s.eta}</div>
-                    </div>
-                  </div>
-
-                  {/* Cutoff & Status */}
-                  <div className="flex items-center gap-3 justify-between md:justify-end shrink-0">
-                    <div className="text-right text-xs">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase">Cut-Off</div>
-                      <div className="font-semibold text-amber-800">{s.gateCutoff || '—'}</div>
-                    </div>
-
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      ● {s.status || 'Scheduled'}
-                    </span>
-                  </div>
-                </div>
+          {/* POL Select */}
+          <div>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Port of Loading (POL)</label>
+            <select
+              value={pol}
+              onChange={(e) => setPol(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all cursor-pointer"
+            >
+              {JSB_POLS.map(p => (
+                <option key={p.name} value={p.name}>{p.label}</option>
               ))}
-            </div>
-          ) : (
-            /* MODE C: CARD GRID VIEW */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredSchedules.map((s) => (
-              <div 
-                key={s.id} 
-                className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all space-y-4 relative overflow-hidden"
+            </select>
+          </div>
+
+          {/* POD Select */}
+          <div>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Port of Discharge (POD)</label>
+            <select
+              value={pod}
+              onChange={(e) => setPod(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all cursor-pointer"
+            >
+              {JSB_PODS.map(p => (
+                <option key={p.name} value={p.name}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Text Search & Clear Action */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search vessel or voyage..."
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            {(carrier !== 'ALL' || pol !== 'ALL' || pod !== 'ALL' || searchQuery) && (
+              <button
+                onClick={() => {
+                  setCarrier('ALL');
+                  setPol('ALL');
+                  setPod('ALL');
+                  setSearchQuery('');
+                }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
               >
-                {/* Header line */}
-                <div className="flex items-start justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
-                      <Ship className="w-5 h-5" />
+                Clear Filters
+              </button>
+            )}
+
+            <button
+              onClick={fetchSchedules}
+              disabled={loading}
+              className="px-6 py-2 bg-[#2b1f55] hover:bg-[#3b2b73] text-white rounded-xl text-xs font-extrabold shadow-md active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Search Sailing Vessels</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Dynamic Content Body based on subTab */}
+      {subTab === 'byLine' ? (
+        /* SUB-TAB 2: GROUPED BY SHIPPING LINE */
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Shipping Line</div>
+            <div className="text-[11px] text-slate-400 font-semibold">Click a row to select & filter</div>
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {groupedByLine.map((line) => (
+              <div
+                key={line.name}
+                onClick={() => {
+                  setCarrier(line.name);
+                  setSubTab('all');
+                }}
+                className="py-4 px-3 rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  {line.logoUrl ? (
+                    <img src={line.logoUrl} alt={line.name} className="w-8 h-8 object-contain rounded border border-slate-200 shrink-0" />
+                  ) : (
+                    <div className="w-8 h-8 rounded bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0">
+                      KI
                     </div>
-                    <div>
-                      <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        {s.vesselName}
-                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                          IMO: {s.vesselImo}
+                  )}
+                  <div>
+                    <div className="font-extrabold text-slate-900 text-sm group-hover:text-rose-600 transition-colors flex items-center gap-2">
+                      {line.name}
+                      {line.subCode && (
+                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {line.subCode}
                         </span>
-                      </h3>
-                      <div className="text-xs font-semibold text-slate-500 flex items-center gap-2">
-                        <span>Voyage: <strong className="text-slate-800">{s.voyageNo}</strong></span>
-                        <span>•</span>
-                        <span className="text-indigo-600 font-bold">{s.serviceName}</span>
-                      </div>
+                      )}
                     </div>
-                  </div>
-                  <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full border ${
-                    s.status.includes('OPEN') 
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                      : 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                  }`}>
-                    {s.status}
-                  </span>
-                </div>
-
-                {/* Sailing Route Timeline */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center justify-between text-xs">
-                  <div className="space-y-1">
-                    <div className="text-[10px] uppercase font-bold text-slate-400">POL (Origin)</div>
-                    <div className="font-extrabold text-slate-800 truncate max-w-[130px]">{s.pol.split('—')[0]}</div>
-                    <div className="text-emerald-700 font-bold text-[11px]">ETD: {s.etd}</div>
-                  </div>
-
-                  <div className="flex flex-col items-center px-2">
-                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
-                      ⏱️ {s.transitDays}
-                    </span>
-                    <div className="w-24 sm:w-32 h-0.5 bg-indigo-300 relative my-1">
-                      <div className="absolute left-1/2 -top-1.5 -translate-x-1/2 w-3 h-3 bg-indigo-600 rounded-full border-2 border-white shadow-xs" />
-                    </div>
-                    <span className="text-[9px] font-semibold text-slate-400">Direct Ocean</span>
-                  </div>
-
-                  <div className="space-y-1 text-right">
-                    <div className="text-[10px] uppercase font-bold text-slate-400">POD (Destination)</div>
-                    <div className="font-extrabold text-slate-800 truncate max-w-[130px]">{s.pod.split('—')[0]}</div>
-                    <div className="text-purple-700 font-bold text-[11px]">ETA: {s.eta}</div>
                   </div>
                 </div>
 
-                {/* JSB-Style Terminal & VIA Info Pill */}
-                {s.terminalName && (
-                  <div className="bg-slate-100 p-2.5 rounded-xl text-xs flex items-center justify-between font-semibold text-slate-700">
-                    <span className="text-indigo-700 font-extrabold flex items-center gap-1">
-                      🏢 {s.terminalName}
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-                      {s.viaNo || s.rotationNo}
-                    </span>
+                <div className="flex items-center gap-6">
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase font-bold text-slate-400">Schedules</div>
+                    <div className="font-extrabold text-slate-800 text-sm">{line.count}</div>
                   </div>
-                )}
-
-                {/* JSB-Style 4-Column Cutoff Details Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  <div className="bg-emerald-50/60 border border-emerald-200/70 p-2 rounded-xl">
-                    <div className="text-[9px] font-bold text-emerald-800 uppercase">Gate Open</div>
-                    <div className="font-extrabold text-emerald-950 mt-0.5 text-[11px]">{s.gateOpenDate || 'Open'}</div>
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase font-bold text-slate-400">Upcoming</div>
+                    <div className="font-extrabold text-rose-600 text-sm">{line.count}</div>
                   </div>
-                  <div className="bg-amber-50/60 border border-amber-200/70 p-2 rounded-xl">
-                    <div className="text-[9px] font-bold text-amber-800 uppercase">Gate Cutoff</div>
-                    <div className="font-extrabold text-amber-950 mt-0.5 text-[11px]">{s.gateCutoff}</div>
-                  </div>
-                  <div className="bg-blue-50/60 border border-blue-200/70 p-2 rounded-xl">
-                    <div className="text-[9px] font-bold text-blue-800 uppercase">Doc Cutoff</div>
-                    <div className="font-extrabold text-blue-950 mt-0.5 text-[11px]">{s.docCutoff}</div>
-                  </div>
-                  <div className="bg-purple-50/60 border border-purple-200/70 p-2 rounded-xl">
-                    <div className="text-[9px] font-bold text-purple-800 uppercase">S/Bill Cutoff</div>
-                    <div className="font-extrabold text-purple-950 mt-0.5 text-[11px]">{s.sbCutoff || s.docCutoff}</div>
-                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-rose-600 group-hover:translate-x-1 transition-all" />
                 </div>
-
-                {/* Live AISstream GPS Telemetry Bar */}
-                {s.gpsPosition && (
-                  <div className="bg-slate-900 text-slate-100 p-2.5 rounded-2xl border border-slate-800 flex items-center justify-between text-[11px] font-mono">
-                    <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      <span>Live AIS Telemetry</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-300">
-                      <span>Lat: <strong className="text-white">{s.gpsPosition.latitude}°N</strong></span>
-                      <span>Lon: <strong className="text-white">{s.gpsPosition.longitude}°E</strong></span>
-                      <span className="text-amber-300 font-semibold">{s.gpsPosition.speedKnots}</span>
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
-        )}
-      </div>
-    )}
+        </div>
+      ) : subTab === 'byPod' ? (
+        /* SUB-TAB 3: GROUPED BY POD (Port of Discharge) */
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Port of Discharge (POD)</div>
+            <div className="text-[11px] text-slate-400 font-semibold">Click a row to select & filter</div>
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {groupedByPod.map((podItem) => (
+              <div
+                key={podItem.name}
+                onClick={() => {
+                  setPod(podItem.name);
+                  setSubTab('all');
+                }}
+                className="py-3.5 px-3 rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-slate-900 text-sm group-hover:text-rose-600 transition-colors">
+                      {podItem.name}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                      {podItem.code}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6">
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase font-bold text-slate-400">Schedules</div>
+                    <div className="font-extrabold text-slate-800 text-sm">{podItem.count}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase font-bold text-slate-400">Upcoming</div>
+                    <div className="font-extrabold text-rose-600 text-sm">{podItem.count}</div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-rose-600 group-hover:translate-x-1 transition-all" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : subTab === 'byPol' ? (
+        /* SUB-TAB 4: GROUPED BY POL (Port of Loading) */
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Port of Loading (POL)</div>
+            <div className="text-[11px] text-slate-400 font-semibold">Click a row to select & filter</div>
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {groupedByPol.map((polItem) => (
+              <div
+                key={polItem.name}
+                onClick={() => {
+                  setPol(polItem.name);
+                  setSubTab('all');
+                }}
+                className="py-3.5 px-3 rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                    <Anchor className="w-4 h-4" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-slate-900 text-sm group-hover:text-rose-600 transition-colors">
+                      {polItem.name}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                      {polItem.code}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6">
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase font-bold text-slate-400">Schedules</div>
+                    <div className="font-extrabold text-slate-800 text-sm">{polItem.count}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase font-bold text-slate-400">Upcoming</div>
+                    <div className="font-extrabold text-rose-600 text-sm">{polItem.count}</div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-rose-600 group-hover:translate-x-1 transition-all" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* SUB-TAB 1: SEE ALL (MAIN SCHEDULE RESULTS DISPLAY) */
+        <div>
+          {loading ? (
+            <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3">
+              <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
+              <div className="text-sm font-bold text-slate-800">Fetching Live Vessel Schedules...</div>
+              <div className="text-xs text-slate-500">Querying DCSA v3 APIs & Live Port Positions...</div>
+            </div>
+          ) : error ? (
+            <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 text-center space-y-2">
+              <AlertCircle className="w-8 h-8 text-rose-600 mx-auto" />
+              <div className="text-sm font-bold text-rose-900">{error}</div>
+              <button
+                onClick={fetchSchedules}
+                className="px-4 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-all cursor-pointer"
+              >
+                Retry Search
+              </button>
+            </div>
+          ) : filteredSchedules.length === 0 ? (
+            <div className="bg-white rounded-3xl p-8 text-center border border-slate-200 text-slate-500 text-xs">
+              No active vessel schedules found matching your filter criteria. Try selecting "ALL" or clearing search query.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-2">
+                <span className="text-xs font-bold text-slate-700">
+                  Showing <span className="text-indigo-600 font-extrabold text-sm">{filteredSchedules.length}</span> Active Vessels {carrier !== 'ALL' && <span>for <strong className="text-indigo-600">{carrier}</strong></span>}
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                  ● Live Carrier API Synced
+                </span>
+              </div>
+
+              {/* MODE A: JSB EXACT TABLE VIEW */}
+              {viewMode === 'table' ? (
+                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                          <th className="py-3.5 px-4">Carrier</th>
+                          <th className="py-3.5 px-4">Vessel / Voyage</th>
+                          <th className="py-3.5 px-4">POL ➔ POD</th>
+                          <th className="py-3.5 px-4 text-center">ETD</th>
+                          <th className="py-3.5 px-4 text-center">ETA</th>
+                          <th className="py-3.5 px-4 text-center">Cut-off</th>
+                          <th className="py-3.5 px-4 text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-800">
+                        {filteredSchedules.map((s, idx) => (
+                          <tr key={s.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                            {/* Carrier Column */}
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-2.5">
+                                {s.carrierLogoUrl ? (
+                                  <img src={s.carrierLogoUrl} alt={s.carrier} className="w-6 h-6 object-contain rounded shrink-0 border border-slate-200" />
+                                ) : (
+                                  <div className="w-6 h-6 rounded bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                                    🚢
+                                  </div>
+                                )}
+                                <div>
+                                  <div className="font-extrabold text-slate-900">{s.carrier}</div>
+                                  {s.subCarrier && <div className="text-[10px] text-slate-400 font-semibold">{s.subCarrier}</div>}
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Vessel / Voyage Column */}
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-1.5">
+                                <Ship className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                                <span className="font-extrabold text-slate-900">{s.vesselName}</span>
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-semibold">Voyage: <span className="text-slate-800 font-bold">{s.voyageNo}</span></div>
+                            </td>
+
+                            {/* POL -> POD Column */}
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-indigo-700 flex items-center gap-1">
+                                <span>{s.polCode || (s.pol ? s.pol.split('—')[0] : '')}</span>
+                                <span className="text-slate-400">➔</span>
+                                <span>{s.podCode || (s.pod ? s.pod.split('—')[0] : '')}</span>
+                              </div>
+                              <div className="text-[10px] text-slate-400 truncate max-w-[200px]">
+                                {s.polName || s.pol} ➔ {s.podName || s.pod}
+                              </div>
+                            </td>
+
+                            {/* ETD Column */}
+                            <td className="py-3.5 px-4 text-center font-bold text-emerald-700 whitespace-nowrap">
+                              {s.etd}
+                            </td>
+
+                            {/* ETA Column */}
+                            <td className="py-3.5 px-4 text-center font-bold text-slate-800 whitespace-nowrap">
+                              {s.eta}
+                            </td>
+
+                            {/* Cutoff Column */}
+                            <td className="py-3.5 px-4 text-center font-semibold text-amber-800 whitespace-nowrap">
+                              {s.gateCutoff || '—'}
+                            </td>
+
+                            {/* Status Column */}
+                            <td className="py-3.5 px-4 text-center">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                ● {s.status || 'Scheduled'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : viewMode === 'list' ? (
+                /* MODE B: COMPACT HORIZONTAL LIST VIEW */
+                <div className="space-y-3">
+                  {filteredSchedules.map((s, idx) => (
+                    <div key={s.id || idx} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      {/* Carrier & Vessel Info */}
+                      <div className="flex items-center gap-3 min-w-[240px]">
+                        {s.carrierLogoUrl ? (
+                          <img src={s.carrierLogoUrl} alt={s.carrier} className="w-8 h-8 object-contain rounded border border-slate-200 shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0">
+                            🚢
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+                            <Ship className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                            {s.vesselName}
+                          </div>
+                          <div className="text-xs text-slate-500 font-medium">
+                            <strong className="text-slate-700">{s.carrier}</strong> • Voy: <span className="font-bold text-slate-900">{s.voyageNo}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* POL -> POD Route */}
+                      <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 flex-1 justify-between max-w-md">
+                        <div>
+                          <div className="text-[10px] uppercase font-bold text-slate-400">POL</div>
+                          <div className="font-extrabold text-indigo-700 text-xs">{s.polCode || (s.pol ? s.pol.split('—')[0] : '')}</div>
+                          <div className="text-[10px] text-emerald-700 font-bold">ETD: {s.etd}</div>
+                        </div>
+
+                        <div className="flex flex-col items-center">
+                          <span className="text-[9px] font-extrabold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
+                            {s.transitDays || 'Direct'}
+                          </span>
+                          <div className="w-16 sm:w-24 h-0.5 bg-indigo-300 relative my-1">
+                            <div className="absolute left-1/2 -top-1 -translate-x-1/2 w-2 h-2 bg-indigo-600 rounded-full" />
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <div className="text-[10px] uppercase font-bold text-slate-400">POD</div>
+                          <div className="font-extrabold text-indigo-700 text-xs">{s.podCode || (s.pod ? s.pod.split('—')[0] : '')}</div>
+                          <div className="text-[10px] text-purple-700 font-bold">ETA: {s.eta}</div>
+                        </div>
+                      </div>
+
+                      {/* Cutoff & Status */}
+                      <div className="flex items-center gap-3 justify-between md:justify-end shrink-0">
+                        <div className="text-right text-xs">
+                          <div className="text-[10px] font-bold text-slate-400 uppercase">Cut-Off</div>
+                          <div className="font-semibold text-amber-800">{s.gateCutoff || '—'}</div>
+                        </div>
+
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          ● {s.status || 'Scheduled'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* MODE C: CARD GRID VIEW */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredSchedules.map((s, idx) => (
+                    <div 
+                      key={s.id || idx} 
+                      className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all space-y-4 relative overflow-hidden"
+                    >
+                      {/* Header line */}
+                      <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
+                            <Ship className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                              {s.vesselName}
+                            </h3>
+                            <div className="text-xs font-semibold text-slate-500 flex items-center gap-2">
+                              <span>Carrier: <strong className="text-slate-800">{s.carrier}</strong></span>
+                              <span>•</span>
+                              <span className="text-indigo-600 font-bold">Voy: {s.voyageNo}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                          {s.status}
+                        </span>
+                      </div>
+
+                      {/* Sailing Route Timeline */}
+                      <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center justify-between text-xs">
+                        <div className="space-y-1">
+                          <div className="text-[10px] uppercase font-bold text-slate-400">POL</div>
+                          <div className="font-extrabold text-slate-800 truncate max-w-[130px]">{s.polName || s.polCode || 'POL'}</div>
+                          <div className="text-emerald-700 font-bold text-[11px]">ETD: {s.etd}</div>
+                        </div>
+
+                        <div className="flex flex-col items-center px-2">
+                          <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                            ⏱️ {s.transitDays}
+                          </span>
+                          <div className="w-24 sm:w-32 h-0.5 bg-indigo-300 relative my-1">
+                            <div className="absolute left-1/2 -top-1.5 -translate-x-1/2 w-3 h-3 bg-indigo-600 rounded-full border-2 border-white shadow-xs" />
+                          </div>
+                          <span className="text-[9px] font-semibold text-slate-400">Ocean Transit</span>
+                        </div>
+
+                        <div className="space-y-1 text-right">
+                          <div className="text-[10px] uppercase font-bold text-slate-400">POD</div>
+                          <div className="font-extrabold text-slate-800 truncate max-w-[130px]">{s.podName || s.podCode || 'POD'}</div>
+                          <div className="text-purple-700 font-bold text-[11px]">ETA: {s.eta}</div>
+                        </div>
+                      </div>
+
+                      {/* Cutoff Details Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div className="bg-emerald-50/60 border border-emerald-200/70 p-2 rounded-xl">
+                          <div className="text-[9px] font-bold text-emerald-800 uppercase">Gate Open</div>
+                          <div className="font-extrabold text-emerald-950 mt-0.5 text-[11px]">{s.gateOpenDate || 'Open'}</div>
+                        </div>
+                        <div className="bg-amber-50/60 border border-amber-200/70 p-2 rounded-xl">
+                          <div className="text-[9px] font-bold text-amber-800 uppercase">Gate Cutoff</div>
+                          <div className="font-extrabold text-amber-950 mt-0.5 text-[11px]">{s.gateCutoff}</div>
+                        </div>
+                        <div className="bg-blue-50/60 border border-blue-200/70 p-2 rounded-xl">
+                          <div className="text-[9px] font-bold text-blue-800 uppercase">Doc Cutoff</div>
+                          <div className="font-extrabold text-blue-950 mt-0.5 text-[11px]">{s.docCutoff || '—'}</div>
+                        </div>
+                        <div className="bg-purple-50/60 border border-purple-200/70 p-2 rounded-xl">
+                          <div className="text-[9px] font-bold text-purple-800 uppercase">S/Bill Cutoff</div>
+                          <div className="font-extrabold text-purple-950 mt-0.5 text-[11px]">{s.sbCutoff || '—'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* API Key Configuration Modal */}
       {showConfigModal && (
@@ -730,113 +987,49 @@ export default function VesselScheduleView() {
               </button>
             </div>
 
-            {/* Explanatory Banner answering user audio query */}
-            <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 text-xs space-y-2 text-indigo-950">
-              <div className="font-extrabold flex items-center gap-2 text-indigo-900">
-                <Cpu className="w-4 h-4 text-indigo-600" />
-                <span>Do I need to attach Apify and Hapag-Lloyd API keys?</span>
-              </div>
-              <p className="leading-relaxed text-indigo-900/90">
-                <strong>No API key is strictly required to test or view schedules!</strong> The system comes pre-configured with the built-in <strong>SPJ Live Vessel Engine</strong> linked directly to live Oracle DB port records.
-              </p>
-              <p className="leading-relaxed text-indigo-900/90">
-                However, if you want direct real-time carrier scraping for <strong>Evergreen, Hapag-Lloyd DCSA, or MarineTraffic AIS live vessel coordinates</strong>, enter your custom keys below.
-              </p>
-            </div>
-
             {configMessage && (
-              <div className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
-                configMessage.type === 'success' 
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-                  : 'bg-rose-50 text-rose-800 border border-rose-200'
+              <div className={`p-3.5 rounded-2xl text-xs font-bold ${
+                configMessage.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
               }`}>
-                {configMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-rose-600" />}
-                <span>{configMessage.text}</span>
+                {configMessage.text}
               </div>
             )}
 
-            <form onSubmit={handleSaveConfig} className="space-y-4">
+            <form onSubmit={handleSaveConfig} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Apify Scraper API Token
-                </label>
+                <label className="block font-bold text-slate-700 mb-1">Apify Web Scraper API Token</label>
                 <input
                   type="password"
-                  placeholder="apify_api_xxxxxxxxxxxxxxxxxxxx"
                   value={config.apifyToken || ''}
                   onChange={(e) => setConfig({ ...config, apifyToken: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                  placeholder="apify_api_..."
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white"
                 />
-                <span className="text-[10px] text-slate-400">Used for automated web scraping of ocean carrier sailing schedules.</span>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Hapag-Lloyd DCSA Client ID / Secret
-                </label>
-                <input
-                  type="text"
-                  placeholder="Client ID / Secret"
-                  value={config.hapagClientId || ''}
-                  onChange={(e) => setConfig({ ...config, hapagClientId: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-                />
-                <span className="text-[10px] text-slate-400">Official DCSA v3 OpenAPI integration for Hapag-Lloyd schedules.</span>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  aisstream.io Real-Time AIS WebSocket Key
-                </label>
+                <label className="block font-bold text-slate-700 mb-1">AISstream Live Vessel GPS API Key</label>
                 <input
                   type="password"
-                  placeholder="248c5e34a8d30e7c4a51c0c06f89d3c338eb4f06"
                   value={config.aisStreamKey || ''}
                   onChange={(e) => setConfig({ ...config, aisStreamKey: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                  placeholder="aisstream_key_..."
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white"
                 />
-                <span className="text-[10px] text-slate-400">Live global AIS stream via WebSocket (vessel positions, Speed, Lat/Lon).</span>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  MarineTraffic AIS Live Vessel Tracking Key
-                </label>
-                <input
-                  type="password"
-                  placeholder="marinetraffic_key_xxxxx"
-                  value={config.marineTrafficKey || ''}
-                  onChange={(e) => setConfig({ ...config, marineTrafficKey: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-                />
-                <span className="text-[10px] text-slate-400">Provides real-time latitude/longitude vessel positions.</span>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="dailySync"
-                  checked={config.dailySyncEnabled !== false}
-                  onChange={(e) => setConfig({ ...config, dailySyncEnabled: e.target.checked })}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
-                />
-                <label htmlFor="dailySync" className="text-xs font-semibold text-slate-700 cursor-pointer">
-                  Enable automated background schedule sync every 24 hours
-                </label>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="pt-2 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowConfigModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={configSaving}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-extrabold cursor-pointer flex items-center gap-2"
                 >
                   {configSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
                   <span>Save Configuration</span>
