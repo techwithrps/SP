@@ -433,6 +433,21 @@ export default function VesselScheduleView() {
                     <div className="font-extrabold text-blue-950 mt-0.5">{s.docCutoff}</div>
                   </div>
                 </div>
+
+                {/* Live AISstream GPS Telemetry Bar */}
+                {s.gpsPosition && (
+                  <div className="bg-slate-900 text-slate-100 p-2.5 rounded-2xl border border-slate-800 flex items-center justify-between text-[11px] font-mono">
+                    <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                      <span>Live AIS Telemetry</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-300">
+                      <span>Lat: <strong className="text-white">{s.gpsPosition.latitude}°N</strong></span>
+                      <span>Lon: <strong className="text-white">{s.gpsPosition.longitude}°E</strong></span>
+                      <span className="text-amber-300 font-semibold">{s.gpsPosition.speedKnots}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
