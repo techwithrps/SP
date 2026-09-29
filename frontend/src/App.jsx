@@ -16,6 +16,8 @@ import ContainerFleetView from './components/ContainerFleetView';
 import FleetView from './components/FleetView';
 import DualSalesLeaderboard from './components/analytics/DualSalesLeaderboard';
 import VesselScheduleView from './components/VesselScheduleView';
+import UserManagementModal from './components/UserManagementModal';
+
 
 function TabLoadingSkeleton() {
   return (
@@ -141,6 +143,8 @@ export default function App() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [showUserManagementModal, setShowUserManagementModal] = useState(false);
+
 
   // Global State for Company, Customer, Terminal and Financial Year across all tabs
   const [selectedCompany, setSelectedCompany] = useState('ALL');
@@ -547,7 +551,9 @@ export default function App() {
         lastUpdated={lastUpdated}
         currentUser={currentUser}
         onLogout={handleLogout}
+        onOpenUserManagement={() => setShowUserManagementModal(true)}
       />
+
 
       {/* Real-time Enterprise Live Marquee Ticker (Revenue, Top Clients & Yard Ops) */}
       <LiveMarqueeTicker stats={activeSalesKPIs || kpis} />
@@ -910,6 +916,14 @@ export default function App() {
         onClose={() => setSelectedRecord(null)}
       />
 
+      {/* User Management Modal for Admin Role Access Control */}
+      <UserManagementModal
+        isOpen={showUserManagementModal}
+        onClose={() => setShowUserManagementModal(false)}
+        masters={masters}
+      />
+
     </div>
   );
 }
+

@@ -22,7 +22,8 @@ export default function Navbar({
   loading, 
   lastUpdated,
   currentUser,
-  onLogout
+  onLogout,
+  onOpenUserManagement
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -37,6 +38,7 @@ export default function Navbar({
 
   const currentItem = navItems.find(item => item.id === activeTab) || navItems[0];
   const CurrentIcon = currentItem.icon;
+  const isAdmin = currentUser?.role === 'admin';
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs w-full">
@@ -114,19 +116,19 @@ export default function Navbar({
                   <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-900 via-[#1e133d] to-[#2b1f55] rounded-2xl text-white shadow-md">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center font-black text-xs text-purple-200 shrink-0">
-                        <ShieldCheck className="w-5 h-5 text-amber-400" />
+                        <User className="w-5 h-5 text-amber-400" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-extrabold text-white">
-                            {currentUser.name || 'Admin'}
+                            {currentUser.name || 'User'}
                           </span>
                           <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
                             LIVE
                           </span>
                         </div>
                         <span className="text-xs text-purple-200 block">
-                          {currentUser.role || 'System Administrator'}
+                          {currentUser.badge || currentUser.role}
                         </span>
                       </div>
                     </div>
@@ -138,6 +140,20 @@ export default function Navbar({
                       <X className="w-4 h-4" />
                     </button>
                   </div>
+                )}
+
+                {/* Admin User Management Button in Mobile Menu */}
+                {isAdmin && onOpenUserManagement && (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenUserManagement();
+                    }}
+                    className="w-full flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl text-xs font-bold shadow-md cursor-pointer"
+                  >
+                    <User className="w-4 h-4 text-amber-300" />
+                    <span>Manage User Access Logins</span>
+                  </button>
                 )}
 
                 {/* 2. Navigation Modules List */}
@@ -217,26 +233,36 @@ export default function Navbar({
 
           {/* 💻 DESKTOP Right Action: Admin User Profile & Sign Out (Screen >= lg) */}
           <div className="hidden lg:flex items-center gap-3 shrink-0">
+            {isAdmin && onOpenUserManagement && (
+              <button
+                onClick={onOpenUserManagement}
+                className="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+              >
+                <User className="w-3.5 h-3.5 text-amber-300" />
+                <span>User Access Logins</span>
+              </button>
+            )}
+
             {lastUpdated && (
               <span className="hidden 2xl:inline text-[11px] text-slate-400 font-medium tracking-tight">
                 Updated: {lastUpdated}
               </span>
             )}
 
-            {/* Admin User Capsule */}
+            {/* User Profile Capsule */}
             {currentUser && (
               <div className="flex items-center bg-slate-50 hover:bg-slate-100/90 transition-all border border-slate-200 rounded-2xl p-1.5 pl-3.5 gap-3 shadow-2xs shrink-0">
                 <div className="flex flex-col text-left">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-extrabold text-slate-900 tracking-tight leading-none">
-                      Admin
+                      {currentUser.name}
                     </span>
                     <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-[#2b1f55] border border-purple-200 leading-none">
                       LIVE
                     </span>
                   </div>
                   <span className="text-[10px] text-slate-500 font-semibold mt-0.5 leading-none">
-                    System Administrator
+                    {currentUser.badge || currentUser.role}
                   </span>
                 </div>
 
@@ -260,5 +286,3 @@ export default function Navbar({
     </header>
   );
 }
-
-
