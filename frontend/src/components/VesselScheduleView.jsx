@@ -374,7 +374,7 @@ export default function VesselScheduleView() {
           </div>
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Available Sailings</div>
-            <div className="text-lg font-bold text-slate-900">189 Sailings</div>
+            <div className="text-lg font-bold text-slate-900">{schedules.length} Sailings</div>
           </div>
         </div>
       </div>
