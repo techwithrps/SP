@@ -33,7 +33,7 @@ export default function Navbar({
     { id: 'sales', label: 'Total Sales', shortLabel: 'Total Sales', icon: Receipt },
     { id: 'containers', label: 'Container / Volumes', shortLabel: 'Containers', icon: Container },
     { id: 'fleet', label: 'Fleet Operations', shortLabel: 'Fleet', icon: Truck },
-    { id: 'vessels', label: 'Live Vessel Hub', shortLabel: 'Vessels', icon: Ship },
+    { id: 'vessels', label: 'Ocean & Vessel Radar', shortLabel: 'Ocean Hub', icon: Ship, isHighlight: true },
   ];
 
   const currentItem = navItems.find(item => item.id === activeTab) || navItems[0];

@@ -16,6 +16,7 @@ import ContainerFleetView from './components/ContainerFleetView';
 import FleetView from './components/FleetView';
 import DualSalesLeaderboard from './components/analytics/DualSalesLeaderboard';
 import VesselScheduleView from './components/VesselScheduleView';
+import OceanIntelligenceView from './components/OceanIntelligenceView';
 import UserManagementModal from './components/UserManagementModal';
 
 
@@ -813,10 +814,10 @@ export default function App() {
               </div>
             )}
 
-            {/* Tab 5: Vessels */}
+            {/* Tab 5: Ocean & Vessel Intelligence Hub */}
             {activeTab === 'vessels' && (
               <div className="space-y-6 animate-fade-in">
-                <VesselScheduleView />
+                <OceanIntelligenceView />
               </div>
             )}
           </React.Suspense>
