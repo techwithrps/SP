@@ -239,10 +239,25 @@ export default function App() {
   // Fetch Masters & Analytics Meta for Global Filter Bar (Authenticated only)
   // Single-fetch architecture: fetches /api/financial-analytics ONCE and shares with AnalyticsCharts
   const reqIdRef = useRef(0);
+  const finAbortControllerRef = useRef(null);
+  const cirAbortControllerRef = useRef(null);
 
   // Synchronized Real-Time Analytics & CIR Report Fetcher
   const fetchSynchronizedAnalytics = useCallback(async () => {
     if (!authToken || !currentUser) return;
+
+    // Abort any prior in-flight fetch requests immediately to prevent backend request queue buildup
+    if (finAbortControllerRef.current) {
+      finAbortControllerRef.current.abort();
+    }
+    const finController = new AbortController();
+    finAbortControllerRef.current = finController;
+
+    if (cirAbortControllerRef.current) {
+      cirAbortControllerRef.current.abort();
+    }
+    const cirController = new AbortController();
+    cirAbortControllerRef.current = cirController;
 
     const currentReqId = ++reqIdRef.current;
     setLoading(true);
@@ -313,7 +328,7 @@ export default function App() {
       }
 
       // 2. Fetch Financial Analytics IMMEDIATELY (Sub-second response from SP_PORTAL_LIVE_ANALYTICS)
-      authFetch(finUrl)
+      authFetch(finUrl, { signal: finController.signal })
         .then(async (finRes) => {
           if (finRes && finRes.status === 401) {
             handleLogout();
@@ -341,13 +356,15 @@ export default function App() {
           }));
         })
         .catch((e) => {
-          console.error('Error fetching financial analytics:', e);
-          if (currentReqId === reqIdRef.current) setFinLoading(false);
+          if (e.name !== 'AbortError' && currentReqId === reqIdRef.current) {
+            console.error('Error fetching financial analytics:', e);
+            setFinLoading(false);
+          }
         });
 
       // 3. Fetch CIR Report independently for the bottom line items grid (doesn't block KPI cards)
       if (isSalesTab) {
-        authFetch(cirUrl)
+        authFetch(cirUrl, { signal: cirController.signal })
           .then(async (cirRes) => (cirRes && cirRes.ok ? cirRes.json() : null))
           .then((cirJson) => {
             if (currentReqId === reqIdRef.current) setLoading(false);
