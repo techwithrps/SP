@@ -79,13 +79,17 @@ export default function GlobalFilterBar({
     selectedCompany !== 'ALL' || 
     selectedCustomer !== 'ALL' || 
     selectedTerminal !== 'ALL' || 
-    selectedFY !== 'ALL';
+    selectedFY !== 'ALL' ||
+    Boolean(customFromDate && customFromDate.trim()) ||
+    Boolean(customToDate && customToDate.trim());
 
   const resetFilters = () => {
     if (setSelectedCompany) setSelectedCompany('ALL');
     if (setSelectedCustomer) setSelectedCustomer('ALL');
     if (setSelectedTerminal) setSelectedTerminal('ALL');
     if (setSelectedFY) setSelectedFY('ALL');
+    if (setCustomFromDate) setCustomFromDate('');
+    if (setCustomToDate) setCustomToDate('');
   };
 
   // Dynamic Company List: 5 Official SPJ Group Companies with revenue stats dynamically matched to current selected FY / Date Range

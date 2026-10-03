@@ -300,19 +300,23 @@ export default function App() {
 
       const isSalesTab = (activeTab === 'sales');
 
-      // Fetch sequentially to prevent overwhelming backend memory
-      const masterRes = masters ? null : await authFetch('/api/masters');
-      const finRes = await authFetch(finUrl);
-      const cirRes = isSalesTab ? await authFetch(cirUrl) : null;
+      // Fetch concurrently with Promise.all for lightning-fast sub-second synchronization
+      const [masterRes, finRes, cirRes] = await Promise.all([
+        masters ? Promise.resolve(null) : authFetch('/api/masters').catch(() => null),
+        authFetch(finUrl).catch(() => null),
+        isSalesTab ? authFetch(cirUrl).catch(() => null) : Promise.resolve(null)
+      ]);
 
-      if (finRes.status === 401 || (cirRes && cirRes.status === 401)) {
+      if (finRes && finRes.status === 401) {
         handleLogout();
         return;
       }
 
-      const cirJson = cirRes ? await cirRes.json() : null;
-      const finJson = await finRes.json();
-      const masterJson = masterRes ? await masterRes.json() : null;
+      const [masterJson, finJson, cirJson] = await Promise.all([
+        masterRes && masterRes.ok ? masterRes.json().catch(() => null) : Promise.resolve(null),
+        finRes && finRes.ok ? finRes.json().catch(() => null) : Promise.resolve(null),
+        cirRes && cirRes.ok ? cirRes.json().catch(() => null) : Promise.resolve(null)
+      ]);
 
       // Prevent race conditions: discard response if newer request was dispatched
       if (currentReqId !== reqIdRef.current) return;
@@ -464,8 +468,8 @@ export default function App() {
     setSelectedCustomer('ALL');
     setSelectedTerminal('ALL');
     setSelectedFY('ALL');
-    setCustomFromDate('2026-04-01');
-    setCustomToDate('2026-09-26');
+    setCustomFromDate('');
+    setCustomToDate('');
     setCirPage(1);
     setFilters({
       companyId: 'all',
