@@ -46,8 +46,8 @@ export default function AnalyticsCharts({
   kpis = {},
   loading: propLoading
 }) {
-  const [finData, setFinData] = useState(propFinancialData || null);
-  const [loading, setLoading] = useState(propFinancialData ? false : (propLoading ?? true));
+  const finData = propFinancialData || null;
+  const loading = propLoading ?? false;
   const [activeTab, setActiveTab] = useState('branches');
   
   // Local or Shared Filters
@@ -64,32 +64,6 @@ export default function AnalyticsCharts({
   const setSelectedCustomer = parentSetCustomer || setLocalCustomer;
   const selectedFY = parentFY !== undefined ? parentFY : localFY;
   const setSelectedFY = parentSetFY || setLocalFY;
-
-  // Single-fetch architecture: If propFinancialData is passed from App.jsx, use it directly!
-  useEffect(() => {
-    if (propFinancialData) {
-      setFinData(propFinancialData);
-      setLoading(false);
-    } else {
-      let mounted = true;
-      const fetchFinancials = async () => {
-        setLoading(true);
-        try {
-          const res = await authFetch('/api/financial-analytics');
-          const json = res && res.ok ? await res.json().catch(() => null) : null;
-          if (mounted && json?.success && json?.data) {
-            setFinData(json.data);
-          }
-        } catch (e) {
-          console.error('Failed to load financial analytics:', e);
-        } finally {
-          if (mounted) setLoading(false);
-        }
-      };
-      fetchFinancials();
-      return () => { mounted = false; };
-    }
-  }, [propFinancialData]);
 
   const branchDetailed = finData?.branchDetailed || {};
   const terminals = useMemo(() => branchDetailed.terminals || [], [branchDetailed]);
