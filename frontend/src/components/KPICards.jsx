@@ -81,7 +81,8 @@ export default function KPICards({ kpis = {}, loading = false }) {
     }
   ];
 
-  if (loading) {
+  const hasData = Boolean(taxableRevenue || grossRevenue || totalInvoices || distinctContainers);
+  if (loading && !hasData) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 animate-fade-in">
         {Array.from({ length: 5 }).map((_, idx) => (

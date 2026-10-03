@@ -322,11 +322,11 @@ export default function App() {
           return finRes && finRes.ok ? finRes.json() : null;
         })
         .then((finJson) => {
+          if (currentReqId === reqIdRef.current) setFinLoading(false);
           if (currentReqId !== reqIdRef.current) return;
           if (finJson && finJson.success && finJson.data) {
             setFinancialData(finJson.data);
           }
-          setFinLoading(false);
           setLastUpdated(new Date().toLocaleTimeString());
 
           setDebugInfo(prev => ({
@@ -350,6 +350,7 @@ export default function App() {
         authFetch(cirUrl)
           .then(async (cirRes) => (cirRes && cirRes.ok ? cirRes.json() : null))
           .then((cirJson) => {
+            if (currentReqId === reqIdRef.current) setLoading(false);
             if (currentReqId !== reqIdRef.current) return;
             if (cirJson && cirJson.success) {
               setRecords(cirJson.records || []);
@@ -359,7 +360,6 @@ export default function App() {
                 totalPages: cirJson.totalPages || 1,
               });
             }
-            setLoading(false);
           })
           .catch((e) => {
             console.error('Error fetching CIR report:', e);
@@ -395,7 +395,7 @@ export default function App() {
     if (authToken && currentUser) {
       const timer = setTimeout(() => {
         fetchSynchronizedAnalytics();
-      }, 50);
+      }, 250);
       return () => clearTimeout(timer);
     }
   }, [fetchSynchronizedAnalytics, authToken, currentUser]);
