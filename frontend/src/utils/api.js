@@ -79,42 +79,47 @@ export async function authFetch(url, options = {}) {
 
   const targetUrl = url.startsWith('http') ? url : `${BACKEND_BASE}${url.startsWith('/') ? url : '/' + url}`;
 
-  const controller = new AbortController();
-  // 60-second timeout for Oracle live aggregation query
-  const timeoutId = setTimeout(() => controller.abort(), 60000);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-  try {
-    let res = await fetch(targetUrl, {
-      ...options,
-      headers: buildHeaders(token),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    // If 401 unauthorized, renew JWT token and retry once
-    if (res.status === 401) {
-      console.warn('[SPJ API] 401 received from live backend. Refreshing token...');
-      try { localStorage.removeItem('spj_auth_token'); } catch {}
-      token = await ensureAuthToken();
-      res = await fetch(targetUrl, {
+    try {
+      let res = await fetch(targetUrl, {
         ...options,
         headers: buildHeaders(token),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      // If 401 unauthorized, renew JWT token and retry
+      if (res.status === 401) {
+        console.warn('[SPJ API] 401 received from live backend. Refreshing token...');
+        try { localStorage.removeItem('spj_auth_token'); } catch {}
+        token = await ensureAuthToken();
+        res = await fetch(targetUrl, {
+          ...options,
+          headers: buildHeaders(token),
+        });
+      }
+
+      return res;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (attempt === 0) {
+        console.warn(`[SPJ API] Initial fetch failed, retrying in 1.5s... (${err.message})`);
+        await new Promise(r => setTimeout(r, 1500));
+        continue;
+      }
+      console.error(`[SPJ API] Network error communicating with ${targetUrl}:`, err.message);
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Live backend communication error: ${err.message}`,
+        targetUrl,
+        isLiveError: true
+      }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
       });
     }
-
-    return res;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    console.error(`[SPJ API] Network error communicating with ${targetUrl}:`, err.message);
-    // Return structured error response rather than crashing or serving fake JSON
-    return new Response(JSON.stringify({
-      success: false,
-      error: `Live backend communication error: ${err.message}`,
-      targetUrl,
-      isLiveError: true
-    }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
-    });
   }
 }
