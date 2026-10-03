@@ -169,7 +169,7 @@ export default function App() {
     } catch {}
     return 'ALL';
   });
-  const [selectedFY, setSelectedFY] = useState('FY 2026-27');
+  const [selectedFY, setSelectedFY] = useState('All Financial Years');
   const [customFromDate, setCustomFromDate] = useState('');
   const [customToDate, setCustomToDate] = useState('');
   const [allTerminals, setAllTerminals] = useState([]);
@@ -298,17 +298,19 @@ export default function App() {
         console.log(`[SPJ Frontend Sync #${currentReqId}] Requesting APIs with params:`, queryParams.toString());
       }
 
+      const isSalesTab = (activeTab === 'sales');
+
       // Fetch sequentially to prevent overwhelming backend memory
       const masterRes = masters ? null : await authFetch('/api/masters');
       const finRes = await authFetch(finUrl);
-      const cirRes = await authFetch(cirUrl);
+      const cirRes = isSalesTab ? await authFetch(cirUrl) : null;
 
-      if (cirRes.status === 401 || finRes.status === 401) {
+      if (finRes.status === 401 || (cirRes && cirRes.status === 401)) {
         handleLogout();
         return;
       }
 
-      const cirJson = await cirRes.json();
+      const cirJson = cirRes ? await cirRes.json() : null;
       const finJson = await finRes.json();
       const masterJson = masterRes ? await masterRes.json() : null;
 
@@ -319,7 +321,7 @@ export default function App() {
         setMasters(masterJson.data || {});
       }
 
-      if (cirJson.success) {
+      if (cirJson && cirJson.success) {
         setRecords(cirJson.records || []);
         setKpis(cirJson.kpis || {});
         setCirPagination({
@@ -336,7 +338,7 @@ export default function App() {
       setDebugInfo({
         timestamp: new Date().toLocaleTimeString(),
         finUrl,
-        cirUrl,
+        cirUrl: isSalesTab ? cirUrl : '(skipped on analytics dashboard)',
         sentParams: Object.fromEntries(queryParams.entries()),
         finResponse: finJson,
         mastersCount: masterJson?.data ? {
@@ -363,6 +365,7 @@ export default function App() {
       }
     }
   }, [
+    activeTab,
     authToken,
     currentUser,
     selectedCompany,
