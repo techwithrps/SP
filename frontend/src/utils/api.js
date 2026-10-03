@@ -105,8 +105,8 @@ export async function authFetch(url, options = {}) {
       return res;
     } catch (err) {
       clearTimeout(timeoutId);
-      // If request was aborted by newer filter or navigation, do not retry dead request
-      if (err.name === 'AbortError' || (err.message && err.message.toLowerCase().includes('abort'))) {
+      // If request was aborted by newer filter, timeout or navigation, do not retry dead request
+      if (options.signal?.aborted || controller.signal.aborted || err.name === 'AbortError' || (err.message && err.message.toLowerCase().includes('abort'))) {
         return new Response(JSON.stringify({ success: false, aborted: true }), {
           status: 499,
           headers: { 'Content-Type': 'application/json' }
