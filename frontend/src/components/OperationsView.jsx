@@ -36,8 +36,8 @@ export default function OperationsView({
       if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all') queryParams.append('financialYear', selectedFY);
 
       const res = await authFetch(`/api/operations?${queryParams.toString()}`);
-      const json = await res.json();
-      if (json.success) {
+      const json = res && res.ok ? await res.json().catch(() => null) : null;
+      if (json?.success) {
         setOpsData(json.data);
       }
     } catch (e) {

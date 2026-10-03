@@ -76,8 +76,8 @@ export default function AnalyticsCharts({
         setLoading(true);
         try {
           const res = await authFetch('/api/financial-analytics');
-          const json = await res.json();
-          if (mounted && json.success) {
+          const json = res && res.ok ? await res.json().catch(() => null) : null;
+          if (mounted && json?.success && json?.data) {
             setFinData(json.data);
           }
         } catch (e) {

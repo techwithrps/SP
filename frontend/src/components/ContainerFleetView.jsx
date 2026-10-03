@@ -74,8 +74,8 @@ export default function ContainerFleetView({
       if (search && search.trim() !== '') queryParams.append('search', search.trim());
 
       const res = await authFetch(`/api/containers?${queryParams.toString()}`);
-      const json = await res.json();
-      if (json.success) {
+      const json = res && res.ok ? await res.json().catch(() => null) : null;
+      if (json?.success) {
         setData(json.data);
       }
     } catch (e) {
