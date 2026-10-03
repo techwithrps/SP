@@ -300,69 +300,76 @@ export default function App() {
 
       const isSalesTab = (activeTab === 'sales');
 
-      // Fetch concurrently with Promise.all for lightning-fast sub-second synchronization
-      const [masterRes, finRes, cirRes] = await Promise.all([
-        masters ? Promise.resolve(null) : authFetch('/api/masters').catch(() => null),
-        authFetch(finUrl).catch(() => null),
-        isSalesTab ? authFetch(cirUrl).catch(() => null) : Promise.resolve(null)
-      ]);
-
-      if (finRes && finRes.status === 401) {
-        handleLogout();
-        return;
+      // 1. Fetch masters in background if not already loaded
+      if (!masters) {
+        authFetch('/api/masters')
+          .then(res => res && res.ok ? res.json() : null)
+          .then(mJson => {
+            if (mJson && mJson.success && currentReqId === reqIdRef.current) {
+              setMasters(mJson.data || {});
+            }
+          })
+          .catch(() => {});
       }
 
-      const [masterJson, finJson, cirJson] = await Promise.all([
-        masterRes && masterRes.ok ? masterRes.json().catch(() => null) : Promise.resolve(null),
-        finRes && finRes.ok ? finRes.json().catch(() => null) : Promise.resolve(null),
-        cirRes && cirRes.ok ? cirRes.json().catch(() => null) : Promise.resolve(null)
-      ]);
+      // 2. Fetch Financial Analytics IMMEDIATELY (Sub-second response from SP_PORTAL_LIVE_ANALYTICS)
+      authFetch(finUrl)
+        .then(async (finRes) => {
+          if (finRes && finRes.status === 401) {
+            handleLogout();
+            return null;
+          }
+          return finRes && finRes.ok ? finRes.json() : null;
+        })
+        .then((finJson) => {
+          if (currentReqId !== reqIdRef.current) return;
+          if (finJson && finJson.success && finJson.data) {
+            setFinancialData(finJson.data);
+          }
+          setFinLoading(false);
+          setLastUpdated(new Date().toLocaleTimeString());
 
-      // Prevent race conditions: discard response if newer request was dispatched
-      if (currentReqId !== reqIdRef.current) return;
-
-      if (masterJson && masterJson.success) {
-        setMasters(masterJson.data || {});
-      }
-
-      if (cirJson && cirJson.success) {
-        setRecords(cirJson.records || []);
-        setKpis(cirJson.kpis || {});
-        setCirPagination({
-          totalRecords: cirJson.totalRecords || cirJson.total || (cirJson.records || []).length,
-          totalPages: cirJson.totalPages || 1,
+          setDebugInfo(prev => ({
+            ...prev,
+            timestamp: new Date().toLocaleTimeString(),
+            finUrl,
+            sentParams: Object.fromEntries(queryParams.entries()),
+            finResponse: finJson,
+            topCustomer0: finJson?.data?.topCustomers?.[0] || null,
+            kpis: finJson?.data?.kpis || null,
+            overallKPIs: finJson?.data?.overallKPIs || null
+          }));
+        })
+        .catch((e) => {
+          console.error('Error fetching financial analytics:', e);
+          if (currentReqId === reqIdRef.current) setFinLoading(false);
         });
+
+      // 3. Fetch CIR Report independently for the bottom line items grid (doesn't block KPI cards)
+      if (isSalesTab) {
+        authFetch(cirUrl)
+          .then(async (cirRes) => (cirRes && cirRes.ok ? cirRes.json() : null))
+          .then((cirJson) => {
+            if (currentReqId !== reqIdRef.current) return;
+            if (cirJson && cirJson.success) {
+              setRecords(cirJson.records || []);
+              setKpis(cirJson.kpis || {});
+              setCirPagination({
+                totalRecords: cirJson.totalRecords || cirJson.total || (cirJson.records || []).length,
+                totalPages: cirJson.totalPages || 1,
+              });
+            }
+            setLoading(false);
+          })
+          .catch((e) => {
+            console.error('Error fetching CIR report:', e);
+            if (currentReqId === reqIdRef.current) setLoading(false);
+          });
+      } else {
+        setLoading(false);
       }
-
-      if (finJson.success && finJson.data) {
-        setFinancialData(finJson.data);
-      }
-
-      // Record debug info for dev inspection panel
-      setDebugInfo({
-        timestamp: new Date().toLocaleTimeString(),
-        finUrl,
-        cirUrl: isSalesTab ? cirUrl : '(skipped on analytics dashboard)',
-        sentParams: Object.fromEntries(queryParams.entries()),
-        finResponse: finJson,
-        mastersCount: masterJson?.data ? {
-          customers: masterJson.data.customers?.length || 0,
-          terminals: masterJson.data.terminals?.length || 0,
-          companies: masterJson.data.companies?.length || 0,
-        } : (masters ? {
-          customers: masters?.customers?.length || 0,
-          terminals: masters?.terminals?.length || 0,
-          companies: masters?.companies?.length || 0,
-        } : { customers: 0, terminals: 0, companies: 0 }),
-        topCustomer0: finJson?.data?.topCustomers?.[0] || null,
-        kpis: finJson?.data?.kpis || null,
-        overallKPIs: finJson?.data?.overallKPIs || null
-      });
-
-      setLastUpdated(new Date().toLocaleTimeString());
     } catch (e) {
-      console.error('Error fetching synchronized analytics:', e);
-    } finally {
+      console.error('Error in synchronized analytics flow:', e);
       if (currentReqId === reqIdRef.current) {
         setLoading(false);
         setFinLoading(false);
@@ -731,7 +738,7 @@ export default function App() {
               <div className="space-y-6 animate-fade-in">
                 
                 {/* 9 Verified Sales & Operations KPI Cards (Full Width) */}
-                <KPICards kpis={activeSalesKPIs} loading={loading} />
+                <KPICards kpis={activeSalesKPIs} loading={finLoading} />
 
                 {/* Dual Executive Leaderboards (Left: Top Branches, Right: Top Customers) */}
                 <DualSalesLeaderboard
