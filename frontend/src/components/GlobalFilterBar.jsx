@@ -92,7 +92,7 @@ export default function GlobalFilterBar({
     if (setCustomToDate) setCustomToDate('');
   };
 
-  // Dynamic Company List: 5 Official SPJ Group Companies with revenue stats dynamically matched to current selected FY / Date Range
+  // Dynamic Company List: 5 Official SPJ Group Companies with revenue stats dynamically matched to active scope
   const companyList = useMemo(() => {
     const base = (companies && companies.length > 0) ? companies : [
       { id: 3, companyId: 3, code: 'PJ-OLD', name: 'PURAN JOSHI OLD', gstin: '07ADGPJ3166M1ZA', director: 'Mr. Puran Joshi' },
@@ -102,20 +102,45 @@ export default function GlobalFilterBar({
       { id: 4, companyId: 4, code: 'SPJ-MUM', name: 'SPJ CARGO PVT LTD-MUMBAI', gstin: '27AAOCS1758E1Z3', director: 'Mr. Puran Joshi' }
     ];
 
+    const activeTerms = financialData?.terminalAnalytics || [];
     const activeComps = financialData?.companyAnalytics || [];
-    const activeMap = {};
+
+    const compStatsMap = {};
     activeComps.forEach(ac => {
-      activeMap[String(ac.id || ac.companyId)] = ac;
+      const cId = String(ac.id || ac.companyId);
+      compStatsMap[cId] = {
+        gross: Number(ac.grossRevenue || ac.netRevenue || ac.totalRevenue || 0),
+        invs: Number(ac.invoiceCount || ac.totalInvoices || 0)
+      };
     });
+
+    // Aggregate from active terminalAnalytics if companyAnalytics not explicitly populated
+    activeTerms.forEach(t => {
+      const cId = String(t.companyId || t.company_id || (t.terminalName && String(t.terminalName).toLowerCase().includes('mum') ? '4' : '2'));
+      if (!compStatsMap[cId]) {
+        compStatsMap[cId] = { gross: 0, invs: 0 };
+      }
+      compStatsMap[cId].gross += Number(t.grossSale || t.netRevenue || t.revenue || 0);
+      compStatsMap[cId].invs += Number(t.invoiceCount || t.invoices || 0);
+    });
+
+    const totalActiveGross = Number(financialData?.kpis?.grossRevenue || financialData?.kpis?.totalGrossAmount || 0);
+    const totalActiveInvs = Number(financialData?.kpis?.invoiceCount || 0);
 
     return base.map(comp => {
       const cId = String(comp.id || comp.companyId);
-      const activeInfo = activeMap[cId];
+      const stat = compStatsMap[cId];
+      let gross = stat ? stat.gross : 0;
+      let invs = stat ? stat.invs : 0;
+
+      // Fallback: If only overall KPIs exist in custom date scope and company 2 is main entity
+      if (!stat && cId === '2' && totalActiveGross > 0) {
+        gross = totalActiveGross;
+        invs = totalActiveInvs;
+      }
 
       const terms = companyTerminals[cId] || [];
       const custs = companyCustomers[cId] || [];
-      const gross = activeInfo ? Number(activeInfo.grossRevenue || 0) : terms.reduce((acc, t) => acc + Number(t.totalAmount || t.netRevenue || 0), 0);
-      const invs = activeInfo ? Number(activeInfo.invoiceCount || 0) : terms.reduce((acc, t) => acc + Number(t.invoiceCount || 0), 0);
 
       return {
         ...comp,
