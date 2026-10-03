@@ -633,21 +633,27 @@ export default function GlobalFilterBar({
                   
                   {availableCustomers.some(c => c.hasActivity) && (
                     <optgroup label={`── 🟢 Active Billed Clients in Selected Scope (${availableCustomers.filter(c => c.hasActivity).length}) ──`}>
-                      {availableCustomers.filter(c => c.hasActivity).map(c => (
-                        <option key={c.id || c.customerId || c.customerName} value={String(c.customerId || c.id || c.customerName)}>
-                          🟢 {c.customerName} ({formatNumber(c.invoiceCount)} Invs | {formatNumber(c.containerCount)} Cont | {formatCurrency(c.grossRevenue)})
-                        </option>
-                      ))}
+                      {availableCustomers.filter(c => c.hasActivity).map(c => {
+                        const targetVal = String(c.customerId || c.id || c.customerName);
+                        return (
+                          <option key={c.id || c.customerId || c.customerName} value={targetVal}>
+                            🟢 {c.customerName} ({formatNumber(c.invoiceCount)} Invs | {formatNumber(c.containerCount)} Cont | {formatCurrency(c.grossRevenue)})
+                          </option>
+                        );
+                      })}
                     </optgroup>
                   )}
 
                   {availableCustomers.some(c => !c.hasActivity) && (
                     <optgroup label={`── ⚪ Inactive Customers in Selected Scope (${availableCustomers.filter(c => !c.hasActivity).length}) ──`}>
-                      {availableCustomers.filter(c => !c.hasActivity).map(c => (
-                        <option key={c.id || c.customerId || c.customerName} value={String(c.customerId || c.id || c.customerName)} className="text-slate-400">
-                          ⚪ {c.customerName} (0 Invoices in Selected Scope)
-                        </option>
-                      ))}
+                      {availableCustomers.filter(c => !c.hasActivity).map(c => {
+                        const targetVal = String(c.customerId || c.id || c.customerName);
+                        return (
+                          <option key={c.id || c.customerId || c.customerName} value={targetVal} className="text-slate-400">
+                            ⚪ {c.customerName} (0 Invoices in Selected Scope)
+                          </option>
+                        );
+                      })}
                     </optgroup>
                   )}
                 </select>
