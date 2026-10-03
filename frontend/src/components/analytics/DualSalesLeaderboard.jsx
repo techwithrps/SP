@@ -49,14 +49,14 @@ export default function DualSalesLeaderboard({
 
   const handleCustomerClick = (customer) => {
     if (!onSelectCustomer) return;
-    const custKey = String(customer.customerId || customer.customerName || customer.name || '');
+    const targetVal = String(customer.customerId || customer.id || customer.customerName || customer.name || '');
     const currentKey = String(selectedCustomer || 'ALL');
 
     // Toggle behavior: if already selected, clear filter back to ALL
-    if (currentKey.toLowerCase() === custKey.toLowerCase() || (customer.customerName && currentKey.toLowerCase() === customer.customerName.toLowerCase())) {
+    if (currentKey.toLowerCase() === targetVal.toLowerCase() || (customer.customerName && currentKey.toLowerCase() === customer.customerName.toLowerCase())) {
       onSelectCustomer('ALL');
     } else {
-      onSelectCustomer(customer.customerName || customer.name || customer.customerId);
+      onSelectCustomer(customer.customerId || customer.id || customer.customerName || customer.name);
     }
   };
 
@@ -71,7 +71,7 @@ export default function DualSalesLeaderboard({
   const isCustomerSelected = (c) => {
     if (!selectedCustomer || selectedCustomer === 'ALL' || selectedCustomer === 'all') return false;
     const sel = String(selectedCustomer).toLowerCase().trim();
-    const cId = String(c.customerId || '').toLowerCase().trim();
+    const cId = String(c.customerId || c.id || '').toLowerCase().trim();
     const cName = String(c.customerName || c.name || '').toLowerCase().trim();
     return sel === cId || sel === cName || cName.includes(sel);
   };
