@@ -93,9 +93,18 @@ export default function KPICards({ kpis = {}, loading = false }) {
   }
 
   return (
-    <div className="space-y-3 animate-slide-up">
+    <div className="space-y-3 animate-slide-up relative">
+      {loading && (
+        <div className="absolute -top-3 left-0 right-0 z-10 flex items-center justify-center">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2b1f55] text-amber-300 text-[10px] font-extrabold shadow-md border border-purple-400/30 backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            Synchronizing Live Oracle DB Analytics...
+          </span>
+        </div>
+      )}
+
       {/* 5 Core Verified KPIs Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+      <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 transition-opacity duration-300 ${loading ? 'opacity-60' : 'opacity-100'}`}>
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (
