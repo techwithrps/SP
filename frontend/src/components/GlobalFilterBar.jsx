@@ -516,7 +516,9 @@ export default function GlobalFilterBar({
                       const val = e.target.value;
                       if (setCustomFromDate) setCustomFromDate(val);
                       if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
-                      if (val && customToDate && val > customToDate && setCustomToDate) {
+                      if (val && !customToDate && setCustomToDate) {
+                        setCustomToDate(val);
+                      } else if (val && customToDate && val > customToDate && setCustomToDate) {
                         setCustomToDate(val);
                       }
                     }}
