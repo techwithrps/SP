@@ -488,8 +488,12 @@ export default function GlobalFilterBar({
                     type="date"
                     value={customFromDate || ''}
                     onChange={(e) => {
-                      if (setCustomFromDate) setCustomFromDate(e.target.value);
+                      const val = e.target.value;
+                      if (setCustomFromDate) setCustomFromDate(val);
                       if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
+                      if (val && customToDate && val > customToDate && setCustomToDate) {
+                        setCustomToDate(val);
+                      }
                     }}
                     className="w-full h-5 px-1 bg-white border border-slate-200 rounded text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
                   />
@@ -501,8 +505,12 @@ export default function GlobalFilterBar({
                     type="date"
                     value={customToDate || ''}
                     onChange={(e) => {
-                      if (setCustomToDate) setCustomToDate(e.target.value);
+                      const val = e.target.value;
+                      if (setCustomToDate) setCustomToDate(val);
                       if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
+                      if (val && customFromDate && val < customFromDate && setCustomFromDate) {
+                        setCustomFromDate(val);
+                      }
                     }}
                     className="w-full h-5 px-1 bg-white border border-slate-200 rounded text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#ff6a00]"
                   />
