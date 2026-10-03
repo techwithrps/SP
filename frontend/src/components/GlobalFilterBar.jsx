@@ -311,15 +311,21 @@ export default function GlobalFilterBar({
   // 3. If All -> All active operational terminals
   const availableTerminals = useMemo(() => {
     // 1. Customer selected: Only show branches this customer operates at
-    if (customerMatrixEntry && customerMatrixEntry.terminals && customerMatrixEntry.terminals.length > 0) {
+    if (customerMatrixEntry && Array.isArray(customerMatrixEntry.terminals) && customerMatrixEntry.terminals.length > 0) {
       return customerMatrixEntry.terminals.map(t => {
-        const fullTerm = terminals.find(ft => String(ft.terminalId || ft.id) === String(t.terminalId));
+        const isObj = typeof t === 'object' && t !== null;
+        const tId = isObj ? t.terminalId : null;
+        const tName = isObj ? (t.terminalName || t.name) : String(t);
+        const fullTerm = (terminals || []).find(ft => 
+          (tId && String(ft.terminalId || ft.id) === String(tId)) ||
+          (tName && String(ft.terminalName || ft.name).toLowerCase() === tName.toLowerCase())
+        );
         return {
-          terminalId: t.terminalId,
-          terminalName: t.terminalName || fullTerm?.terminalName || ('Terminal ' + t.terminalId),
-          invoiceCount: t.invoiceCount || 0,
-          totalContainers: t.totalContainers || 0,
-          netRevenue: t.netRevenue || 0,
+          terminalId: tId || fullTerm?.terminalId || fullTerm?.id || tName,
+          terminalName: tName || fullTerm?.terminalName || ('Terminal ' + (tId || '')),
+          invoiceCount: isObj ? (t.invoiceCount || 0) : 0,
+          totalContainers: isObj ? (t.totalContainers || 0) : 0,
+          netRevenue: isObj ? (t.netRevenue || 0) : 0,
           isCustomerBranch: true
         };
       }).sort((a, b) => (b.invoiceCount || 0) - (a.invoiceCount || 0));
@@ -697,9 +703,9 @@ export default function GlobalFilterBar({
           {selectedCustomer !== 'ALL' && (
             <>
               <span className="inline-flex items-center font-bold text-blue-800 bg-blue-100/80 border border-blue-200 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg truncate max-w-[280px]" title={String(selectedCustomer)}>
-                👥 {customerMatrixEntry 
-                  ? `${customerMatrixEntry.customerName} (${customerMatrixEntry.terminalCount} Branches: ${customerMatrixEntry.terminals.map(t=>t.terminalName).join(', ')})`
-                  : (selectedCustomerObj?.customerName || selectedCustomerObj?.name || `Customer: ${selectedCustomer}`)}
+                👥 {(customerMatrixEntry && Array.isArray(customerMatrixEntry.terminals) && customerMatrixEntry.terminals.length > 0)
+                  ? `${customerMatrixEntry.customerName || selectedCustomer} (${customerMatrixEntry.terminalCount || customerMatrixEntry.terminals.length} Branches: ${customerMatrixEntry.terminals.map(t => typeof t === 'string' ? t : (t.terminalName || t.name || t.terminalId)).join(', ')})`
+                  : (customerMatrixEntry?.customerName || selectedCustomerObj?.customerName || selectedCustomerObj?.name || `Customer: ${selectedCustomer}`)}
               </span>
               <span className="text-slate-400 font-bold">&bull;</span>
             </>
