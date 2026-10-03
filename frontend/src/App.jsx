@@ -169,7 +169,7 @@ export default function App() {
     } catch {}
     return 'ALL';
   });
-  const [selectedFY, setSelectedFY] = useState('ALL');
+  const [selectedFY, setSelectedFY] = useState('FY 2026-27');
   const [customFromDate, setCustomFromDate] = useState('');
   const [customToDate, setCustomToDate] = useState('');
   const [allTerminals, setAllTerminals] = useState([]);
@@ -298,11 +298,10 @@ export default function App() {
         console.log(`[SPJ Frontend Sync #${currentReqId}] Requesting APIs with params:`, queryParams.toString());
       }
 
-      const [cirRes, finRes, masterRes] = await Promise.all([
-        authFetch(cirUrl),
-        authFetch(finUrl),
-        masters ? Promise.resolve(null) : authFetch('/api/masters')
-      ]);
+      // Fetch sequentially to prevent overwhelming backend memory
+      const masterRes = masters ? null : await authFetch('/api/masters');
+      const finRes = await authFetch(finUrl);
+      const cirRes = await authFetch(cirUrl);
 
       if (cirRes.status === 401 || finRes.status === 401) {
         handleLogout();
