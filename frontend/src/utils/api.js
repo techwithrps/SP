@@ -105,6 +105,13 @@ export async function authFetch(url, options = {}) {
       return res;
     } catch (err) {
       clearTimeout(timeoutId);
+      // If request was aborted by newer filter or navigation, do not retry dead request
+      if (err.name === 'AbortError' || (err.message && err.message.toLowerCase().includes('abort'))) {
+        return new Response(JSON.stringify({ success: false, aborted: true }), {
+          status: 499,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
       if (attempt === 0) {
         console.warn(`[SPJ API] Initial fetch failed, retrying in 1.5s... (${err.message})`);
         await new Promise(r => setTimeout(r, 1500));

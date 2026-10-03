@@ -24,11 +24,10 @@ function formatCurrency(amount) {
 export default function KPICards({ kpis = {}, loading = false }) {
   const taxableRevenue = Number(kpis.totalBillAmount !== undefined ? kpis.totalBillAmount : (kpis.taxableRevenue || 0));
   const grossRevenue = Number(kpis.grossRevenue !== undefined ? kpis.grossRevenue : (kpis.totalInvoiceAmount || kpis.totalGrossAmount || 0));
-  const gstTax = Number(kpis.totalTax !== undefined ? kpis.totalTax : (kpis.gstTax || (kpis.totalIgst || 0) + (kpis.totalCgst || 0) + (kpis.totalSgst || 0)));
-  const totalInvoices = Number(kpis.invoiceCount !== undefined && kpis.invoiceCount !== null && kpis.invoiceCount > 0 ? kpis.invoiceCount : 185730);
-  const distinctContainers = Number(kpis.distinctContainers !== undefined && kpis.distinctContainers !== null && kpis.distinctContainers > 0 ? kpis.distinctContainers : (kpis.containerCount !== undefined && kpis.containerCount > 0 && kpis.containerCount < 200000 ? kpis.containerCount : (kpis.physicalContainers || 81428)));
-  const totalMoveItems = Number(kpis.lineItemCount !== undefined && kpis.lineItemCount !== null && kpis.lineItemCount > 0 ? kpis.lineItemCount : (kpis.containerCount || 225945));
-  const teus = Number(kpis.teuCount !== undefined && kpis.teuCount !== null && kpis.teuCount > 0 ? kpis.teuCount : 67336);
+  const totalInvoices = Number(kpis.invoiceCount !== undefined && kpis.invoiceCount !== null ? kpis.invoiceCount : 0);
+  const distinctContainers = Number(kpis.distinctContainers !== undefined && kpis.distinctContainers !== null ? kpis.distinctContainers : (kpis.containerCount !== undefined && kpis.containerCount !== null ? kpis.containerCount : 0));
+  const totalMoveItems = Number(kpis.lineItemCount !== undefined && kpis.lineItemCount !== null ? kpis.lineItemCount : (kpis.containerCount || 0));
+  const teus = Number(kpis.teuCount !== undefined && kpis.teuCount !== null ? kpis.teuCount : Math.round(distinctContainers * 1.5));
 
   const cards = [
     {

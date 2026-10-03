@@ -388,7 +388,7 @@ export default function App() {
     if (authToken && currentUser) {
       const timer = setTimeout(() => {
         fetchSynchronizedAnalytics();
-      }, 60);
+      }, 350);
       return () => clearTimeout(timer);
     }
   }, [fetchSynchronizedAnalytics, authToken, currentUser]);
