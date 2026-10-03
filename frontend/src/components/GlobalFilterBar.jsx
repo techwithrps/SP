@@ -608,12 +608,13 @@ export default function GlobalFilterBar({
                   {activeTerminals.length > 0 && (
                     <optgroup label={`── 🟢 Active Operating Branches in Date Range (${activeTerminals.length}) ──`}>
                       {activeTerminals.map(t => {
+                        const targetVal = String(t.terminalId || t.id || t.terminalName);
                         const invs = t.invoiceCount || t.currentStats?.invoiceCount || 0;
                         const conts = t.totalContainers || t.currentStats?.totalContainers || 0;
                         const teus = t.teus || t.currentStats?.teus || Math.round(conts * 1.9);
                         const rev = t.netRevenue || t.currentStats?.netRevenue || 0;
                         return (
-                          <option key={t.terminalId || t.terminalName} value={String(t.terminalId || t.terminalName)}>
+                          <option key={t.terminalId || t.id || t.terminalName} value={targetVal}>
                             🟢 {t.terminalName} ({formatNumber(conts)} Cont | {formatNumber(teus)} TEUs | {formatNumber(invs)} Invs | {formatCurrency(rev)})
                           </option>
                         );
@@ -623,11 +624,14 @@ export default function GlobalFilterBar({
 
                   {inactiveTerminals.length > 0 && (
                     <optgroup label={`── ⚪ Zero Activity Hubs in Selected Scope (${inactiveTerminals.length}) ──`}>
-                      {inactiveTerminals.map(t => (
-                        <option key={t.terminalId || t.terminalName} value={String(t.terminalId || t.terminalName)} className="text-slate-400">
-                          ⚪ {t.terminalName} (0 Cont | ₹ 0.00)
-                        </option>
-                      ))}
+                      {inactiveTerminals.map(t => {
+                        const targetVal = String(t.terminalId || t.id || t.terminalName);
+                        return (
+                          <option key={t.terminalId || t.id || t.terminalName} value={targetVal} className="text-slate-400">
+                            ⚪ {t.terminalName} (0 Cont | ₹ 0.00)
+                          </option>
+                        );
+                      })}
                     </optgroup>
                   )}
                 </select>
