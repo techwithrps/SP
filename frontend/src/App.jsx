@@ -622,41 +622,42 @@ export default function App() {
           </div>
         )}
 
-        {/* Master Global Filter Bar (Company, Customer, Terminal & FY Filter) across ALL pages - Rendered first on top */}
-
-        <div className="animate-slide-up">
-          <GlobalFilterBar
-            selectedCompany={selectedCompany}
-            setSelectedCompany={handleSetSelectedCompany}
-            selectedCustomer={selectedCustomer}
-            setSelectedCustomer={handleSetSelectedCustomer}
-            selectedTerminal={selectedTerminal}
-            setSelectedTerminal={handleSetSelectedTerminal}
-            selectedFY={selectedFY}
-            setSelectedFY={setSelectedFY}
-            customFromDate={customFromDate}
-            setCustomFromDate={setCustomFromDate}
-            customToDate={customToDate}
-            setCustomToDate={setCustomToDate}
-            financialData={financialData}
-            companies={masters?.companies || []}
-            customers={masters?.customers || []}
-            topCustomers={financialData?.topCustomers || []}
-            terminals={financialData?.terminalAnalytics || allTerminals || (masters?.terminals || [])}
-            financialYears={financialYears}
-            terminalFyMatrix={terminalFyMatrix}
-            customerTerminalMatrix={masters?.customerTerminalMatrix || []}
-            companyCustomers={masters?.companyCustomers || {}}
-            companyTerminals={masters?.companyTerminals || {}}
-            triMatrix={masters?.triMatrix || []}
-            onRefresh={() => {
-              fetchSynchronizedAnalytics();
-            }}
-            onExport={handleExportExcel}
-            loading={loading}
-            activeTab={activeTab}
-          />
-        </div>
+        {/* Master Global Filter Bar (Company, Customer, Terminal & FY Filter) across analytics, sales, containers, fleet tabs (Hidden on Ocean Hub) */}
+        {activeTab !== 'vessels' && (
+          <div className="animate-slide-up">
+            <GlobalFilterBar
+              selectedCompany={selectedCompany}
+              setSelectedCompany={handleSetSelectedCompany}
+              selectedCustomer={selectedCustomer}
+              setSelectedCustomer={handleSetSelectedCustomer}
+              selectedTerminal={selectedTerminal}
+              setSelectedTerminal={handleSetSelectedTerminal}
+              selectedFY={selectedFY}
+              setSelectedFY={setSelectedFY}
+              customFromDate={customFromDate}
+              setCustomFromDate={setCustomFromDate}
+              customToDate={customToDate}
+              setCustomToDate={setCustomToDate}
+              financialData={financialData}
+              companies={masters?.companies || []}
+              customers={masters?.customers || []}
+              topCustomers={financialData?.topCustomers || []}
+              terminals={financialData?.terminalAnalytics || allTerminals || (masters?.terminals || [])}
+              financialYears={financialYears}
+              terminalFyMatrix={terminalFyMatrix}
+              customerTerminalMatrix={masters?.customerTerminalMatrix || []}
+              companyCustomers={masters?.companyCustomers || {}}
+              companyTerminals={masters?.companyTerminals || {}}
+              triMatrix={masters?.triMatrix || []}
+              onRefresh={() => {
+                fetchSynchronizedAnalytics();
+              }}
+              onExport={handleExportExcel}
+              loading={loading}
+              activeTab={activeTab}
+            />
+          </div>
+        )}
 
         {/* SPJ Global Highlight Banner (Rendered only on 'Branch Wise Analytics' tab) */}
         {activeTab === 'analytics' && (
