@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Ship,
   Navigation,
@@ -19,6 +19,7 @@ import {
   Radio,
   ExternalLink,
   ChevronRight,
+  ChevronDown,
   Filter,
   Activity,
   Zap,
@@ -46,6 +47,168 @@ import {
   setPanvayaApiKey,
   enrichTrackingData
 } from '../services/panvayaService';
+
+// Comprehensive 60+ Master Global Commercial Seaports List
+const MASTER_SEAPORTS = [
+  // Indian Ports
+  { code: 'INNSA', name: 'Nhava Sheva (JNPT)', country: 'India', region: 'India Gateway' },
+  { code: 'INMUN', name: 'Mundra Port', country: 'India', region: 'India Gateway' },
+  { code: 'INPAV', name: 'Pipavav Port', country: 'India', region: 'India Gateway' },
+  { code: 'INHZA', name: 'Hazira Port', country: 'India', region: 'India Gateway' },
+  { code: 'INMAA', name: 'Chennai Port', country: 'India', region: 'India Gateway' },
+  { code: 'INVTZ', name: 'Visakhapatnam Port', country: 'India', region: 'India Gateway' },
+  { code: 'INKOK', name: 'Kolkata / Haldia Port', country: 'India', region: 'India Gateway' },
+  { code: 'INCOK', name: 'Cochin / Vallarpadam', country: 'India', region: 'India Gateway' },
+  { code: 'INTUT', name: 'Tuticorin (V.O.C)', country: 'India', region: 'India Gateway' },
+  { code: 'INIXY', name: 'Kandla / Deendayal', country: 'India', region: 'India Gateway' },
+  { code: 'INKAN', name: 'Kanpur ICD (Dry Port)', country: 'India', region: 'Inland Depot' },
+  { code: 'INDER', name: 'Dadri ICD (Dry Port)', country: 'India', region: 'Inland Depot' },
+
+  // Middle East & Red Sea
+  { code: 'AEJEA', name: 'Jebel Ali / Dubai', country: 'UAE', region: 'Middle East' },
+  { code: 'AEAUH', name: 'Khalifa / Abu Dhabi', country: 'UAE', region: 'Middle East' },
+  { code: 'AESHJ', name: 'Sharjah / Khorfakkan', country: 'UAE', region: 'Middle East' },
+  { code: 'SAJED', name: 'Jeddah Islamic Port', country: 'Saudi Arabia', region: 'Middle East' },
+  { code: 'SADMM', name: 'Dammam (King Abdul Aziz)', country: 'Saudi Arabia', region: 'Middle East' },
+  { code: 'QATSH', name: 'Hamad Port / Doha', country: 'Qatar', region: 'Middle East' },
+  { code: 'BHRMN', name: 'Mina Salman / Khalifa', country: 'Bahrain', region: 'Middle East' },
+  { code: 'KWIWK', name: 'Shuwaikh / Shuaiba', country: 'Kuwait', region: 'Middle East' },
+  { code: 'OMSLL', name: 'Salalah Port', country: 'Oman', region: 'Middle East' },
+  { code: 'OMMCT', name: 'Sohar / Muscat', country: 'Oman', region: 'Middle East' },
+  { code: 'JOAQB', name: 'Aqaba Port', country: 'Jordan', region: 'Middle East' },
+  { code: 'EGSUZ', name: 'Sokhna / Suez', country: 'Egypt', region: 'Middle East' },
+  { code: 'EGALY', name: 'Alexandria / Port Said', country: 'Egypt', region: 'Middle East' },
+
+  // South East Asia & East Asia
+  { code: 'SGSIN', name: 'Singapore Port', country: 'Singapore', region: 'East Asia' },
+  { code: 'MYPKG', name: 'Port Klang', country: 'Malaysia', region: 'South East Asia' },
+  { code: 'MYTPP', name: 'Tanjung Pelepas', country: 'Malaysia', region: 'South East Asia' },
+  { code: 'IDTPP', name: 'Tanjung Priok / Jakarta', country: 'Indonesia', region: 'South East Asia' },
+  { code: 'THBKK', name: 'Bangkok / Laem Chabang', country: 'Thailand', region: 'South East Asia' },
+  { code: 'VNSGN', name: 'Ho Chi Minh / Cat Lai', country: 'Vietnam', region: 'South East Asia' },
+  { code: 'VNHPH', name: 'Haiphong', country: 'Vietnam', region: 'South East Asia' },
+  { code: 'CNSHA', name: 'Shanghai Port', country: 'China', region: 'East Asia' },
+  { code: 'CNNBO', name: 'Ningbo-Zhoushan', country: 'China', region: 'East Asia' },
+  { code: 'CNSZX', name: 'Shenzhen / Yantian', country: 'China', region: 'East Asia' },
+  { code: 'CNQGD', name: 'Qingdao Port', country: 'China', region: 'East Asia' },
+  { code: 'CNGZG', name: 'Guangzhou / Nansha', country: 'China', region: 'East Asia' },
+  { code: 'HKHKG', name: 'Hong Kong Port', country: 'Hong Kong', region: 'East Asia' },
+  { code: 'TWKHH', name: 'Kaohsiung', country: 'Taiwan', region: 'East Asia' },
+  { code: 'KRINC', name: 'Busan Port', country: 'South Korea', region: 'East Asia' },
+  { code: 'JPTYO', name: 'Tokyo / Yokohama', country: 'Japan', region: 'East Asia' },
+
+  // Europe & Mediterranean
+  { code: 'NLRTM', name: 'Rotterdam', country: 'Netherlands', region: 'Europe' },
+  { code: 'BEANR', name: 'Antwerp', country: 'Belgium', region: 'Europe' },
+  { code: 'DEHAM', name: 'Hamburg', country: 'Germany', region: 'Europe' },
+  { code: 'DEBRV', name: 'Bremerhaven', country: 'Germany', region: 'Europe' },
+  { code: 'GBFXT', name: 'Felixstowe / London Gateway', country: 'UK', region: 'Europe' },
+  { code: 'FRPAR', name: 'Le Havre / Marseille', country: 'France', region: 'Europe' },
+  { code: 'ESBCN', name: 'Barcelona / Valencia', country: 'Spain', region: 'Europe' },
+  { code: 'ITSPE', name: 'Genoa / La Spezia', country: 'Italy', region: 'Europe' },
+  { code: 'GRPIR', name: 'Piraeus', country: 'Greece', region: 'Europe' },
+  { code: 'TRIST', name: 'Ambarli / Istanbul', country: 'Turkey', region: 'Europe' },
+
+  // Americas & Africa
+  { code: 'USLAX', name: 'Los Angeles / Long Beach', country: 'USA', region: 'Americas' },
+  { code: 'USNYC', name: 'New York / New Jersey', country: 'USA', region: 'Americas' },
+  { code: 'USSAV', name: 'Savannah', country: 'USA', region: 'Americas' },
+  { code: 'USHOU', name: 'Houston', country: 'USA', region: 'Americas' },
+  { code: 'CAVAN', name: 'Vancouver', country: 'Canada', region: 'Americas' },
+  { code: 'BRPNG', name: 'Santos / Paranagua', country: 'Brazil', region: 'Americas' },
+  { code: 'ZADUR', name: 'Durban', country: 'South Africa', region: 'Africa' },
+  { code: 'KENMB', name: 'Mombasa', country: 'Kenya', region: 'Africa' },
+  { code: 'TZDAR', name: 'Dar es Salaam', country: 'Tanzania', region: 'Africa' }
+];
+
+/**
+ * Custom Searchable Seaport Combobox Component with live search filtering
+ */
+function SearchablePortSelect({ label, value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const wrapperRef = useRef(null);
+
+  const selectedPort = MASTER_SEAPORTS.find(p => p.code === value) || { code: value, name: value, country: '' };
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return MASTER_SEAPORTS;
+    const q = search.toLowerCase().trim();
+    return MASTER_SEAPORTS.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.code.toLowerCase().includes(q) ||
+      p.country.toLowerCase().includes(q) ||
+      p.region.toLowerCase().includes(q)
+    );
+  }, [search]);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={wrapperRef}>
+      <label className="block text-xs font-bold text-slate-700 mb-1">{label}</label>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 flex items-center justify-between transition-all outline-none cursor-pointer"
+      >
+        <span className="truncate">{selectedPort.name}{selectedPort.country ? `, ${selectedPort.country}` : ''} [{selectedPort.code}]</span>
+        <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 p-2 space-y-2 max-h-64 overflow-y-auto">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+            <input
+              type="text"
+              autoFocus
+              placeholder="Search port name, country, UN/LOCODE..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-100 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs font-medium text-slate-900 outline-none focus:bg-white focus:ring-2 focus:ring-sky-500"
+            />
+          </div>
+
+          <div className="space-y-0.5 max-h-48 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="text-xs text-slate-400 text-center py-3 font-medium">No matching seaport found</div>
+            ) : (
+              filtered.map((p) => {
+                const isSel = p.code === value;
+                return (
+                  <button
+                    key={p.code}
+                    type="button"
+                    onClick={() => {
+                      onChange(p.code);
+                      setIsOpen(false);
+                      setSearch('');
+                    }}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-colors flex items-center justify-between cursor-pointer ${
+                      isSel ? 'bg-sky-50 text-sky-900 font-bold' : 'hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <span className="truncate">{p.name}, {p.country}</span>
+                    <span className="font-mono text-[10px] font-bold text-sky-700 bg-sky-100/80 px-1.5 py-0.5 rounded ml-2 shrink-0">{p.code}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Default multi-vessel cached dataset for instant display without burning credits
 const DEFAULT_PRESET_SAILINGS = [
@@ -199,14 +362,14 @@ const DEFAULT_PRESET_SAILINGS = [
 export default function OceanIntelligenceView({ customer }) {
   // Navigation Modes
   const [activeTab, setActiveTab] = useState('schedules'); // default to schedules to show 5 vessels immediately!
-  
+
   // API Quota / Balance State
   const [usage, setUsage] = useState(null);
   const [usageLoading, setUsageLoading] = useState(false);
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [customKey, setCustomKey] = useState(getPanvayaApiKey());
 
-  // 0. LOCAL STORAGE PERSISTENCE STATE
+  // 0. LOCAL STORAGE PERSISTENCE STATE (Audio Requirement #1)
   const [storedShipments, setStoredShipments] = useState(() => {
     try {
       const raw = localStorage.getItem('spj_cached_shipments');
@@ -239,7 +402,7 @@ export default function OceanIntelligenceView({ customer }) {
   const [trackResult, setTrackResult] = useState(null);
   const [trackError, setTrackError] = useState(null);
 
-  // 2. Schedules State (4-5 Vessels with dates)
+  // 2. Schedules State (Audio Requirement #2: 4-5 Vessels with dates)
   const [schedOrigin, setSchedOrigin] = useState('INNSA'); // Nhava Sheva
   const [schedDest, setSchedDest] = useState('SGSIN'); // Singapore
   const [schedDate, setSchedDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -248,6 +411,8 @@ export default function OceanIntelligenceView({ customer }) {
   const [schedResults, setSchedResults] = useState(storedSchedules);
   const [schedError, setSchedError] = useState(null);
   const [selectedSailing, setSelectedSailing] = useState(null);
+  const [showAllSailings, setShowAllSailings] = useState(false);
+  const [selectedCarrierFilter, setSelectedCarrierFilter] = useState('ALL');
 
   // 3. Vessel Radar State
   const [vesselImo, setVesselImo] = useState('9526887'); // MAERSK LIRQUEN
@@ -335,7 +500,7 @@ export default function OceanIntelligenceView({ customer }) {
       const updated = [item, ...filtered].slice(0, 25);
       try {
         localStorage.setItem('spj_cached_shipments', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { }
       return updated;
     });
   };
@@ -360,7 +525,7 @@ export default function OceanIntelligenceView({ customer }) {
       const updated = prev.filter(s => s.id !== id);
       try {
         localStorage.setItem('spj_cached_shipments', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { }
       return updated;
     });
   };
@@ -370,6 +535,7 @@ export default function OceanIntelligenceView({ customer }) {
     if (e) e.preventDefault();
     if (!trackRefNumber.trim()) return;
 
+    // Check if exists in cache first if not forced live
     if (!forceLive) {
       const existing = storedShipments.find(s => s.refNumber.toUpperCase() === trackRefNumber.trim().toUpperCase());
       if (existing) {
@@ -414,7 +580,7 @@ export default function OceanIntelligenceView({ customer }) {
     }
   };
 
-  // Execute Schedules Search
+  // Execute Schedules Search (Audio Requirement #2: 4-5 Vessels)
   const handleExecuteSchedules = async (e) => {
     if (e) e.preventDefault();
     setIsSearchingSched(true);
@@ -439,7 +605,7 @@ export default function OceanIntelligenceView({ customer }) {
       setStoredSchedules(fullResult);
       try {
         localStorage.setItem('spj_cached_schedules', JSON.stringify(fullResult));
-      } catch (e) {}
+      } catch (e) { }
 
       if (res.sailings && res.sailings.length > 0) {
         setSelectedSailing(res.sailings[0]);
@@ -526,11 +692,11 @@ export default function OceanIntelligenceView({ customer }) {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      
+
       {/* 1. Header Banner & Storage Status Bar */}
       <div className="bg-gradient-to-r from-slate-900 via-[#0d1e3d] to-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-sky-500/10 via-transparent to-transparent pointer-events-none" />
-        
+
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2.5">
@@ -538,7 +704,7 @@ export default function OceanIntelligenceView({ customer }) {
                 <Ship className="w-5 h-5" />
               </span>
               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                Ocean & Vessel Intelligence Hub
+                Ocean & Vessel Intelligence
                 <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                   DCSA Standard v3.0
                 </span>
@@ -551,6 +717,7 @@ export default function OceanIntelligenceView({ customer }) {
 
           {/* Right: Storage & API Balance Pills */}
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Storage Cache Pill */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700 text-xs">
               <Database className="w-3.5 h-3.5 text-sky-400" />
               <span className="text-slate-400 font-medium">Saved:</span>
@@ -559,6 +726,7 @@ export default function OceanIntelligenceView({ customer }) {
               </span>
             </div>
 
+            {/* API Quota Pill */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700 text-xs">
               <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
               <span className="text-slate-400 font-medium">Credits:</span>
@@ -590,9 +758,6 @@ export default function OceanIntelligenceView({ customer }) {
           {[
             { id: 'schedules', label: '1. Multi-Vessel Schedules & 7 Cutoffs', icon: Calendar, desc: '4-5 Vessels side-by-side' },
             { id: 'track', label: '2. Ocean Container Tracking & Store', icon: Navigation, desc: 'DCSA Live Milestones' },
-            { id: 'radar', label: '3. Live Vessel AIS Radar', icon: Compass, desc: 'Speed, Heading, Distance' },
-            { id: 'congestion', label: '4. Port Congestion Dwell', icon: Anchor, desc: 'JNPT / Mundra / Hubs' },
-            { id: 'carbon', label: '5. Carbon CO2 Calculator', icon: Leaf, desc: 'GLEC Clean Cargo' },
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -600,11 +765,10 @@ export default function OceanIntelligenceView({ customer }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                  isActive
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${isActive
                     ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25 ring-2 ring-sky-400/50'
                     : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
-                }`}
+                  }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span>{tab.label}</span>
@@ -616,7 +780,7 @@ export default function OceanIntelligenceView({ customer }) {
 
       {/* 2. DYNAMIC VIEW PANELS */}
 
-      {/* TAB 1: MULTI-VESSEL SCHEDULES & 7 CUTOFFS (4-5 VESSELS WITH DATES) */}
+      {/* TAB 1: MULTI-VESSEL SCHEDULES & 7 CUTOFFS (AUDIO REQUIREMENT: 4-5 VESSELS WITH DATES) */}
       {activeTab === 'schedules' && (
         <div className="space-y-5">
           {/* Query Filter Card */}
@@ -641,35 +805,19 @@ export default function OceanIntelligenceView({ customer }) {
 
             <form onSubmit={handleExecuteSchedules} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
               <div className="sm:col-span-3">
-                <label className="block text-xs font-bold text-slate-700 mb-1">Origin Seaport (POL)</label>
-                <select
+                <SearchablePortSelect
+                  label="Origin Seaport (POL)"
                   value={schedOrigin}
-                  onChange={(e) => setSchedOrigin(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500 outline-none"
-                >
-                  <option value="INNSA">Nhava Sheva (JNPT), India [INNSA]</option>
-                  <option value="INMUN">Mundra Port, India [INMUN]</option>
-                  <option value="INPAV">Pipavav Port, India [INPAV]</option>
-                  <option value="INHZA">Hazira Port, India [INHZA]</option>
-                  <option value="INMAA">Chennai Port, India [INMAA]</option>
-                  <option value="CNSHA">Shanghai, China [CNSHA]</option>
-                </select>
+                  onChange={(val) => setSchedOrigin(val)}
+                />
               </div>
 
               <div className="sm:col-span-3">
-                <label className="block text-xs font-bold text-slate-700 mb-1">Destination Seaport (POD)</label>
-                <select
+                <SearchablePortSelect
+                  label="Destination Seaport (POD)"
                   value={schedDest}
-                  onChange={(e) => setSchedDest(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500 outline-none"
-                >
-                  <option value="SGSIN">Singapore Port, Singapore [SGSIN]</option>
-                  <option value="NLRTM">Rotterdam, Netherlands [NLRTM]</option>
-                  <option value="AEJEA">Jebel Ali / Dubai, UAE [AEJEA]</option>
-                  <option value="MYPKG">Port Klang, Malaysia [MYPKG]</option>
-                  <option value="USLAX">Los Angeles, USA [USLAX]</option>
-                  <option value="DEHAM">Hamburg, Germany [DEHAM]</option>
-                </select>
+                  onChange={(val) => setSchedDest(val)}
+                />
               </div>
 
               <div className="sm:col-span-2">
@@ -718,30 +866,69 @@ export default function OceanIntelligenceView({ customer }) {
             </form>
           </div>
 
-          {/* Multi-Vessel Comparison Table & Cards (At least 4-5 Vessels) */}
-          {schedResults && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-sky-900">
-                    Route: {schedResults.origin || schedOrigin} $\rightarrow$ {schedResults.destination || schedDest}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 font-bold">
-                    Showing Top 5 Active Vessels
-                  </span>
-                </div>
-                <div className="text-slate-500 flex items-center gap-2 font-mono text-[11px]">
-                  <span>Last Updated: {new Date(schedResults.savedAt || Date.now()).toLocaleTimeString()}</span>
-                  <span className="text-emerald-700 font-bold">● Stored in Local Cache</span>
-                </div>
-              </div>
+          {/* Multi-Vessel Comparison Table & Cards */}
+          {schedResults && (() => {
+            const rawSailings = (schedResults && schedResults.sailings) ? schedResults.sailings : DEFAULT_PRESET_SAILINGS;
+            const filteredSailings = selectedCarrierFilter === 'ALL'
+              ? rawSailings
+              : rawSailings.filter(s =>
+                  String(s.carrier || '').toUpperCase().includes(selectedCarrierFilter.toUpperCase()) ||
+                  String(s.carrierCode || '').toUpperCase().includes(selectedCarrierFilter.toUpperCase())
+                );
+            const displayedSailings = showAllSailings ? filteredSailings : filteredSailings.slice(0, 5);
 
-              <div className="grid grid-cols-1 gap-4">
-                {(schedResults.sailings || DEFAULT_PRESET_SAILINGS).slice(0, 5).map((sailing, idx) => (
+            return (
+              <div className="space-y-4 animate-fade-in">
+                {/* Corridor Summary Banner & Carrier Filters */}
+                <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 text-xs space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-sky-200/60 pb-2.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-black text-sky-950 text-sm">
+                        Route: {schedResults.origin || schedOrigin} → {schedResults.destination || schedDest}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-sky-200 text-sky-900 font-bold text-xs">
+                        Showing {displayedSailings.length} of {filteredSailings.length} Active Upcoming Vessels
+                      </span>
+                    </div>
+                    <div className="text-slate-500 flex items-center gap-2 font-mono text-[11px]">
+                      <span>Last Updated: {new Date(schedResults.savedAt || Date.now()).toLocaleTimeString()}</span>
+                      <span className="text-emerald-700 font-bold">● Live Sync</span>
+                    </div>
+                  </div>
+
+                  {/* Ocean Carrier Filter Bar */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    <span className="text-[11px] font-bold text-slate-500 shrink-0 mr-1">Filter Line:</span>
+                    {['ALL', 'CMA CGM', 'MAERSK', 'EVERGREEN', 'MSC', 'HAPAG-LLOYD', 'ONE', 'OOCL', 'COSCO SHIPPING'].map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setSelectedCarrierFilter(c)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                          selectedCarrierFilter === c
+                            ? 'bg-sky-600 text-white shadow-xs ring-2 ring-sky-300'
+                            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Vessels Deck */}
+                <div className="grid grid-cols-1 gap-4">
+                  {displayedSailings.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500 text-xs font-medium">
+                      No vessels matching carrier filter "{selectedCarrierFilter}". Try selecting "ALL".
+                    </div>
+                  ) : (
+                    displayedSailings.map((sailing, idx) => (
                   <div
                     key={idx}
                     className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:border-sky-300 transition-all space-y-4"
                   >
+                    {/* Vessel Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-white flex items-center justify-center font-black text-sm shadow-md shrink-0">
@@ -758,9 +945,8 @@ export default function OceanIntelligenceView({ customer }) {
                             <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-sky-100 text-sky-800">
                               {sailing.carrier} ({sailing.carrierCode})
                             </span>
-                            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                              sailing.direct ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                            }`}>
+                            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${sailing.direct ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                              }`}>
                               {sailing.direct ? 'Direct Ocean Line' : `${sailing.transshipments || 1} Transshipment`}
                             </span>
                           </div>
@@ -773,6 +959,7 @@ export default function OceanIntelligenceView({ customer }) {
                         </div>
                       </div>
 
+                      {/* Right Action: Transit Days & Radar Jump */}
                       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
                         <div className="text-right">
                           <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Sea Transit</span>
@@ -796,6 +983,7 @@ export default function OceanIntelligenceView({ customer }) {
                       </div>
                     </div>
 
+                    {/* Sailing ETD and ETA Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                       <div>
                         <span className="text-[10px] font-bold text-slate-500 uppercase block">Port of Loading (ETD Departure)</span>
@@ -820,6 +1008,7 @@ export default function OceanIntelligenceView({ customer }) {
                       </div>
                     </div>
 
+                    {/* All 7 Cutoff Deadlines Alert Box */}
                     {sailing.cutOffs && (
                       <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 space-y-2">
                         <span className="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
@@ -863,16 +1052,33 @@ export default function OceanIntelligenceView({ customer }) {
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
+                ))
+              )}
             </div>
-          )}
+
+                {/* Show All / Collapse Button */}
+                {filteredSailings.length > 5 && (
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAllSailings(!showAllSailings)}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+                    >
+                      <span>{showAllSailings ? 'Collapse to Top 5 Vessels' : `Show All ${filteredSailings.length} Upcoming Vessels`}</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showAllSailings ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
 
-      {/* TAB 2: OCEAN CONTAINER TRACKING */}
+      {/* TAB 2: OCEAN CONTAINER TRACKING & PERSISTENT LOCAL STORAGE */}
       {activeTab === 'track' && (
         <div className="space-y-5">
+          {/* Query Filter Card */}
           <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
@@ -885,6 +1091,7 @@ export default function OceanIntelligenceView({ customer }) {
                 </p>
               </div>
 
+              {/* Reference Type Radio Buttons */}
               <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
                 {[
                   { id: 'container', label: 'Container #' },
@@ -894,11 +1101,10 @@ export default function OceanIntelligenceView({ customer }) {
                   <button
                     key={type.id}
                     onClick={() => setTrackRefType(type.id)}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
-                      trackRefType === type.id
+                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer ${trackRefType === type.id
                         ? 'bg-white text-slate-900 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                      }`}
                   >
                     {type.label}
                   </button>
@@ -906,6 +1112,7 @@ export default function OceanIntelligenceView({ customer }) {
               </div>
             </div>
 
+            {/* Input Form */}
             <form onSubmit={(e) => handleExecuteTrack(e, false)} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
               <div className="sm:col-span-6">
                 <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -969,6 +1176,7 @@ export default function OceanIntelligenceView({ customer }) {
               </div>
             </form>
 
+            {/* Quick Chips for SPJ active shipments */}
             <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
               <span className="font-bold text-slate-500 flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Quick Samples:
@@ -994,6 +1202,7 @@ export default function OceanIntelligenceView({ customer }) {
             </div>
           </div>
 
+          {/* LOCAL STORAGE SAVED SHIPMENTS DRAWER / CHIPS (Audio Requirement #1) */}
           {storedShipments.length > 0 && (
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
               <div className="flex items-center justify-between">
@@ -1017,7 +1226,7 @@ export default function OceanIntelligenceView({ customer }) {
                         <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-100 text-sky-800 uppercase">{s.carrier}</span>
                       </div>
                       <p className="text-[10px] text-slate-500 truncate mt-0.5">
-                        {s.pol} $\rightarrow$ {s.pod} | Saved: {new Date(s.savedAt).toLocaleDateString()}
+                        {s.pol} → {s.pod} | Saved: {new Date(s.savedAt).toLocaleDateString()}
                       </p>
                     </div>
 
@@ -1034,6 +1243,7 @@ export default function OceanIntelligenceView({ customer }) {
             </div>
           )}
 
+          {/* Tracking Error Banner */}
           {trackError && (
             <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-rose-800 text-xs sm:text-sm flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
@@ -1047,14 +1257,15 @@ export default function OceanIntelligenceView({ customer }) {
             </div>
           )}
 
+          {/* Tracking Results View */}
           {trackResult && (
             <div className="space-y-4 animate-fade-in">
+              {/* Cache vs Live Banner */}
               {activeSourceBadge && (
-                <div className={`p-3 rounded-xl flex items-center justify-between text-xs font-bold border ${
-                  activeSourceBadge.type === 'cached'
+                <div className={`p-3 rounded-xl flex items-center justify-between text-xs font-bold border ${activeSourceBadge.type === 'cached'
                     ? 'bg-amber-50 border-amber-200 text-amber-900'
                     : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                }`}>
+                  }`}>
                   <div className="flex items-center gap-2">
                     <Database className="w-4 h-4" />
                     <span>{activeSourceBadge.label} — Saved: {new Date(activeSourceBadge.time).toLocaleTimeString()}</span>
@@ -1069,6 +1280,7 @@ export default function OceanIntelligenceView({ customer }) {
                 </div>
               )}
 
+              {/* Header Card: Status & Carrier */}
               <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                   <div className="flex items-center gap-3">
@@ -1098,6 +1310,7 @@ export default function OceanIntelligenceView({ customer }) {
                   </div>
                 </div>
 
+                {/* 15 Fields Grid Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="text-[10px] uppercase font-bold text-slate-500 block">Vessel Name</span>
@@ -1132,6 +1345,7 @@ export default function OceanIntelligenceView({ customer }) {
                   </div>
                 </div>
 
+                {/* AIS Telemetry Bar */}
                 {trackResult.telemetry?.position && (
                   <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-sky-900 via-slate-900 to-sky-950 text-white border border-sky-800/60 shadow-inner">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1168,6 +1382,7 @@ export default function OceanIntelligenceView({ customer }) {
                 )}
               </div>
 
+              {/* Milestones Timeline */}
               <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                 <h4 className="font-extrabold text-slate-900 text-sm mb-4 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-sky-600" />
@@ -1180,11 +1395,10 @@ export default function OceanIntelligenceView({ customer }) {
                       {idx !== (trackResult.containers[0].events.length - 1) && (
                         <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-slate-200" />
                       )}
-                      <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${
-                        ev.isActual 
-                          ? 'bg-emerald-100 text-emerald-700 ring-4 ring-emerald-50' 
+                      <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${ev.isActual
+                          ? 'bg-emerald-100 text-emerald-700 ring-4 ring-emerald-50'
                           : 'bg-slate-100 text-slate-500 ring-4 ring-slate-50'
-                      }`}>
+                        }`}>
                         <CheckCircle2 className="w-4 h-4" />
                       </div>
                       <div className="flex-1 bg-slate-50 rounded-xl p-3 border border-slate-200/80">
@@ -1192,9 +1406,8 @@ export default function OceanIntelligenceView({ customer }) {
                           <span className="font-bold text-slate-900 text-xs sm:text-sm">
                             {ev.name || ev.description || ev.code}
                           </span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase self-start sm:self-auto ${
-                            ev.isActual ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase self-start sm:self-auto ${ev.isActual ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            }`}>
                             {ev.isActual ? 'Actual Confirmed' : 'Estimated / Planned'}
                           </span>
                         </div>
@@ -1210,335 +1423,6 @@ export default function OceanIntelligenceView({ customer }) {
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 3: LIVE VESSEL AIS RADAR */}
-      {activeTab === 'radar' && (
-        <div className="space-y-5">
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-4">
-            <div>
-              <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                <Compass className="w-4 h-4 text-sky-600" />
-                Live Satellite AIS Vessel Radar & Coordinates
-              </h3>
-              <p className="text-xs text-slate-500">
-                Direct satellite telemetry for mother vessels: live GPS position, nautical speed, heading, and distance to destination.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="font-bold text-slate-500">Preset Mother Vessels:</span>
-              {PRESET_VESSELS.map(v => (
-                <button
-                  key={v.imo}
-                  onClick={() => {
-                    setVesselImo(v.imo);
-                    handleExecuteRadar(v.imo);
-                  }}
-                  className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                    vesselImo === v.imo
-                      ? 'bg-sky-600 text-white shadow-xs'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                  }`}
-                >
-                  {v.name} ({v.line})
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <input
-                type="text"
-                value={vesselImo}
-                onChange={(e) => setVesselImo(e.target.value)}
-                placeholder="Enter 7-digit IMO Number (e.g. 9526887)"
-                className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-sky-500 outline-none"
-              />
-              <button
-                onClick={() => handleExecuteRadar()}
-                disabled={isRadarLoading}
-                className="flex items-center gap-2 bg-[#0284c7] hover:bg-[#0369a1] text-white font-extrabold text-xs sm:text-sm py-2.5 px-5 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-              >
-                {isRadarLoading ? (
-                  <>
-                    <RotateCw className="w-4 h-4 animate-spin" />
-                    <span>Ping Satellite...</span>
-                  </>
-                ) : (
-                  <>
-                    <Radio className="w-4 h-4" />
-                    <span>Locate Vessel</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {vesselPosition && (
-            <div className="bg-slate-900 text-white rounded-2xl p-5 border border-slate-800 shadow-xl space-y-5 animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/30">
-                      <Ship className="w-5 h-5" />
-                    </span>
-                    <h3 className="text-lg font-black text-white">{vesselPosition.vessel_name || vesselMaster?.name}</h3>
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Underway (AIS Live)
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1 font-mono">
-                    IMO: {vesselPosition.imo} | MMSI: {vesselPosition.mmsi} | Flag: {vesselMaster?.country || 'Panama'}
-                  </p>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-400 uppercase block font-bold">Estimated POD Arrival</span>
-                  <span className="text-base font-extrabold text-emerald-400 font-mono">
-                    {vesselPosition.eta_calc ? new Date(vesselPosition.eta_calc).toLocaleString() : new Date(vesselPosition.eta).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700/80">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Current Coordinates</span>
-                  <span className="text-sm font-extrabold text-sky-400 font-mono block mt-1">
-                    {vesselPosition.latitude?.toFixed(4)}° N, {vesselPosition.longitude?.toFixed(4)}° W
-                  </span>
-                  <span className="text-[10px] text-slate-500">Live GPS Fix</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700/80">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Sailing Speed</span>
-                  <span className="text-sm font-extrabold text-emerald-400 font-mono block mt-1">
-                    {vesselPosition.speed || 0} knots
-                  </span>
-                  <span className="text-[10px] text-slate-500">~{((vesselPosition.speed || 0) * 1.852).toFixed(1)} km/h</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700/80">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Heading / Course</span>
-                  <span className="text-sm font-extrabold text-amber-400 font-mono block mt-1">
-                    {vesselPosition.heading || vesselPosition.course || 0}°
-                  </span>
-                  <span className="text-[10px] text-slate-500">Nautical Compass</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700/80">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Distance Remaining</span>
-                  <span className="text-sm font-extrabold text-sky-300 font-mono block mt-1">
-                    {vesselPosition.distance_to_go || 0} NM
-                  </span>
-                  <span className="text-[10px] text-slate-500">To {vesselPosition.destination_port || 'POD'}</span>
-                </div>
-              </div>
-
-              {vesselMaster && (
-                <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 text-xs">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                    Vessel Specifications
-                  </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-slate-300 font-mono">
-                    <div>Capacity: <strong className="text-white">{vesselMaster.teu?.toLocaleString() || 7500} TEU</strong></div>
-                    <div>Deadweight: <strong className="text-white">{vesselMaster.deadweight?.toLocaleString() || '106,000'} MT</strong></div>
-                    <div>Length: <strong className="text-white">{vesselMaster.length_meters || 300} m</strong></div>
-                    <div>Built: <strong className="text-white">{vesselMaster.year_built || 2011}</strong></div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 4: PORT CONGESTION */}
-      {activeTab === 'congestion' && (
-        <div className="space-y-5">
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-4">
-            <div>
-              <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                <Anchor className="w-4 h-4 text-sky-600" />
-                Global Port Congestion & Anchorage Dwell
-              </h3>
-              <p className="text-xs text-slate-500">
-                Median waiting times at anchor, berthing dwell, and TEU queue density across top 300+ container ports.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {PRESET_PORTS.map(p => (
-                <button
-                  key={p.code}
-                  onClick={() => {
-                    setCongestionPort(p.code);
-                    handleExecuteCongestion(p.code);
-                  }}
-                  className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                    congestionPort === p.code
-                      ? 'bg-sky-600 text-white shadow-xs'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                  }`}
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {congestionData && (
-            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-5 animate-fade-in">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">{congestionData.name} ({congestionData.locode})</h3>
-                  <p className="text-xs text-slate-500">Country: {congestionData.country} | Timezone: {congestionData.timezone}</p>
-                </div>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                  Live Terminal Feed
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Anchor Wait (30-day Median)</span>
-                  <span className="text-lg font-black text-slate-900 font-mono block mt-1">
-                    {congestionData.anchorLast30?.median || 0.4} days
-                  </span>
-                  <span className="text-[10px] text-slate-500">Queue outside port</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Berthing Time (30-day Median)</span>
-                  <span className="text-lg font-black text-slate-900 font-mono block mt-1">
-                    {congestionData.berthingLast30?.median || 1.1} days
-                  </span>
-                  <span className="text-[10px] text-slate-500">Time spent alongside berth</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Approaching Queue</span>
-                  <span className="text-lg font-black text-sky-700 font-mono block mt-1">
-                    {congestionData.approachingLast30?.vessels || 50} Vessels
-                  </span>
-                  <span className="text-[10px] text-slate-500">{Math.round((congestionData.approachingLast30?.teu || 200000)/1000)}k TEU in transit</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Container Yard Dwell</span>
-                  <span className="text-lg font-black text-amber-700 font-mono block mt-1">
-                    {congestionData.dwellLast30?.polMedian || 4.3} days
-                  </span>
-                  <span className="text-[10px] text-slate-500">POL staging time</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 5: CARBON CALCULATOR */}
-      {activeTab === 'carbon' && (
-        <div className="space-y-5">
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-4">
-            <div>
-              <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                <Leaf className="w-4 h-4 text-emerald-600" />
-                GLEC Clean Cargo CO2 Emissions Calculator
-              </h3>
-              <p className="text-xs text-slate-500">
-                Calculate oceanic carbon emissions, trees needed to offset, and green transport compliance.
-              </p>
-            </div>
-
-            <form onSubmit={handleExecuteCarbon} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-              <div className="sm:col-span-4">
-                <label className="block text-xs font-bold text-slate-700 mb-1">Origin UN/LOCODE</label>
-                <input
-                  type="text"
-                  value={carbonOrigin}
-                  onChange={(e) => setCarbonOrigin(e.target.value.toUpperCase())}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-sky-500 outline-none uppercase"
-                />
-              </div>
-
-              <div className="sm:col-span-4">
-                <label className="block text-xs font-bold text-slate-700 mb-1">Destination UN/LOCODE</label>
-                <input
-                  type="text"
-                  value={carbonDest}
-                  onChange={(e) => setCarbonDest(e.target.value.toUpperCase())}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-sky-500 outline-none uppercase"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 mb-1">Cargo Weight (KG)</label>
-                <input
-                  type="number"
-                  value={carbonWeight}
-                  onChange={(e) => setCarbonWeight(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-sky-500 outline-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <button
-                  type="submit"
-                  disabled={isCarbonLoading}
-                  className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-                >
-                  <Leaf className="w-4 h-4" />
-                  <span>Calculate CO2</span>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {carbonResult && (
-            <div className="bg-emerald-950 text-white rounded-2xl p-5 border border-emerald-800 shadow-xl space-y-4 animate-fade-in">
-              <div className="flex items-center justify-between border-b border-emerald-800 pb-3">
-                <h4 className="font-black text-white text-base">Carbon Footprint Analysis</h4>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">
-                  GLEC Framework Certified
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3.5 rounded-xl bg-emerald-900/40 border border-emerald-800">
-                  <span className="text-[10px] uppercase font-bold text-emerald-300 block">Total CO2 Emission</span>
-                  <span className="text-xl font-black text-white font-mono block mt-1">
-                    {carbonResult.co2Tonnes} Tonnes
-                  </span>
-                  <span className="text-[10px] text-emerald-300 font-mono">({carbonResult.co2Kg} kg CO2e)</span>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-emerald-900/40 border border-emerald-800">
-                  <span className="text-[10px] uppercase font-bold text-emerald-300 block">Trees Needed to Offset</span>
-                  <span className="text-xl font-black text-amber-300 font-mono block mt-1">
-                    {Math.round(carbonResult.treesToOffset || 0)} Trees
-                  </span>
-                  <span className="text-[10px] text-emerald-300">1 Year Sequestration</span>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-emerald-900/40 border border-emerald-800">
-                  <span className="text-[10px] uppercase font-bold text-emerald-300 block">Sea Distance</span>
-                  <span className="text-xl font-black text-sky-300 font-mono block mt-1">
-                    {Math.round(carbonResult.distanceKm || 0)} km
-                  </span>
-                  <span className="text-[10px] text-emerald-300">Nautical Route</span>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-emerald-900/40 border border-emerald-800">
-                  <span className="text-[10px] uppercase font-bold text-emerald-300 block">Car Equivalent</span>
-                  <span className="text-xl font-black text-slate-200 font-mono block mt-1">
-                    {Math.round(carbonResult.carKmEquivalent || 0)} km
-                  </span>
-                  <span className="text-[10px] text-emerald-300">Standard Vehicle</span>
                 </div>
               </div>
             </div>
