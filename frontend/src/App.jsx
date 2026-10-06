@@ -854,20 +854,21 @@ export default function App() {
           </React.Suspense>
         </ErrorBoundary>
 
-        {/* STEP 12: TEMPORARY DEV DEBUG INSPECTION PANEL */}
-        <div className="mt-8 border border-slate-300 bg-slate-900 text-slate-100 rounded-2xl p-4 text-xs font-mono shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-700 pb-2 mb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="font-bold text-slate-200">🔍 Live API Contract Debug Inspection Panel (Dev Mode)</span>
+        {/* STEP 12: TEMPORARY DEV DEBUG INSPECTION PANEL (Hidden on Ocean Hub) */}
+        {activeTab !== 'vessels' && (
+          <div className="mt-8 border border-slate-300 bg-slate-900 text-slate-100 rounded-2xl p-4 text-xs font-mono shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-700 pb-2 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-bold text-slate-200">🔍 Live API Contract Debug Inspection Panel (Dev Mode)</span>
+              </div>
+              <button
+                onClick={() => setShowDebugPanel(prev => !prev)}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold transition-all cursor-pointer"
+              >
+                {showDebugPanel ? 'Hide Debug Details ▲' : 'Show Debug Details ▼'}
+              </button>
             </div>
-            <button
-              onClick={() => setShowDebugPanel(prev => !prev)}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold transition-all cursor-pointer"
-            >
-              {showDebugPanel ? 'Hide Debug Details ▲' : 'Show Debug Details ▼'}
-            </button>
-          </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] mb-3">
             <div><span className="text-slate-400">Company:</span> <strong className="text-amber-300">{selectedCompany}</strong></div>
@@ -925,6 +926,7 @@ export default function App() {
             </div>
           )}
         </div>
+        )}
 
       </main>
 
