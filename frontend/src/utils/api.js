@@ -4,53 +4,9 @@
  * Zero static JSON mock files. Zero offline fallbacks.
  */
 
-const BACKEND_BASE = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL)
+export const BACKEND_BASE = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL)
   ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
   : 'https://spj-backend.onrender.com';
-
-let loginPromise = null;
-
-/**
- * Ensures a valid verified JWT token exists.
- * Silently authenticates against backend if token is missing or expired.
- */
-export async function ensureAuthToken() {
-  try {
-    const existing = localStorage.getItem('spj_auth_token');
-    if (existing && existing.split('.').length === 3) {
-      return existing;
-    }
-  } catch {}
-
-  if (loginPromise) return loginPromise;
-
-  loginPromise = (async () => {
-    try {
-      const res = await fetch(`${BACKEND_BASE}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'admin', password: 'SPJ@Cargo2026' })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.token) {
-          try {
-            localStorage.setItem('spj_auth_token', data.token);
-            if (data.user) localStorage.setItem('spj_user', JSON.stringify(data.user));
-          } catch {}
-          return data.token;
-        }
-      }
-    } catch (e) {
-      console.error('[SPJ API] Live backend auth failed:', e.message);
-    } finally {
-      loginPromise = null;
-    }
-    return null;
-  })();
-
-  return loginPromise;
-}
 
 export function getAuthToken() {
   try {
@@ -63,13 +19,10 @@ export function getAuthToken() {
 /**
  * Pure Live Authenticated Fetch
  * Directly calls Render backend -> Oracle SPJLIVE database.
- * No mock JSON fallbacks.
+ * Requires user to be authenticated. Never embeds plain-text master credentials.
  */
 export async function authFetch(url, options = {}) {
-  let token = getAuthToken();
-  if (!token || token.split('.').length !== 3) {
-    token = await ensureAuthToken();
-  }
+  const token = getAuthToken();
 
   const buildHeaders = (tok) => ({
     'Content-Type': 'application/json',
@@ -84,21 +37,20 @@ export async function authFetch(url, options = {}) {
     const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     try {
-      let res = await fetch(targetUrl, {
+      const res = await fetch(targetUrl, {
         ...options,
         headers: buildHeaders(token),
         signal: options.signal || controller.signal,
       });
       clearTimeout(timeoutId);
 
-      // If 401 unauthorized, renew JWT token and retry
+      // If 401 unauthorized, session has expired or is invalid
       if (res.status === 401) {
-        try { localStorage.removeItem('spj_auth_token'); } catch {}
-        token = await ensureAuthToken();
-        res = await fetch(targetUrl, {
-          ...options,
-          headers: buildHeaders(token),
-        });
+        try {
+          localStorage.removeItem('spj_auth_token');
+          localStorage.removeItem('spj_auth_user');
+        } catch {}
+        return res;
       }
 
       return res;

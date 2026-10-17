@@ -18,17 +18,7 @@ import {
   Layers
 } from 'lucide-react';
 
-// Master Administrator Account
-export const MASTER_USER = {
-  id: 'admin',
-  altId: 'admin@spjcargo.com',
-  username: 'admin',
-  password: 'admin',
-  altPassword: 'SPJ@Cargo2026',
-  name: 'Admin',
-  role: 'System Administrator',
-  badge: 'Master Admin'
-};
+import { BACKEND_BASE } from '../utils/api';
 
 export default function LoginPage({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
@@ -53,26 +43,7 @@ export default function LoginPage({ onLoginSuccess }) {
     setLoading(true);
 
     try {
-      if ((cleanUser === 'admin' || cleanUser === 'admin@spjcargo.com') && 
-          (cleanPass === 'admin' || cleanPass === 'SPJ@Cargo2026' || cleanPass === 'admin123')) {
-        const standaloneToken = 'SPJ_STANDALONE_MASTER_TOKEN_' + Date.now();
-        const standaloneUser = {
-          id: 'admin',
-          username: 'admin',
-          name: 'System Administrator',
-          role: 'SUPER_ADMIN',
-          badge: 'Master Admin'
-        };
-        if (rememberMe) {
-          localStorage.setItem('spj_auth_token', standaloneToken);
-          localStorage.setItem('spj_auth_user', JSON.stringify(standaloneUser));
-        }
-        setLoading(false);
-        onLoginSuccess(standaloneUser, standaloneToken);
-        return;
-      }
-
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${BACKEND_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: cleanUser, password: cleanPass }),
@@ -93,7 +64,7 @@ export default function LoginPage({ onLoginSuccess }) {
       }
     } catch (err) {
       setLoading(false);
-      setError('Authentication server error. Please try again.');
+      setError('Authentication server error. Please check your connection.');
     }
   };
 
