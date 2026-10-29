@@ -488,22 +488,41 @@ export default function GlobalFilterBar({
                   <Calendar className="w-3.5 h-3.5 text-[#ff6a00]" />
                   Date Range
                 </span>
-                {(customFromDate || customToDate) ? (
+                <div className="flex items-center gap-1">
                   <button
+                    type="button"
                     onClick={() => {
-                      if (setCustomFromDate) setCustomFromDate('');
-                      if (setCustomToDate) setCustomToDate('');
-                      if (setSelectedFY) setSelectedFY('ALL');
+                      const today = '2026-10-29';
+                      if (setCustomFromDate) setCustomFromDate(today);
+                      if (setCustomToDate) setCustomToDate(today);
+                      if (setSelectedFY) setSelectedFY('CUSTOM_RANGE');
                     }}
-                    className="text-[9px] font-bold text-rose-600 hover:underline cursor-pointer"
+                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded border transition-all cursor-pointer ${
+                      customFromDate === '2026-10-29' && customToDate === '2026-10-29'
+                        ? 'bg-[#ff6a00] text-white border-[#ff6a00]'
+                        : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+                    }`}
                   >
-                    Clear Dates
+                    Today
                   </button>
-                ) : (
-                  <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200">
-                    All Time Data
-                  </span>
-                )}
+                  {(customFromDate || customToDate) ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (setCustomFromDate) setCustomFromDate('');
+                        if (setCustomToDate) setCustomToDate('');
+                        if (setSelectedFY) setSelectedFY('ALL');
+                      }}
+                      className="text-[9px] font-bold text-rose-600 hover:underline cursor-pointer ml-1"
+                    >
+                      Clear
+                    </button>
+                  ) : (
+                    <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200">
+                      All Time
+                    </span>
+                  )}
+                </div>
               </label>
 
               <div className="flex items-center gap-1.5 p-1.5 bg-slate-50 border border-slate-300 rounded-xl shadow-xs h-9 sm:h-11">

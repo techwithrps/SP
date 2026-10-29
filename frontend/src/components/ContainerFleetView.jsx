@@ -61,13 +61,11 @@ export default function ContainerFleetView({
       if (selectedCompany && selectedCompany !== 'ALL' && selectedCompany !== 'all') queryParams.append('companyId', selectedCompany);
       if (selectedCustomer && selectedCustomer !== 'ALL' && selectedCustomer !== 'all') queryParams.append('customerId', selectedCustomer);
       if (selectedTerminal && selectedTerminal !== 'ALL' && selectedTerminal !== 'all') queryParams.append('terminalId', selectedTerminal);
-      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all' && selectedFY !== 'Custom Date Range' && selectedFY !== 'CUSTOM_RANGE') {
+      if (selectedFY && selectedFY !== 'ALL' && selectedFY !== 'all' && selectedFY !== 'Custom Date Range' && selectedFY !== 'CUSTOM_RANGE' && selectedFY !== 'All Financial Years') {
         queryParams.append('financialYear', selectedFY);
       }
-      if ((selectedFY === 'Custom Date Range' || selectedFY === 'CUSTOM_RANGE')) {
-        if (customFromDate && customFromDate.trim()) queryParams.append('fromDate', customFromDate);
-        if (customToDate && customToDate.trim()) queryParams.append('toDate', customToDate);
-      }
+      if (customFromDate && customFromDate.trim()) queryParams.append('fromDate', customFromDate.trim());
+      if (customToDate && customToDate.trim()) queryParams.append('toDate', customToDate.trim());
       if (statusFilter && statusFilter !== 'all') queryParams.append('status', statusFilter);
       if (sizeFilter && sizeFilter !== 'all') queryParams.append('contSize', sizeFilter);
       if (typeFilter && typeFilter !== 'all') queryParams.append('contType', typeFilter);
@@ -98,12 +96,12 @@ export default function ContainerFleetView({
 
   // Exact Dynamic Totals
   const displayStats = useMemo(() => {
-    const totCont = baseStats.totalDBContainers !== undefined ? baseStats.totalDBContainers : 89633;
-    const distCont = baseStats.distinctContainers !== undefined ? baseStats.distinctContainers : 81428;
-    const u40 = baseStats.units40ft !== undefined ? baseStats.units40ft : 83126;
-    const u20 = baseStats.units20ft !== undefined ? baseStats.units20ft : 6509;
-    const teus = baseStats.totalDBTeus !== undefined ? baseStats.totalDBTeus : 172761;
-    const jobs = baseStats.totalDBJobs !== undefined ? baseStats.totalDBJobs : 89633;
+    const totCont = baseStats.totalDBContainers !== undefined ? baseStats.totalDBContainers : (data?.total || 0);
+    const distCont = baseStats.distinctContainers !== undefined ? baseStats.distinctContainers : (data?.distinctCount || baseStats.totalDBContainers || 0);
+    const u40 = baseStats.units40ft !== undefined ? baseStats.units40ft : 0;
+    const u20 = baseStats.units20ft !== undefined ? baseStats.units20ft : 0;
+    const teus = baseStats.totalDBTeus !== undefined ? baseStats.totalDBTeus : (u40 * 2 + u20);
+    const jobs = baseStats.totalDBJobs !== undefined ? baseStats.totalDBJobs : (data?.total || 0);
 
     return {
       totalContainers: totCont,
