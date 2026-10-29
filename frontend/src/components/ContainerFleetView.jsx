@@ -114,15 +114,11 @@ export default function ContainerFleetView({
   }, [baseStats, data]);
 
   const totalDisplayCount = useMemo(() => {
+    if (data?.total !== undefined) return data.total;
     if (sizeFilter === '40') return displayStats.units40ft;
     if (sizeFilter === '20') return displayStats.units20ft;
-    if (typeFilter === 'REEFER') return Math.round(displayStats.totalContainers * 0.40);
-    if (typeFilter === 'DRY') return Math.round(displayStats.totalContainers * 0.60);
-    if (statusFilter === 'Stored in Cold Chamber') return Math.round(displayStats.totalContainers * 0.35);
-    if (statusFilter === 'Dispatched / Gate Out') return Math.round(displayStats.totalContainers * 0.45);
-    if (search && search.trim()) return data?.totalRecords || paginatedContainers.length;
     return displayStats.totalContainers;
-  }, [sizeFilter, typeFilter, statusFilter, search, displayStats, data, paginatedContainers.length]);
+  }, [sizeFilter, displayStats, data]);
 
   const totalPages = data?.totalPages || Math.ceil(totalDisplayCount / pageSize) || 1;
 
