@@ -496,8 +496,7 @@ export default function AnalyticsCharts({
         <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto py-0.5">
           {[
             { key: 'branches', label: 'Branch Matrix', fullLabel: 'Branch Performance Matrix', icon: Building2 },
-            { key: 'customer_bi', label: 'Top Clients', fullLabel: 'Top Customer Leaders', icon: Users },
-            { key: 'service_bi', label: 'Services', fullLabel: 'Service & Tariff Breakdown', icon: Layers }
+            { key: 'customer_bi', label: 'Top Clients', fullLabel: 'Top Customer Leaders', icon: Users }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
